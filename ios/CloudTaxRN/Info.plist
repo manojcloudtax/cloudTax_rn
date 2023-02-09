@@ -64,26 +64,20 @@
 		<string>CircularStd-Bold.ttf</string>
 		<string>CircularStd-Book.ttf</string>
 		<string>CircularStd-Medium.ttf</string>
-		<string>Gilroy-Black.ttf</string>
-		<string>Gilroy-BlackItalic.ttf</string>
-		<string>Gilroy-Bold.ttf</string>
-		<string>Gilroy-BoldItalic.ttf</string>
-		<string>Gilroy-ExtraBold.ttf</string>
-		<string>Gilroy-ExtraBoldItalic.ttf</string>
-		<string>Gilroy-Heavy.ttf</string>
-		<string>Gilroy-HeavyItalic.ttf</string>
-		<string>Gilroy-Light.ttf</string>
-		<string>Gilroy-LightItalic.ttf</string>
-		<string>Gilroy-Medium.ttf</string>
-		<string>Gilroy-MediumItalic.ttf</string>
-		<string>Gilroy-Regular.ttf</string>
-		<string>Gilroy-RegularItalic.ttf</string>
-		<string>Gilroy-SemiBold.ttf</string>
-		<string>Gilroy-SemiBoldItalic.ttf</string>
-		<string>Gilroy-Thin.ttf</string>
-		<string>Gilroy-ThinItalic.ttf</string>
-		<string>Gilroy-UltraLight.ttf</string>
-		<string>Gilroy-UltraLightItalic.ttf</string>
+		<string>Figtree-Black.ttf</string>
+		<string>Figtree-BlackItalic.ttf</string>
+		<string>Figtree-Bold.ttf</string>
+		<string>Figtree-BoldItalic.ttf</string>
+		<string>Figtree-ExtraBold.ttf</string>
+		<string>Figtree-ExtraBoldItalic.ttf</string>
+		<string>Figtree-Light.ttf</string>
+		<string>Figtree-LightItalic.ttf</string>
+		<string>Figtree-Medium.ttf</string>
+		<string>Figtree-MediumItalic.ttf</string>
+		<string>Figtree-Regular.ttf</string>
+		<string>Figtree-SemiBold.ttf</string>
+		<string>Figtree-SemiBoldItalic.ttf</string>
+		<string>Figtree-Italic.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>

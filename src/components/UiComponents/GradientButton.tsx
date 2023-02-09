@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
   lightText: {
     textAlign: 'center',
-    fontFamily: 'Gilroy-Medium',
+    fontFamily: 'Figtree-Medium',
     fontWeight: '600',
     fontSize: 18,
     color: defaultColors.white

@@ -21,7 +21,7 @@ const styles = (isDarkTheme?: boolean) => StyleSheet.create({
   textStyle: {
     color: isDarkTheme ? defaultColors.white : defaultColors.black,
     fontSize: 16,
-    fontFamily: 'Gilroy-Medium',
+    fontFamily: 'Figtree-Medium',
   }
 
 });

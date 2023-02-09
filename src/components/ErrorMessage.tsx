@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: -15,
         marginBottom: 15,
-        fontFamily: 'Gilroy-MediumItalic'
+        fontFamily: 'Figtree-MediumItalic'
     },
 });
 

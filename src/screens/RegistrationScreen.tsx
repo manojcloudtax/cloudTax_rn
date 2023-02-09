@@ -211,7 +211,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                         style={{
                             fontWeight: '600', 
                             fontSize: 25, 
-                            fontFamily: 'Gilroy-Bold', 
+                            fontFamily: 'Figtree-Bold', 
                             marginTop: 32
                             }} >
                         Let's get started
@@ -244,7 +244,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                             style={{fontWeight: '600', 
                             marginTop: 42,
                             fontSize: 16, 
-                            fontFamily: 'Gilroy-Regular', 
+                            fontFamily: 'Figtree-Regular', 
                             marginBottom: 24
                         }} >What should we call you?</CtText>
                         <CtTextInput
@@ -373,7 +373,7 @@ const styles = (isDarkTheme?: boolean) => StyleSheet.create({
         marginBottom: 24,
         borderRadius: 8,
         width: '100%',
-        fontFamily: 'Gilroy-Medium'
+        fontFamily: 'Figtree-Medium'
     },
     button: {
         paddingVertical: 15,

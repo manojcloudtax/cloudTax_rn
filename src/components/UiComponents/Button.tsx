@@ -21,7 +21,7 @@ const Button = (props: ButtonProps) => {
         style={[styles.button, style]}
       >
         {buttonText &&
-          <CtText style={[darkTheme ? null : styles.lightText, {fontFamily: 'Gilroy-SemiBold', fontSize: 18}]}>{buttonText}</CtText>}
+          <CtText style={[darkTheme ? null : styles.lightText, {fontFamily: 'Figtree-SemiBold', fontSize: 18}]}>{buttonText}</CtText>}
         {children}
       </TouchableOpacity>
     </View>

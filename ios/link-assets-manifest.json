@@ -18,84 +18,60 @@
       "sha1": "41c6ce9d98143129b26c2660e4a7fe8695b64df3"
     },
     {
-      "path": "assets/fonts/Gilroy-Black.ttf",
-      "sha1": "41d7d53d34ae67d9dc54979abee04f3514163740"
+      "path": "assets/fonts/Figtree-Black.ttf",
+      "sha1": "9fe0ba2bf8c6b9ed3a21332e40c686e55f10fe49"
     },
     {
-      "path": "assets/fonts/Gilroy-BlackItalic.ttf",
-      "sha1": "3f16053efbb2fba78e7cc3722e2ffd8beddb862d"
+      "path": "assets/fonts/Figtree-BlackItalic.ttf",
+      "sha1": "c09e021e8f3af60ffbe767bf7fe69d72dd3c6cd5"
     },
     {
-      "path": "assets/fonts/Gilroy-Bold.ttf",
-      "sha1": "7fe4d8cf5325dd47363d0f80fefb40ac7df5d5a6"
+      "path": "assets/fonts/Figtree-Bold.ttf",
+      "sha1": "e1d5a4840b867c4cdfe5a9e297e2bc373bc77196"
     },
     {
-      "path": "assets/fonts/Gilroy-BoldItalic.ttf",
-      "sha1": "9d242712b00aa14b76df6b0526957679a0dd4f13"
+      "path": "assets/fonts/Figtree-BoldItalic.ttf",
+      "sha1": "b34ac9a0b9ce50ef1a8647736315ffe9ffdb899d"
     },
     {
-      "path": "assets/fonts/Gilroy-ExtraBold.ttf",
-      "sha1": "eb2b7042895e0fe98ea023f3e45048f9d152127e"
+      "path": "assets/fonts/Figtree-ExtraBold.ttf",
+      "sha1": "14d574440e5e2621c710176549323098f3612623"
     },
     {
-      "path": "assets/fonts/Gilroy-ExtraBoldItalic.ttf",
-      "sha1": "3fa4b88b9e55088d5a38d8ada83732452951f514"
+      "path": "assets/fonts/Figtree-ExtraBoldItalic.ttf",
+      "sha1": "3d1458c71f43c577a48b2ab7795929b0272a1de3"
     },
     {
-      "path": "assets/fonts/Gilroy-Heavy.ttf",
-      "sha1": "3e47b596a6cc4ad3ac4f79353c4bddc987bc84bc"
+      "path": "assets/fonts/Figtree-Italic.ttf",
+      "sha1": "50f1af80dd448b053c71bd0864e5735708cc62f4"
     },
     {
-      "path": "assets/fonts/Gilroy-HeavyItalic.ttf",
-      "sha1": "71d5083e3895c1857d2e4c73a2e65731061d43f9"
+      "path": "assets/fonts/Figtree-Light.ttf",
+      "sha1": "f8fab9332dabb9e456e1ae5554beeba5e0d832df"
     },
     {
-      "path": "assets/fonts/Gilroy-Light.ttf",
-      "sha1": "510faebaff56ce8b518fc84bdd1aefeefae00b65"
+      "path": "assets/fonts/Figtree-LightItalic.ttf",
+      "sha1": "b8145718010f51bf616f372827a03a70128b8fd6"
     },
     {
-      "path": "assets/fonts/Gilroy-LightItalic.ttf",
-      "sha1": "1ead29f40523006583d1813c0b2f50c872216ed3"
+      "path": "assets/fonts/Figtree-Medium.ttf",
+      "sha1": "8ec20d5f8f9db6c164f9c24c12a5368ebb1747a4"
     },
     {
-      "path": "assets/fonts/Gilroy-Medium.ttf",
-      "sha1": "d7f893124bd4fff78805e69df31385ae113368be"
+      "path": "assets/fonts/Figtree-MediumItalic.ttf",
+      "sha1": "a5e4f0ec7b535097a64e125d72e39afeb1f2469f"
     },
     {
-      "path": "assets/fonts/Gilroy-MediumItalic.ttf",
-      "sha1": "5993ba5a055534b7b6fe766d063650767e6929ac"
+      "path": "assets/fonts/Figtree-Regular.ttf",
+      "sha1": "399626835e9516e6930299557da946e87bf8495a"
     },
     {
-      "path": "assets/fonts/Gilroy-Regular.ttf",
-      "sha1": "a737c19356e50cb9a50eb64ca7446c80dd3aa3e3"
+      "path": "assets/fonts/Figtree-SemiBold.ttf",
+      "sha1": "38d82c8cbdc0e0bac0355ffb21500b8dc4e76da0"
     },
     {
-      "path": "assets/fonts/Gilroy-RegularItalic.ttf",
-      "sha1": "849c9d5af9b98915b9a2961b92365e793f1b756e"
-    },
-    {
-      "path": "assets/fonts/Gilroy-SemiBold.ttf",
-      "sha1": "8663a356eb9bc23b77696208f74376daf59687ea"
-    },
-    {
-      "path": "assets/fonts/Gilroy-SemiBoldItalic.ttf",
-      "sha1": "6eeadaaadf79773e8630aabb17a2b0b8a48b94b5"
-    },
-    {
-      "path": "assets/fonts/Gilroy-Thin.ttf",
-      "sha1": "af4998778ceb58ef38ff3fe5441eec696cb970dc"
-    },
-    {
-      "path": "assets/fonts/Gilroy-ThinItalic.ttf",
-      "sha1": "3cfc68dab2b878451f4334981e8d5e2a84fc3698"
-    },
-    {
-      "path": "assets/fonts/Gilroy-UltraLight.ttf",
-      "sha1": "1cfbfa447c336558c8ab3389bb11015adebf744f"
-    },
-    {
-      "path": "assets/fonts/Gilroy-UltraLightItalic.ttf",
-      "sha1": "594654ca331a2b85349e9fe36b87fdf9b86ff4c8"
+      "path": "assets/fonts/Figtree-SemiBoldItalic.ttf",
+      "sha1": "748285ece34863a21b2b8b093ed05061f51f4af0"
     },
     {
       "path": "assets/fonts/OpenSans-ExtraBold.otf",

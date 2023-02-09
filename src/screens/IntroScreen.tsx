@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 32,
         textAlign: 'center',
-        fontFamily: 'Gilroy-Bold',
+        fontFamily: 'Figtree-Bold',
         lineHeight: 34.15
     },
     textDescription: {
