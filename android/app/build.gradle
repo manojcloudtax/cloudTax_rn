@@ -140,7 +140,9 @@ android {
     ndkVersion rootProject.ext.ndkVersion
 
     compileSdkVersion rootProject.ext.compileSdkVersion
-
+packagingOptions {
+     jniLibs.useLegacyPackaging = true
+}
     defaultConfig {
         applicationId 'com.cloudtax'
         minSdkVersion rootProject.ext.minSdkVersion
