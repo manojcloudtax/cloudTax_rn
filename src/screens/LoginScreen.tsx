@@ -25,10 +25,13 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { validateEmail } from "../utils/email";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
+import { Ionicons, Feather } from "@expo/vector-icons";
 
 import DeviceCrypto from "react-native-device-crypto";
 import { decryptAccounts } from "../utils/crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { SocialIcon } from "react-native-elements";
+import CheckBox from "@react-native-community/checkbox";
 
 const LoginScreen = ({ navigation }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -38,6 +41,7 @@ const LoginScreen = ({ navigation }: any) => {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [biometricsSupported, setBiometricsSupported] = useState(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isKeepMeSignInChecked, setKeepMeSignedIn] = useState<boolean>(false);
 
   // biometrics related states
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -84,16 +88,6 @@ const LoginScreen = ({ navigation }: any) => {
     checkSecurity();
   }, []);
 
-  const onEmailChange = () => {
-    if (!email) {
-      setEmailError("Email is required.");
-    } else if (!validateEmail(email)) {
-      setEmailError("Email is not valid");
-    } else {
-      setEmailError(null);
-    }
-  };
-
   const onPasswordChange = () => {
     if (email && !password) {
       setPasswordError("Password is required.");
@@ -114,7 +108,7 @@ const LoginScreen = ({ navigation }: any) => {
           <Button
             disabled={disabled}
             style={style}
-            buttonText="Login"
+            buttonText="Sign In"
             onPress={async () => {
               if (email && password) {
                 await refetch();
@@ -135,7 +129,7 @@ const LoginScreen = ({ navigation }: any) => {
       <CtView style={styles().inputIcon}>
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
           <FontAwesome5
-            name={showPassword ? "eye" : "eye-slash"}
+            name={!showPassword ? "eye" : "eye-slash"}
             style={styles().iconStyle}
           />
         </TouchableOpacity>
@@ -215,6 +209,23 @@ const LoginScreen = ({ navigation }: any) => {
     });
   };
 
+  const onEmailSubmit = () => {
+    if (!email.trim()) {
+      setEmailError("Email is required.");
+    } else if (!validateEmail(email)) {
+      setEmailError("Please enter valid email");
+    } else {
+      setEmailError(null);
+    }
+  };
+
+  const toggleCheckbox = () => {
+    setKeepMeSignedIn(!isKeepMeSignInChecked);
+  };
+
+  const onPressText = (url: String) =>{
+    navigation.navigate("WebViewScreen", { url: url })
+  }
   useEffect(() => {
     decrypt();
   }, []);
@@ -226,8 +237,11 @@ const LoginScreen = ({ navigation }: any) => {
   }, [selectedAccount]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles().scrollStyle}>
+      <ScrollView
+        style={styles().scrollStyle}
+        showsVerticalScrollIndicator={false}
+      >
         <KeyboardAvoidingView
           keyboardVerticalOffset={Platform.OS === "android" ? 20 : 0}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -240,42 +254,143 @@ const LoginScreen = ({ navigation }: any) => {
                 Good to see you again! Sign into your account
               </CtText>
             </CtView>
-            <CtTextInput
-              testID={"private"}
-              value={email}
-              editable={true}
-              placeholder={"Email"}
-              placeholderTextColor={defaultColors.gray}
-              style={styles().input}
-              onChangeText={(text: string) => setEmail(text.trim())}
-              onBlur={onEmailChange}
-              keyboardType={"email-address"}
-              autoCapitalize="none"
-            />
-            <ErrorMessage text={emailError} />
-            <CtView style={styles().textInputContainer}>
-              <CtTextInput
-                testID={"private"}
-                value={password}
-                editable={true}
-                placeholder={"Password"}
-                placeholderTextColor={defaultColors.gray}
-                secureTextEntry={!showPassword}
-                style={styles().input}
-                onChangeText={(text: string) => setPassword(text)}
-                onBlur={onPasswordChange}
-                autoCapitalize="none"
-              />
-              {!!password && renderEyeIcon()}
+            <CtView style={styles().BottomViewContainer}>
+              <CtView style={styles().googleSignInContainer}>
+                <TouchableOpacity style={styles().googleSignIn}>
+                  <SocialIcon
+                    iconSize={18}
+                    light
+                    raised={false}
+                    type="google"
+                  />
+                  <CtText style={styles().buttonTitle}>
+                    Continue with google
+                  </CtText>
+                </TouchableOpacity>
+              </CtView>
+              <CtView style={styles().dividerContainer}>
+                <CtView style={styles().dividerStyle} />
+                <CtText
+                  style={{ width: 60, textAlign: "center", fontSize: 16 }}
+                >
+                  or
+                </CtText>
+                <CtView style={styles().dividerStyle} />
+              </CtView>
+              <CtView style={{ marginTop: 30 }}>
+                <CtView style={styles().textInputContainer}>
+                  <CtView style={styles().inputIcon2}>
+                    <TouchableOpacity>
+                      <Ionicons
+                        name={"mail-outline"}
+                        style={styles().iconStyle}
+                      />
+                    </TouchableOpacity>
+                  </CtView>
+                  <CtTextInput
+                    editable={true}
+                    placeholder={"Your email address"}
+                    placeholderTextColor={defaultColors.gray}
+                    style={styles().inputAlt}
+                    onChangeText={(email: string) => setEmail(email)}
+                    onBlur={onEmailSubmit}
+                    keyboardType={"email-address"}
+                    autoCapitalize="none"
+                  />
+                </CtView>
+                <ErrorMessage text={emailError} />
+                <CtView style={styles().textInputContainer}>
+                  <CtView style={styles().inputIcon2}>
+                    <TouchableOpacity>
+                      <Ionicons name={"key"} style={styles().iconStyle} />
+                    </TouchableOpacity>
+                  </CtView>
+                  <CtTextInput
+                    testID={"private"}
+                    value={password}
+                    editable={true}
+                    placeholder={"Password"}
+                    placeholderTextColor={defaultColors.gray}
+                    secureTextEntry={!showPassword}
+                    style={styles().inputAlt}
+                    onChangeText={(text: string) => setPassword(text)}
+                    onBlur={onPasswordChange}
+                    autoCapitalize="none"
+                  />
+                  {renderEyeIcon()}
+                </CtView>
+                <ErrorMessage text={passwordError} />
+                <CtView style={styles().keepMeContainer}>
+                  <CtView style={styles().KeepContainer}>
+                    <CheckBox
+                      lineWidth={1}
+                      boxType={"square"}
+                      value={isKeepMeSignInChecked}
+                      onValueChange={toggleCheckbox}
+                      style={{
+                        alignSelf: "center",
+                        width: 20,
+                        height: 20,
+                        marginRight: 10,
+                        borderRadius: 5,
+                      }}
+                      onFillColor={defaultColors.primaryButton}
+                      onCheckColor={defaultColors.white}
+                    />
+                    <CtText style={styles().forgotTextColor}>
+                      Keep me signed in
+                    </CtText>
+                  </CtView>
+
+                  <CtView style={styles().forgotPassContainer}>
+                    <CtText style={styles().forgotTextColor}>
+                      Forgot password?
+                    </CtText>
+                  </CtView>
+                </CtView>
+                <CtView style={styles().buttonContainer}>{renderButton}</CtView>
+
+                <TextButton
+                  description="New to Cloud Tax? "
+                  linkText="Create a new account"
+                  linkTextColor={defaultColors.links}
+                  onPress={() =>
+                    navigation.navigate("RegisterScreen", { step: 1 })
+                  }
+                />
+
+                <CtView style={[styles().keepMeContainer, {marginTop: 30}]}>
+                  <CtView
+                    style={{
+                      flex: 0.45,
+                      alignItems: "flex-end",
+                    }}
+                  >
+                    <CtText style={styles().forgotTextColor} onPress={() => onPressText('https://www.npmjs.com/package/react-native-webview')}>
+                      Terms of Service
+                    </CtText>
+                  </CtView>
+                  <CtView
+                    style={{
+                      flex: 0.1,
+                      alignItems: "center",
+                    }}
+                  >
+                    <CtText style={styles().dottedStyle}>{'\u2B24'}</CtText>
+                  </CtView>
+                  <CtView
+                    style={{
+                      flex: 0.45,
+                      justifyContent: "flex-start",
+                    }}
+                  >
+                    <CtText style={styles().forgotTextColor} onPress={() => onPressText('https://www.npmjs.com/package/react-native-webview')}>
+                      Privacy Policy
+                    </CtText>
+                  </CtView>
+                </CtView>
+              </CtView>
             </CtView>
-            <ErrorMessage text={passwordError} />
-            <CtView style={styles().buttonContainer}>{renderButton}</CtView>
-            <TextButton
-              description="Don't have account? "
-              linkText="Sign up"
-              linkTextColor={defaultColors.links}
-              onPress={() => navigation.navigate("RegisterScreen", { step: 1 })}
-            />
           </CtView>
         </KeyboardAvoidingView>
       </ScrollView>
@@ -286,31 +401,41 @@ const LoginScreen = ({ navigation }: any) => {
 const styles = (isDarkTheme?: boolean) =>
   StyleSheet.create({
     scrollStyle: {
-      flexGrow: 1,
+      flex: 1,
       paddingBottom: 15,
+      backgroundColor: defaultColors.white,
     },
     container: {
       paddingHorizontal: 15,
-      // justifyContent: 'center',
+      padding: 20,
+    },
+    BottomViewContainer: {
+      marginTop: 10,
     },
     TopTextContainer: {
       marginTop: 40,
     },
-    logo: {
-      alignSelf: "center",
-      maxWidth: "60%",
-      resizeMode: "contain",
-    },
     caption: {
       textAlign: "center",
-      fontSize: 20,
-      fontFamily: "Figtree-SemiBold",
+      fontSize: 25,
+      fontFamily: "Figtree-Bold",
+      fontWeight: "700"
     },
     subTitle: {
       marginTop: 5,
       textAlign: "center",
       fontSize: 18,
-      fontFamily: "Figtree-light",
+      fontFamily: "Figtree-Regular",
+      fontWeight: "400",
+      color: "rgba(26, 38, 58, 0.7)"
+    },
+    buttonTitle: {
+      textAlign: "center",
+      fontSize: 16,
+      fontFamily: "Figtree-Regular",
+      color: defaultColors.primaryText,
+      fontWeight: "600",
+      paddingLeft: 8,
     },
     input: {
       borderWidth: 1,
@@ -342,11 +467,27 @@ const styles = (isDarkTheme?: boolean) =>
     buttonContainer: {
       flex: 0,
       marginTop: 30,
-      marginBottom: 15,
+      marginBottom: 30,
+    },
+    keepMeContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      height: 60,
+    },
+    forgotPassContainer: {
+      flex: 0.45,
+      alignItems: "flex-end",
+    },
+    KeepContainer: {
+      flex: 0.55,
+      justifyContent: "flex-start",
+      alignItems: "center",
+      flexDirection: "row",
     },
     button: {
       paddingVertical: 16,
       borderRadius: 5,
+      backgroundColor: defaultColors.primaryButton,
     },
     separatorContainer: {
       flex: 0,
@@ -366,76 +507,59 @@ const styles = (isDarkTheme?: boolean) =>
       fontSize: 16,
       width: 24,
     },
-    biometricButton: {
-      backgroundColor: "transparent",
-      paddingVertical: 15,
-      borderColor: defaultColors.dodgerBlue,
-      borderWidth: 1,
-      borderRadius: 5,
-    },
-    biometricButtonText: {
-      textAlign: "center",
-      color: defaultColors.dodgerBlue,
-    },
-    radioGroupStyle: {
-      alignSelf: "flex-start",
-      marginBottom: 24,
-    },
-    modalWrapper: {
-      width: "90%",
-      marginLeft: 24,
-      overflow: "scroll",
-      marginRight: 24,
-      borderRadius: 5,
+    googleSignIn: {
       backgroundColor: "#FFF",
-    },
-    centeredView: {
-      flex: 1,
+      flexDirection: "row",
       justifyContent: "center",
+      alignContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(0,0,0,0.2)",
     },
-    modalView: {
-      flex: 0,
-      width: "97%",
-      margin: 20,
+    googleSignInContainer: {
+      height: 54,
       borderRadius: 10,
-      alignItems: "center",
       justifyContent: "center",
-      shadowRadius: 4,
-      elevation: 5,
+      backgroundColor: "#FFF",
+      borderWidth: 2,
+      marginTop: 20,
+      borderColor: "#DEE1E9",
+      alignContent: "center",
     },
-    modalHeader: {
-      marginTop: 24,
-      textAlign: "center",
-      marginBottom: 8,
-      fontSize: 20,
-      fontWeight: "800",
+    dividerContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 30,
     },
-    modalDescription: {
-      textAlign: "center",
-      marginBottom: 12,
-      fontSize: 15,
-    },
-    modalText: {
-      textAlign: "center",
-      color: defaultColors.dodgerBlue,
-      marginHorizontal: 24,
-    },
-    modalActionWrapper: {
-      flex: 1,
-      marginTop: 4,
-    },
-    modalAction: {
+    dividerStyle: { flex: 1, height: 1, backgroundColor: "#DEE1E9" },
+    inputIcon2: {
+      flex: 0,
+      position: "absolute",
+      justifyContent: "flex-start",
       backgroundColor: "transparent",
-      paddingVertical: 15,
-      borderRadius: 5,
+      left: 12,
+      top: 15,
     },
-    modalCloseButton: {
-      backgroundColor: "rgba(40,40,40, 0.8)",
-      padding: 12,
-      borderRadius: 24,
+    inputAlt: {
+      borderWidth: 1,
+      borderColor: "#DADADA",
+      backgroundColor: "transparent",
+      marginTop: 0,
+      padding: 15,
+      paddingLeft: 42,
+      marginBottom: 24,
+      borderRadius: 8,
+      width: "100%",
+      fontFamily: "Figtree-Medium",
     },
+    forgotTextColor: {
+      color: "rgba(26, 38, 58, 0.7)",
+      fontSize: 16,
+      fontWeight: "400",
+    },
+    dottedStyle:{
+        color: "rgba(26, 38, 58, 0.7)",
+        fontSize: 8,
+        fontWeight: "400",
+      }
   });
 
 export default LoginScreen;

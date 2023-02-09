@@ -8,7 +8,7 @@ const TextButton = ({ description, linkTextColor, linkText, onPress }: any) => {
         <CtView style={[styles.container, { justifyContent: description ? "center" : "flex-end" }]}>
 
             <CtText style={styles.linkDescription}>{description}
-                <CtText onPress={onPress} style={[styles.linkTextStyle, { fontSize: description ? 14 : 12, color: linkTextColor }]}> {linkText}</CtText>
+                <CtText onPress={onPress} style={[styles.linkTextStyle, { fontSize: description ? 14 : 16, color: linkTextColor }]}> {linkText}</CtText>
             </CtText>
         </CtView>
     );
@@ -22,9 +22,12 @@ const styles = StyleSheet.create({
     },
     linkDescription: {
         fontSize: 16,
+        color: 'rgba(26, 38, 58, 0.7)',
+        fontWeight: '400'
     },
     linkTextStyle: {
         fontSize: 16,
+        fontWeight: '600'
     }
 });
 

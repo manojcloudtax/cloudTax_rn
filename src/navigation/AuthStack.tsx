@@ -5,6 +5,7 @@ import { LoginScreen, RegisterScreen } from "../screens";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { defaultColors } from "../utils/defaultColors";
+import WebViewScreen from "../screens/WebViewScreen";
 
 const { Navigator, Screen } = createNativeStackNavigator();
 
@@ -35,6 +36,11 @@ const AuthStack = () => {
                     name="LoginScreen"
                     component={LoginScreen}
                     options={{ title: "", headerShown: false }}
+                />
+                <Screen
+                    name="WebViewScreen"
+                    component={WebViewScreen}
+                    options={{ title: ""}}
                 />
             </Navigator>
         );
