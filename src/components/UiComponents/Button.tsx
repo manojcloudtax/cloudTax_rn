@@ -14,26 +14,29 @@ const Button = (props: ButtonProps) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
   const { buttonText, style, children, activeOpacity } = props;
   return (
-    <View>
+    <View style={{justifyContent: 'center'}}>
       <TouchableOpacity
         {...props}
         activeOpacity={activeOpacity || 0.2}
-        style={[styles.button, style]}
+        style={[styles().button, style]}
       >
         {buttonText &&
-          <CtText style={[darkTheme ? null : styles.lightText, {fontFamily: 'Figtree-SemiBold', fontSize: 18}]}>{buttonText}</CtText>}
+          <CtText style={[darkTheme ? null : styles(darkTheme).lightText, {fontFamily: 'Figtree-SemiBold', fontSize: 18}]}>{buttonText}</CtText>}
         {children}
       </TouchableOpacity>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (isDarkTheme?: boolean) =>
+  StyleSheet.create({
   button: {
     backgroundColor: defaultColors.blue,
-    paddingVertical: 25,
+    // paddingVertical: 25,
     alignItems: 'center',
-    marginTop: 5,
+    // marginTop: 5,
+    justifyContent: 'center',
+    display: 'flex'
   },
   lightText: {
     color: defaultColors.white

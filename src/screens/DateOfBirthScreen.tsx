@@ -1,0 +1,631 @@
+import React, { useEffect, useMemo, useState, useRef, createRef } from "react";
+import {
+  StyleSheet,
+  Image,
+  Alert,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+  KeyboardAvoidingView,
+  Dimensions,
+  View,
+  TextInput,
+} from "react-native";
+import {
+  CtText,
+  CtView,
+  CtTextInput,
+  Button,
+  TextButton,
+  Divider,
+} from "../components/UiComponents";
+import { Spinner, ErrorMessage } from "../components";
+import { useDispatch } from "react-redux";
+import { defaultColors } from "../utils/defaultColors";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
+import { SafeAreaView } from "react-native-safe-area-context";
+import moment from "moment";
+import DatePicker from "react-native-date-picker";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  GetAfrUrl,
+  GetSlips,
+  GetTaxPayerPersonalInfo,
+  SaveTaxPayerPersonalInfo,
+} from "../api/auth";
+import { saveLoggedInSuccessUserData } from "../store/authSlice";
+import { CustomButton } from "../components/CustomButton";
+import { Header } from "../components/Header";
+const DateOfBirthScreen = ({ navigation, route }: any) => {
+  const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
+  const { savedUserData } = useSelector(
+    (state: RootState) => state.authReducer
+  );
+  const { getSavedLoggedInData } = useSelector(
+    (state: RootState) => state.authReducer
+  );
+  const [isEnable, setButtonEnable] = useState(false);
+  const [key, setKeyToRerender] = useState(1);
+  const [date, setDateValue] = useState(
+    new Date(moment().subtract(18, "y").format("YYYY-MM-DD"))
+  );
+  const [isDateAvailable, setDateAvailability] = useState(false);
+  const [SelectedSin, setSinValue] = useState("");
+  const dispatch = useDispatch();
+  const [open, setOpen] = useState(false);
+  const [loadingAvailable, setisLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      console.log("onPressConfirm res", getSavedLoggedInData?.TaxPayerBirthDate);
+      console.log("onPressConfirm res", getSavedLoggedInData);
+      if(getSavedLoggedInData?.TaxPayerBirthDate != undefined){
+        if(getSavedLoggedInData?.DefaultBirthDate == 'N'){
+          setDateValue(new Date(getSavedLoggedInData?.TaxPayerBirthDate));
+          setDateAvailability(true);
+        }
+        setButtonEnable(true);
+      } else if(date){
+        setButtonEnable(true);
+      }
+      if (route.params !== undefined) {
+        const { sin } = route.params;
+        setSinValue(sin);
+        console.log("onPressConfirm", sin);
+        console.log("onPressConfirm", savedUserData);
+      }
+    } catch (error) {}
+  }, []);
+  const onPressConfirm = async () => {
+    setisLoading(true);
+    const resGetTaxPayerMyProfileInfo = await GetTaxPayerPersonalInfo({
+      AcctID: savedUserData?.AcctID,
+      TaxPayerID: savedUserData?.TaxPayerID,
+      Year: 2022,
+      userToken: savedUserData?.token,
+    });
+    console.log("resGetTaxPayerMyProfileInfo res", resGetTaxPayerMyProfileInfo);
+    if (resGetTaxPayerMyProfileInfo) {
+      if(resGetTaxPayerMyProfileInfo.ErrCode == -1){
+        setisLoading(false);
+        Alert.alert("Something went wrong..! Please try again..!");
+        return;
+      } 
+      const resSaveTaxPayerPersonal = await SaveTaxPayerPersonalInfo({
+        TaxPayerID: resGetTaxPayerMyProfileInfo?.TaxPayerID,
+        Year: 2022,
+        TaxID: resGetTaxPayerMyProfileInfo?.TaxID,
+        TaxPayerName: resGetTaxPayerMyProfileInfo?.TaxPayerName,
+        TaxPayerMiddleName: resGetTaxPayerMyProfileInfo?.TaxPayerMiddleName,
+        TaxPayerLastName: resGetTaxPayerMyProfileInfo?.TaxPayerLastName,
+        TaxPayerSIN: SelectedSin,
+        TaxPayerBirthDate: moment(date).format("YYYY-MM-DD").toString(),
+        DefaultBirthDate: resGetTaxPayerMyProfileInfo?.DefaultBirthDate,
+        NameChangedStatus: resGetTaxPayerMyProfileInfo?.NameChangedStatus,
+        DisabledStatus: resGetTaxPayerMyProfileInfo?.DisabledStatus,
+        FirstYearClaimingStatus:
+          resGetTaxPayerMyProfileInfo?.FirstYearClaimingStatus,
+        Province: resGetTaxPayerMyProfileInfo?.Province,
+        T2201ApprovedStatus: resGetTaxPayerMyProfileInfo?.T2201ApprovedStatus,
+        ConfinedToPrisonStatus:
+          resGetTaxPayerMyProfileInfo?.ConfinedToPrisonStatus,
+        PeriodOfTime: resGetTaxPayerMyProfileInfo?.PeriodOfTime,
+        TaxPayerMaritalStatus:
+          resGetTaxPayerMyProfileInfo?.TaxPayerMaritalStatus,
+        TaxPayerDeathDate: resGetTaxPayerMyProfileInfo?.TaxPayerDeathDate,
+        ClaimCAICreditForSelf:
+          resGetTaxPayerMyProfileInfo?.ClaimCAICreditForSelf,
+        NetfileAccessCode: resGetTaxPayerMyProfileInfo?.NetfileAccessCode,
+        userToken: savedUserData?.token,
+      });
+      console.log(
+        "onPressLastStep SaveTaxpayerProfileInfo res",
+        resSaveTaxPayerPersonal
+      );
+      if (resSaveTaxPayerPersonal) {
+        console.log(
+          "onPressLastStep SaveTaxpayerProfileInfo res",
+          resSaveTaxPayerPersonal
+        );
+        if(resSaveTaxPayerPersonal.ErrCode == -1){
+          setisLoading(false);
+          Alert.alert("Something went wrong..! Please try again..!");
+          return;
+        }
+          
+        dispatch(saveLoggedInSuccessUserData(resGetTaxPayerMyProfileInfo));
+        console.log("resGetAfrUrl start", SelectedSin, savedUserData);
+        console.log("resGetAfrUrl getSavedLoggedInData",getSavedLoggedInData);
+
+        const GetSlipsfileRes = await GetSlips(
+          {
+            TaxID: resGetTaxPayerMyProfileInfo?.TaxID,
+            AcctID: savedUserData?.AcctID,
+            TaxPayerID: savedUserData?.TaxPayerID,
+            Year: 2022,
+            year: 2022,
+          },
+          savedUserData?.token);
+        console.log("Hello GetSlipsfileRes",GetSlipsfileRes);
+
+        if(GetSlipsfileRes == null){
+          const resGetAfrUrl = await GetAfrUrl({
+            Sin: SelectedSin,
+            appType: "FREE",
+            Year: 2022,
+            userToken: savedUserData?.token,
+          });
+          console.log("resGetAfrUrl checkSub:", resGetAfrUrl);
+          if (resGetAfrUrl) {
+            setisLoading(false);
+            if(resGetAfrUrl?.status == 500){
+              Alert.alert('Error..!',resGetAfrUrl.data?.message);
+            }else if (resGetAfrUrl.ErrCode == -1) {
+              Alert.alert("Something went wrong..! Please try again..!");
+            } else {
+              navigation.navigate("WebViewScreen", { url: resGetAfrUrl?.url });
+            }
+          } else {
+            setisLoading(false);
+            Alert.alert("Something went wrong..! Please try again..!");
+            console.log("resGetAfrUrl checkSub:");
+            // return {}
+          }
+        } else {
+          setisLoading(false);
+          navigation.navigate("CRADetailsScreen",{
+            data : GetSlipsfileRes,
+          });
+        }
+      
+      } else {
+        setisLoading(false);
+        Alert.alert("Something went wrong, please try again.");
+        console.log("GetTaxPayerMyProfileInfo checkSub:");
+        // return {}
+      }
+    } else {
+      Alert.alert("Something went wrong, please try again.");
+      console.log("resGetTaxPayerMyProfileInfo checkSub:");
+      // return {}
+      setisLoading(false);
+    }
+  };
+
+  const onBackButtonPress = () => {
+    navigation.goBack();
+  };
+
+  const setDate = () => {
+    setOpen(true);
+  };
+
+  const renderButton = () => {
+    if (loadingAvailable) {
+      return <Spinner style={{ flex: 0 }} />;
+    } else {
+      return (
+        <Button
+          activeOpacity={1}
+          disabled={!isEnable}
+          style={[
+            styles().button,
+            {
+              opacity: !isEnable ? 0.8 : 1,
+              height: 60,
+              borderRadius: 10,
+              margin: 20,
+            },
+          ]}
+          buttonText="Confirm"
+          onPress={() => onPressConfirm()}
+        />
+      );
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles(darkTheme).scrollStyle} key={key}>
+
+
+    <Header onPressbackButton={() => onBackButtonPress()}/>
+{/* <TouchableOpacity
+          style={{
+            alignItems: "flex-start",
+            height: "auto",
+            width: "90%",
+            flexDirection: "row",
+            paddingLeft: 20,
+            paddingTop: 20
+          }}
+          onPress={() => onBackButtonPress()}
+        >
+          <Ionicons
+            name={"ios-chevron-back-outline"}
+            style={{
+              fontSize: 21,
+              color: defaultColors.primaryBlue,
+            }}
+          />
+          <CtText
+            style={{
+              fontWeight: "500",
+              fontSize: 18,
+              color: defaultColors.primaryBlue,
+            }}
+          >
+            {"Back"}
+          </CtText>
+        </TouchableOpacity> */}
+      <ScrollView
+        // contentContainerStyle={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+      >
+        <CtView
+          style={{
+            // flex: 0.1,
+            marginRight: 20,
+            marginLeft: 20,
+            marginTop: 88.5,
+          }}
+        >
+          <CtText
+            style={{
+              fontSize: 25,
+              fontFamily:'Figtree-SemiBold',
+              fontWeight: "600",
+              color:darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
+            }}
+          >
+            Date of birth
+          </CtText>
+        </CtView>
+
+        <CtView
+          style={{
+            // flex: 0.2,
+            marginRight: 20,
+            marginLeft: 20,
+            marginTop: 5,
+            marginBottom: 40,
+          }}
+        >
+          <CtText
+            style={{
+              fontSize: 18,
+              fontFamily: "Figtree",
+              fontWeight: "400",
+              color: darkTheme? defaultColors.darkModeTextColor: defaultColors.secondaryTextColor,
+            }}
+          >
+            Please provide your date of birth to calculate your tax credits
+            correctly.
+          </CtText>
+        </CtView>
+        <CtView
+          style={{
+            marginTop: 15,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            alignContent: "center",
+            alignSelf: "center",
+            height: 50,
+            margin: 20,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              flex: 2,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: 50,
+              borderWidth: 1,
+              borderColor: "#DADADA",
+              borderRadius: 8,
+            }}
+            onPress={() => setDate()}
+          >
+            <CtText
+              disabled={true}
+              style={{
+                backgroundColor: "transparent",
+                width: "100%",
+                fontFamily: "Figtree-Medium",
+                textAlign: "center",
+                fontWeight: "400",
+                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor
+              }}
+            >
+              {isDateAvailable ? moment(date, "YYYY/MM/DD").format("YYYY") : "YYYY"}
+            </CtText>
+          </TouchableOpacity>
+          <CtView
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <CtText
+              style={{
+                fontWeight: "400",
+                fontSize: 18,
+                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor
+              }}
+            >
+              -
+            </CtText>
+          </CtView>
+          <TouchableOpacity
+            style={{
+              flex: 2,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: 50,
+              borderWidth: 1,
+              borderColor: "#DADADA",
+              borderRadius: 8,
+            }}
+            onPress={() => setDate()}
+          >
+            <CtText
+              disabled={true}
+              style={{
+                backgroundColor: "transparent",
+                width: "100%",
+                fontFamily: "Figtree-Medium",
+                textAlign: "center",
+                fontWeight: "400",
+                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor
+              }}
+            >
+              {isDateAvailable? moment(date, "YYYY/MM/DD").format("M") : "MM"}
+            </CtText>
+          </TouchableOpacity>
+          <CtView
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <CtText
+              style={{
+                fontWeight: "400",
+                fontSize: 18,
+                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
+              }}
+            >
+              -
+            </CtText>
+          </CtView>
+          <TouchableOpacity
+            style={{
+              flex: 2,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: 50,
+              borderWidth: 1,
+              borderColor: "#DADADA",
+              borderRadius: 8,
+            }}
+            onPress={() => setDate()}
+          >
+            <CtText
+              disabled={true}
+              style={{
+                backgroundColor: "transparent",
+                width: "100%",
+                fontFamily: "Figtree-Medium",
+                textAlign: "center",
+                fontWeight: "400",
+                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
+              }}
+            >
+              {isDateAvailable ? moment(date, "YYYY/MM/DD").format("D") : "DD"}
+            </CtText>
+          </TouchableOpacity>
+        </CtView>
+
+        {open ? (
+          <DatePicker
+            modal
+            //   minimumDate={new Date("2022-01-01")}
+            maximumDate={new Date()}
+            mode="date"
+            open={open}
+            date={date}
+            onConfirm={(date) => {
+              console.log("onConfirm", date);
+              setOpen(false);
+              setDateValue(date);
+              setButtonEnable(true);
+              setDateAvailability(true);
+            }}
+            onCancel={() => {
+              setOpen(false);
+            }}
+          />
+        ) : null}
+        <CustomButton
+        showLoading={loadingAvailable}
+        buttonText="Confirm"
+        disabled={!isEnable}
+        onPress={() => onPressConfirm()}
+        style={{ marginBottom: 20, marginTop: 10,
+          margin: 20, }}
+        />
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = (isDarkTheme?: boolean) =>
+  StyleSheet.create({
+    scrollStyle: {
+      flex: 1,
+      paddingBottom: 15,
+      backgroundColor: isDarkTheme? defaultColors.black: defaultColors.white,
+    },
+    container: {
+      flex: 1,
+    },
+    BottomViewContainer: {
+      backgroundColor: isDarkTheme? defaultColors.black: defaultColors.white,
+      //   flex: 0.5
+    },
+    TopTextContainer: {
+      marginTop: 40,
+      //   backgroundColor: defaultColors.yellow,
+      height: "auto",
+      justifyContent: "flex-end",
+      backgroundColor: defaultColors.white,
+      //   flex: 0.5
+    },
+    caption: {
+      textAlign: "center",
+      fontSize: 25,
+      fontFamily: "Figtree-Bold",
+      fontWeight: "700",
+    },
+    subTitle: {
+      marginTop: 5,
+      textAlign: "center",
+      fontSize: 18,
+      fontFamily: "Figtree-Regular",
+      fontWeight: "400",
+      color: "rgba(26, 38, 58, 0.7)",
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: "#DADADA",
+      backgroundColor: "transparent",
+      padding: 15,
+      marginBottom: 24,
+      borderRadius: 5,
+      width: "100%",
+      fontFamily: "Figtree-Medium",
+    },
+    textInputContainer: {
+      flex: 0,
+      flexDirection: "row",
+      //   justifyContent: "space-between",
+    },
+    inputIcon: {
+      flex: 0,
+      position: "absolute",
+      justifyContent: "flex-end",
+      backgroundColor: "transparent",
+      right: 24,
+      top: 15,
+    },
+    iconStyle: {
+      fontSize: 20,
+      color: defaultColors.gray,
+    },
+    buttonContainer: {
+      flex: 0,
+      marginTop: 30,
+      marginBottom: 30,
+    },
+    keepMeContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      height: 60,
+    },
+    forgotPassContainer: {
+      flex: 0.45,
+      alignItems: "flex-end",
+    },
+    KeepContainer: {
+      flex: 0.55,
+      justifyContent: "flex-start",
+      alignItems: "center",
+      flexDirection: "row",
+    },
+    button: {
+      paddingVertical: 16,
+      borderRadius: 5,
+      backgroundColor: defaultColors.primaryButton,
+      marginBottom: 30,
+    },
+    separatorContainer: {
+      flex: 0,
+      marginVertical: 40,
+    },
+    separator: {
+      flex: 0,
+      borderTopWidth: 0.5,
+      borderTopColor: defaultColors.whisper,
+    },
+    separatorText: {
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
+      position: "absolute",
+      alignSelf: "center",
+      textAlign: "center",
+      top: Platform.OS === "ios" ? -10 : -13,
+      fontSize: 16,
+      width: 24,
+    },
+    googleSignIn: {
+      backgroundColor: "#FFF",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignContent: "center",
+      alignItems: "center",
+    },
+    googleSignInContainer: {
+      height: 54,
+      borderRadius: 10,
+      justifyContent: "center",
+      backgroundColor: "#FFF",
+      borderWidth: 2,
+      marginTop: 20,
+      borderColor: "#DEE1E9",
+      alignContent: "center",
+    },
+    dividerContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 30,
+    },
+    dividerStyle: { flex: 1, height: 1, backgroundColor: "#DEE1E9" },
+    inputIcon2: {
+      flex: 0,
+      position: "absolute",
+      justifyContent: "flex-start",
+      backgroundColor: "transparent",
+      left: 12,
+      top: 15,
+    },
+    inputAlt: {
+      borderWidth: 1,
+      borderColor: "#DADADA",
+      backgroundColor: "transparent",
+      marginTop: 0,
+      padding: 15,
+      paddingLeft: 42,
+      marginBottom: 24,
+      borderRadius: 8,
+      width: "100%",
+      fontFamily: "Figtree-Medium",
+    },
+    forgotTextColor: {
+      color: "rgba(26, 38, 58, 0.7)",
+      fontSize: 16,
+      fontWeight: "400",
+    },
+    dottedStyle: {
+      color: "rgba(26, 38, 58, 0.7)",
+      fontSize: 8,
+      fontWeight: "400",
+    },
+  });
+
+export default DateOfBirthScreen;

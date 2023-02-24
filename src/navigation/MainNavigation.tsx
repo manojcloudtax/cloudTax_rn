@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StatusBar } from "react-native";
+import { Appearance, StatusBar, useColorScheme } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { CtView } from "../components/UiComponents";
 import { useSelector, useDispatch } from "react-redux";
@@ -15,25 +15,39 @@ import { QueryClient, QueryClientProvider } from "react-query";
 const MainNavigation = () => {
     const dispatch = useDispatch();
     let checkTheme = null;
-
+    // const [colorScheme, setColorScheme] = React.useState(
+    //     Appearance.getColorScheme(),
+    //   );
+    // useEffect(() => {
+    //     Appearance.addChangeListener(({colorScheme}) => setColorScheme(colorScheme));
+    //   }, []);
     const { userToken } = useSelector((state: RootState) => state.authReducer);
     const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
     const [tokenChecked, setTokenChecked] = useState(false);
-
+    const colorScheme = useColorScheme();
     const checkUserToken = async () => {
         try {
             let dateNow = new Date();
-            if (userToken) {
-                const decoded: any = jwt_decode(userToken);
-                if (decoded.exp * 1000 < dateNow.getTime()) {
-                    dispatch(resetState());
-                }
-            }
+            // if (userToken) {
+            //     const decoded: any = jwt_decode(userToken);
+            //     if (decoded.exp * 1000 < dateNow.getTime()) {
+            //         dispatch(resetState());
+            //     }
+            // }
+            console.log('colorScheme',colorScheme);
+            console.log('darkTheme:',darkTheme);
             checkTheme = await AsyncStorage.getItem("storeThemeSettings");
             if (checkTheme != null) {
                 if (checkTheme === "true") {
                     dispatch(setTheme(true));
                 } else {
+                    dispatch(setTheme(false));
+                }
+            } else {
+                const colorScheme = Appearance.getColorScheme();
+                if(colorScheme !== 'light'){
+                    dispatch(setTheme(true));
+                }else {
                     dispatch(setTheme(false));
                 }
             }
@@ -46,6 +60,7 @@ const MainNavigation = () => {
     useEffect(() => {
         setTimeout(() => {
             checkUserToken();
+            
         }, 100);
 
     }, [])
@@ -54,7 +69,7 @@ const MainNavigation = () => {
     
     const headerDisplay = useMemo(() => {
         return <StatusBar
-            backgroundColor={darkTheme ? defaultColors.matBlack : defaultColors.whiteGrey}
+            backgroundColor={darkTheme ? defaultColors.black : defaultColors.whiteGrey}
             barStyle={darkTheme ? "light-content" : "dark-content"}
     />
     }, [darkTheme])

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   KeyboardAvoidingView,
+  View,
 } from "react-native";
 import {
   CtText,
@@ -14,12 +15,28 @@ import {
   CtTextInput,
   Button,
   TextButton,
+  Divider,
 } from "../components/UiComponents";
 import { Spinner, ErrorMessage } from "../components";
 import { useDispatch } from "react-redux";
-import { login } from "../store/authSlice";
+import {
+  login,
+  saveLoggedInSuccessUserData,
+  setIsPriorYearModalSelected,
+  saveGetTPAccountData,
+  setProvinces,
+  saveTaxPayerMyProfileInfo,
+  saveRegisteredSuccessUserData,
+  resetAllStateData,
+} from "../store/authSlice";
 import { defaultColors } from "../utils/defaultColors";
-import { loginUser } from "../api/auth";
+import {
+  GetTaxPayerMyProfileInfo,
+  GetTaxPayerPersonalInfo,
+  loginUser,
+  GetTPAccountInfo,
+  getAllProvince,
+} from "../api/auth";
 import { useQuery } from "react-query";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { validateEmail } from "../utils/email";
@@ -32,9 +49,23 @@ import { decryptAccounts } from "../utils/crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SocialIcon } from "react-native-elements";
 import CheckBox from "@react-native-community/checkbox";
+import {
+  setOnBoardingData,
+  resetOnBoardingData,
+} from "../store/onBoardingSlice";
+import {
+  getRealYNValue,
+  getMaritalStatusValue,
+  getTaxPayerPreviousMaritalStatusValue,
+} from "../utils/common";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CustomButton } from "../components/CustomButton";
+import { CustomInput } from "../components/CustomInput";
+import CheckmarkIcon from "react-native-vector-icons/Octicons";
 
 const LoginScreen = ({ navigation }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
+  const { AllProvinces } = useSelector((state: RootState) => state.authReducer);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -49,33 +80,12 @@ const LoginScreen = ({ navigation }: any) => {
   const [selectedAccount, setSelectedAccount] = useState<null | any>(null);
 
   const dispatch = useDispatch();
-
-  const { isLoading, refetch } = useQuery(
-    "login",
-    () => loginUser({ email, password }),
-    {
-      onSuccess: (data) => {
-        const morphedData = { ...data, email, password };
-        dispatch(login(morphedData));
-      },
-      onError: (error: any) => {
-        if (error.message == "Request failed with status code 401") {
-          Alert.alert(
-            "Error",
-            "Invalid email or password! Please check your credentials and try again."
-          );
-        } else {
-          Alert.alert("Error", "Something went wrong! Please try again.");
-        }
-      },
-      retry: false,
-      enabled: false,
-    }
-  );
-
   // this will check the device security is enabled and the level if it has a biometrics
   useEffect(() => {
-    // AsyncStorage.clear()
+    dispatch(setOnBoardingData({}));
+    dispatch(setIsPriorYearModalSelected(false));
+    dispatch(resetAllStateData());
+    dispatch(resetOnBoardingData());
     const checkSecurity = async () => {
       const securityLevel = await DeviceCrypto.deviceSecurityLevel();
       if (securityLevel === "BIOMETRY") {
@@ -86,8 +96,170 @@ const LoginScreen = ({ navigation }: any) => {
       }
     };
     checkSecurity();
+    GetAllProvinceData();
   }, []);
 
+
+
+  const GetAllProvinceData = async () => {
+    const allProvinceData = await getAllProvince();
+    console.log("else case on checkSub:", allProvinceData);
+    if (allProvinceData) {
+      // const {data} = res
+      if (allProvinceData.ErrCode == -1) {
+        console.log("else case on checkSub:", allProvinceData);
+        getArray()
+      } else {
+        dispatch(setProvinces(allProvinceData));
+        console.log("else case on checkSub:", JSON.stringify(allProvinceData));
+        await AsyncStorage.setItem('allProvinceData', JSON.stringify(allProvinceData))
+      }
+    } else {
+      console.log("else case on checkSub:", allProvinceData);
+      getArray()
+      // return {}
+    }
+  };
+
+  const { isLoading, refetch } = useQuery(
+    "login",
+    () => loginUser({ AcctEmail: email, password: password, plain: true }),
+    {
+      onSuccess: async (data) => {
+        if (data.ErrCode == -1) {
+          Alert.alert("Error", "Invalid email or password!");
+        } else {
+          const morphedData = { ...data, email, password };
+          dispatch(login(morphedData));
+          await dispatch(saveRegisteredSuccessUserData(data));
+          const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
+            AcctID: data?.AcctID,
+            TaxPayerID: data?.TaxPayerID,
+            Year: 2022,
+            userToken: data?.token,
+          });
+
+          console.log(
+            "GetTaxPayerPersonalResponse res",
+            GetTaxPayerPersonalResponse
+          );
+
+          if (GetTaxPayerPersonalResponse) {
+            if (data.ErrCode == -1) {
+              Alert.alert("Error", "Invalid email or password!");
+            } else {
+              dispatch(
+                saveLoggedInSuccessUserData(GetTaxPayerPersonalResponse)
+              );
+            }
+          } else {
+          }
+
+          const responseGetTPAccountInfo = await GetTPAccountInfo({
+            AcctID: data?.AcctID,
+            TaxPayerID: data?.TaxPayerID,
+            Year: 2022,
+            userToken: data?.token,
+          });
+
+          console.log("GetTPAccountInfo: Success", responseGetTPAccountInfo);
+          if (responseGetTPAccountInfo) {
+            // const {data} = res
+            if (responseGetTPAccountInfo[0].ErrCode == -1) {
+              console.log(
+                "GetTPAccountInfo: error error",
+                responseGetTPAccountInfo
+              );
+            } else {
+              await dispatch(saveGetTPAccountData(responseGetTPAccountInfo));
+            }
+          } else {
+          }
+          const resGetTaxPayerMyProfileInfo = await GetTaxPayerMyProfileInfo({
+            AcctID: data?.AcctID,
+            TaxPayerID: data?.TaxPayerID,
+            Year: 2022,
+            userToken: data?.token,
+          });
+
+          console.log(
+            "resGetTaxPayerMyProfileInfo res",
+            resGetTaxPayerMyProfileInfo
+          );
+
+          if (resGetTaxPayerMyProfileInfo) {
+            dispatch(saveTaxPayerMyProfileInfo(resGetTaxPayerMyProfileInfo));
+            const params = {
+              MaritialStatus: getMaritalStatusValue(
+                resGetTaxPayerMyProfileInfo.TaxPayerMaritalStatus
+              ),
+              Province: {
+                ProvinceCode: resGetTaxPayerMyProfileInfo.Province,
+                ProvinceName:
+                  resGetTaxPayerMyProfileInfo?.Province == !null
+                    ? AllProvinces.find(
+                        (x: { ProvinceCode: any }) =>
+                          x.ProvinceCode ===
+                          resGetTaxPayerMyProfileInfo?.Province
+                      ).ProvinceName
+                    : "",
+              },
+              partnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
+              selectedYear: 2022,
+              answersOfQuestions: [
+                resGetTaxPayerMyProfileInfo.PartnerID === null ? "No" : "Yes",
+                getRealYNValue(resGetTaxPayerMyProfileInfo.DependentStatus),
+                getRealYNValue(
+                  resGetTaxPayerMyProfileInfo.MaritalStatusChanged
+                ),
+              ],
+              MaritalStatusChangedDate:
+                resGetTaxPayerMyProfileInfo?.MaritalStatusChangedDate,
+              TaxPayerPreviousMaritalStatus:
+                getTaxPayerPreviousMaritalStatusValue(
+                  resGetTaxPayerMyProfileInfo?.TaxPayerPreviousMaritalStatus
+                ),
+              partnerFromList: "",
+              ClaimCreditsFromSpouse:
+                resGetTaxPayerMyProfileInfo?.ClaimCreditsFromSpouse,
+                partnerDetailsList: responseGetTPAccountInfo,
+            };
+
+            dispatch(setOnBoardingData(params));
+
+            navigation.navigate("ChooseTaxYearScreen", {
+              isFromRegistration: false,
+            });
+          } else {
+          }
+        }
+      },
+      onError: (error: any) => {
+        if (error.message == "Request failed with status code 401") {
+          Alert.alert("Error", "Invalid email or password!");
+        } else {
+          Alert.alert("Error", "Something went wrong! Please try again.");
+        }
+      },
+      retry: false,
+      enabled: false,
+    }
+  );
+
+  const getArray = async () => {
+    try {
+      const allProvinceDataArray = await AsyncStorage.getItem('allProvinceData');
+      console.log("allProvinceDataArray:", allProvinceDataArray);
+
+      if (allProvinceDataArray !== null) {
+        // We have data!!
+        console.log(JSON.parse(allProvinceDataArray));
+        dispatch(setProvinces(JSON.parse(allProvinceDataArray)));
+      }
+    } catch (error) {
+      // Error retrieving data
+    }
+  }
   const onPasswordChange = () => {
     if (email && !password) {
       setPasswordError("Password is required.");
@@ -98,7 +270,7 @@ const LoginScreen = ({ navigation }: any) => {
   };
 
   const renderButton = useMemo(() => {
-    const disabled = !email;
+    const disabled = !email || !password;
     const style = disabled
       ? [styles().button, { opacity: 0.6 }]
       : styles().button;
@@ -120,22 +292,15 @@ const LoginScreen = ({ navigation }: any) => {
         </>
       );
     } else {
-      return <Spinner />;
+      return (
+        <Spinner
+          style={{
+            flex: 0,
+          }}
+        />
+      );
     }
   }, [selectedAccount, email, password]);
-
-  const renderEyeIcon = () => {
-    return (
-      <CtView style={styles().inputIcon}>
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <FontAwesome5
-            name={!showPassword ? "eye" : "eye-slash"}
-            style={styles().iconStyle}
-          />
-        </TouchableOpacity>
-      </CtView>
-    );
-  };
 
   const decrypt = async () => {
     try {
@@ -223,9 +388,9 @@ const LoginScreen = ({ navigation }: any) => {
     setKeepMeSignedIn(!isKeepMeSignInChecked);
   };
 
-  const onPressText = (url: String) =>{
-    navigation.navigate("WebViewScreen", { url: url })
-  }
+  const onPressText = (url: String) => {
+    navigation.navigate("WebViewWithoutPopUp", { url: url });
+  };
   useEffect(() => {
     decrypt();
   }, []);
@@ -237,25 +402,42 @@ const LoginScreen = ({ navigation }: any) => {
   }, [selectedAccount]);
 
   return (
-    <SafeAreaView style={styles().scrollStyle}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        paddingTop: 15,
+        backgroundColor: darkTheme ? defaultColors.black : defaultColors.white,
+      }}
+    >
       <ScrollView
-        style={styles().scrollStyle}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles(darkTheme).scrollStyle}
       >
         <KeyboardAvoidingView
           keyboardVerticalOffset={Platform.OS === "android" ? 20 : 0}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
+          style={{
+            flex: 1,
+            margin: 20,
+            backgroundColor: darkTheme ? defaultColors.black : "white",
+          }}
         >
-          <CtView style={styles().container}>
-            <CtView style={styles().TopTextContainer}>
-              <CtText style={styles().caption}>Welcome Back!</CtText>
-              <CtText style={styles().subTitle}>
-                Good to see you again! Sign into your account
-              </CtText>
-            </CtView>
-            <CtView style={styles().BottomViewContainer}>
-              <CtView style={styles().googleSignInContainer}>
+          <CtView
+            style={{
+              marginTop: 30,
+              backgroundColor: darkTheme ? defaultColors.black : "white",
+            }}
+          >
+            {/* <View style={styles().container}> */}
+            {/* <CtView style={styles().TopTextContainer}> */}
+            <CtText style={styles().caption}>Welcome Back!</CtText>
+            <CtText style={styles(darkTheme).subTitle}>
+              Good to see you again! Sign into your account
+            </CtText>
+            {/* </CtView> */}
+            {/* <CtView style={styles().BottomViewContainer}> */}
+            {/* <CtView style={styles().googleSignInContainer}>
                 <TouchableOpacity style={styles().googleSignIn}>
                   <SocialIcon
                     iconSize={18}
@@ -276,53 +458,98 @@ const LoginScreen = ({ navigation }: any) => {
                   or
                 </CtText>
                 <CtView style={styles().dividerStyle} />
-              </CtView>
-              <CtView style={{ marginTop: 30 }}>
-                <CtView style={styles().textInputContainer}>
-                  <CtView style={styles().inputIcon2}>
-                    <TouchableOpacity>
-                      <Ionicons
-                        name={"mail-outline"}
-                        style={styles().iconStyle}
-                      />
-                    </TouchableOpacity>
-                  </CtView>
-                  <CtTextInput
-                    editable={true}
-                    placeholder={"Your email address"}
-                    placeholderTextColor={defaultColors.gray}
-                    style={styles().inputAlt}
-                    onChangeText={(email: string) => setEmail(email)}
-                    onBlur={onEmailSubmit}
-                    keyboardType={"email-address"}
-                    autoCapitalize="none"
-                  />
-                </CtView>
-                <ErrorMessage text={emailError} />
-                <CtView style={styles().textInputContainer}>
-                  <CtView style={styles().inputIcon2}>
-                    <TouchableOpacity>
-                      <Ionicons name={"key"} style={styles().iconStyle} />
-                    </TouchableOpacity>
-                  </CtView>
-                  <CtTextInput
-                    testID={"private"}
-                    value={password}
-                    editable={true}
-                    placeholder={"Password"}
-                    placeholderTextColor={defaultColors.gray}
-                    secureTextEntry={!showPassword}
-                    style={styles().inputAlt}
-                    onChangeText={(text: string) => setPassword(text)}
-                    onBlur={onPasswordChange}
-                    autoCapitalize="none"
-                  />
-                  {renderEyeIcon()}
-                </CtView>
-                <ErrorMessage text={passwordError} />
-                <CtView style={styles().keepMeContainer}>
-                  <CtView style={styles().KeepContainer}>
-                    <CheckBox
+              </CtView> */}
+            <CtView style={styles(darkTheme).googleSignInContainer}>
+              <TouchableOpacity style={styles(darkTheme).googleSignIn}>
+                {/* <SocialIcon
+                    iconSize={18}
+                    light
+                    raised={false}
+                    type="google"
+                  /> */}
+                <Image
+                  style={{
+                    height: 20,
+                    width: 20,
+                    marginRight: 8,
+                    backgroundColor: defaultColors.transparent,
+                  }}
+                  resizeMode={"contain"}
+                  source={require("../../assets/google.png")}
+                />
+
+                <CtText style={styles(darkTheme).buttonTitle}>
+                  Continue with google
+                </CtText>
+              </TouchableOpacity>
+            </CtView>
+            {/* </CtView> */}
+            {/* <CtView style={styles().dividerContainer}>
+                <CtView style={styles().dividerStyle} />
+                <CtText
+                  style={{ width: 60, textAlign: "center", fontSize: 16 }}
+                >
+                  or
+                </CtText>
+                <CtView style={styles().dividerStyle} />
+              </CtView> */}
+            <View
+              style={{
+                height: 40,
+                backgroundColor: defaultColors.transparent,
+
+                marginBottom: 10,
+                marginTop: 10,
+              }}
+            >
+              <Divider />
+            </View>
+            {/* <CtView style={{ marginTop: 30 }}> */}
+            <CustomInput
+              editable={true}
+              placeholder={"Your email address"}
+              placeholderTextColor={defaultColors.gray}
+              onChangeText={(email: string) => setEmail(email)}
+              onBlur={onEmailSubmit}
+              keyboardType={"email-address"}
+              autoCapitalize="none"
+              validationError={emailError}
+              customImage={
+                darkTheme
+                  ? require("../../assets/msgIconDark.png")
+                  : require("../../assets/msgIcon.png")
+              }
+            />
+
+            <CustomInput
+              editable={true}
+              placeholder={"Password"}
+              placeholderTextColor={defaultColors.gray}
+              onChangeText={(text: string) => setPassword(text)}
+              onBlur={onPasswordChange}
+              autoCapitalize="none"
+              validationError={passwordError}
+              secureTextEntry={!showPassword}
+              // customImage={require("../../assets/password.png")}
+              RightImage={
+                showPassword
+                  ? darkTheme
+                    ? require("../../assets/eyecloseDark.png")
+                    : require("../../assets/eyeclose.png")
+                  : darkTheme
+                  ? require("../../assets/eyeDark.png")
+                  : require("../../assets/eye.png")
+              }
+              customImage={
+                darkTheme
+                  ? require("../../assets/passwordDark.png")
+                  : require("../../assets/password.png")
+              }
+              onPressRightIcon={() => setShowPassword(!showPassword)}
+            />
+            <View style={styles().keepMeContainer}>
+              <View style={styles().KeepContainer}>
+                {/* <CheckBox
                       lineWidth={1}
                       boxType={"square"}
                       value={isKeepMeSignInChecked}
@@ -336,62 +563,128 @@ const LoginScreen = ({ navigation }: any) => {
                       }}
                       onFillColor={defaultColors.primaryButton}
                       onCheckColor={defaultColors.white}
+                    /> */}
+                <TouchableOpacity
+                  style={{ alignItems: "center", marginRight: 10 }}
+                  onPress={toggleCheckbox}
+                >
+                  {isKeepMeSignInChecked ? (
+                    <View
+                      style={{
+                        width: 22,
+                        height: 22,
+                        overflow: "hidden",
+                        backgroundColor: defaultColors.primaryBlue,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: 3,
+                      }}
+                    >
+                      <CheckmarkIcon
+                        name={"check"}
+                        size={18}
+                        color={defaultColors.white}
+                      />
+                    </View>
+                  ) : (
+                    <View
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderWidth: 1.4,
+                        borderColor: "#E7E8EA",
+                        borderRadius: 3,
+                        // borderColor: defaultColors.primaryBlue,
+                      }}
                     />
-                    <CtText style={styles().forgotTextColor}>
-                      Keep me signed in
-                    </CtText>
-                  </CtView>
+                  )}
+                </TouchableOpacity>
+                <CtText style={styles(darkTheme).forgotTextColor}>
+                  Keep me signed in
+                </CtText>
+              </View>
 
-                  <CtView style={styles().forgotPassContainer}>
-                    <CtText style={styles().forgotTextColor}>
-                      Forgot password?
-                    </CtText>
-                  </CtView>
-                </CtView>
-                <CtView style={styles().buttonContainer}>{renderButton}</CtView>
+              <CtView style={styles().forgotPassContainer}>
+                <CtText
+                  style={styles(darkTheme).forgotTextColor}
+                  onPress={() => navigation.navigate("ForgotPasswordScreen")}
+                >
+                  Forgot password?
+                </CtText>
+              </CtView>
+            </View>
+            {/* <CtView style={styles().buttonContainer}>{renderButton}</CtView> */}
+            <CustomButton
+              showLoading={isLoading}
+              buttonText="Sign In"
+              disabled={!email || !password}
+              onPress={async () => {
+                if (email && password) {
+                  await refetch();
+                } else if (email && !password) {
+                  await authenticate();
+                }
+              }}
+              style={{ marginBottom: 20, marginTop: 10 }}
+            />
 
-                <TextButton
-                  description="New to Cloud Tax? "
-                  linkText="Create a new account"
-                  linkTextColor={defaultColors.links}
+            <TextButton
+              description="New to Cloud Tax? "
+              linkText="Create a new account"
+              linkTextColor={defaultColors.links}
+              onPress={() => navigation.navigate("RegisterScreen", { step: 1 })}
+            />
+
+            <CtView style={[styles().keepMeContainer, { marginTop: 30 }]}>
+              <CtView
+                style={{
+                  flex: 0.45,
+                  alignItems: "flex-end",
+                }}
+              >
+                <CtText
+                  style={styles(darkTheme).forgotTextColor}
                   onPress={() =>
-                    navigation.navigate("RegisterScreen", { step: 1 })
+                    onPressText(
+                      "https://www.npmjs.com/package/react-native-webview"
+                    )
                   }
-                />
-
-                <CtView style={[styles().keepMeContainer, {marginTop: 30}]}>
-                  <CtView
-                    style={{
-                      flex: 0.45,
-                      alignItems: "flex-end",
-                    }}
-                  >
-                    <CtText style={styles().forgotTextColor} onPress={() => onPressText('https://www.npmjs.com/package/react-native-webview')}>
-                      Terms of Service
-                    </CtText>
-                  </CtView>
-                  <CtView
-                    style={{
-                      flex: 0.1,
-                      alignItems: "center",
-                    }}
-                  >
-                    <CtText style={styles().dottedStyle}>{'\u2B24'}</CtText>
-                  </CtView>
-                  <CtView
-                    style={{
-                      flex: 0.45,
-                      justifyContent: "flex-start",
-                    }}
-                  >
-                    <CtText style={styles().forgotTextColor} onPress={() => onPressText('https://www.npmjs.com/package/react-native-webview')}>
-                      Privacy Policy
-                    </CtText>
-                  </CtView>
-                </CtView>
+                >
+                  Terms of Service
+                </CtText>
+              </CtView>
+              <CtView
+                style={{
+                  flex: 0.1,
+                  alignItems: "center",
+                }}
+              >
+                <CtText style={styles(darkTheme).dottedStyle}>
+                  {"\u2B24"}
+                </CtText>
+              </CtView>
+              <CtView
+                style={{
+                  flex: 0.45,
+                  justifyContent: "flex-start",
+                }}
+              >
+                <CtText
+                  style={styles(darkTheme).forgotTextColor}
+                  onPress={() =>
+                    onPressText(
+                      "https://www.npmjs.com/package/react-native-webview"
+                    )
+                  }
+                >
+                  Privacy Policy
+                </CtText>
               </CtView>
             </CtView>
+            {/* </CtView> */}
           </CtView>
+          {/* </CtView> */}
+          {/* </View> */}
         </KeyboardAvoidingView>
       </ScrollView>
     </SafeAreaView>
@@ -401,13 +694,15 @@ const LoginScreen = ({ navigation }: any) => {
 const styles = (isDarkTheme?: boolean) =>
   StyleSheet.create({
     scrollStyle: {
-      flex: 1,
-      paddingBottom: 15,
-      backgroundColor: defaultColors.white,
+      // flex: 1,
+      paddingBottom: 80,
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
+      padding: 5,
     },
     container: {
       paddingHorizontal: 15,
       padding: 20,
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
     },
     BottomViewContainer: {
       marginTop: 10,
@@ -419,7 +714,7 @@ const styles = (isDarkTheme?: boolean) =>
       textAlign: "center",
       fontSize: 25,
       fontFamily: "Figtree-Bold",
-      fontWeight: "700"
+      fontWeight: "700",
     },
     subTitle: {
       marginTop: 5,
@@ -427,13 +722,17 @@ const styles = (isDarkTheme?: boolean) =>
       fontSize: 18,
       fontFamily: "Figtree-Regular",
       fontWeight: "400",
-      color: "rgba(26, 38, 58, 0.7)"
+      color: isDarkTheme
+        ? defaultColors.whiteGrey
+        : defaultColors.secondaryTextColor,
     },
     buttonTitle: {
       textAlign: "center",
       fontSize: 16,
-      fontFamily: "Figtree-Regular",
-      color: defaultColors.primaryText,
+      fontFamily:'Figtree-SemiBold',
+      color: isDarkTheme
+        ? defaultColors.white
+        : defaultColors.secondaryTextColor,
       fontWeight: "600",
       paddingLeft: 8,
     },
@@ -473,6 +772,7 @@ const styles = (isDarkTheme?: boolean) =>
       flexDirection: "row",
       alignItems: "center",
       height: 60,
+      marginBottom: 15,
     },
     forgotPassContainer: {
       flex: 0.45,
@@ -508,7 +808,7 @@ const styles = (isDarkTheme?: boolean) =>
       width: 24,
     },
     googleSignIn: {
-      backgroundColor: "#FFF",
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
       flexDirection: "row",
       justifyContent: "center",
       alignContent: "center",
@@ -518,25 +818,26 @@ const styles = (isDarkTheme?: boolean) =>
       height: 54,
       borderRadius: 10,
       justifyContent: "center",
-      backgroundColor: "#FFF",
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
       borderWidth: 2,
       marginTop: 20,
-      borderColor: "#DEE1E9",
+      borderColor: isDarkTheme ? defaultColors.darkBorder : "#DEE1E9",
       alignContent: "center",
     },
     dividerContainer: {
       flexDirection: "row",
       alignItems: "center",
       marginTop: 30,
+      marginBottom: 30,
     },
     dividerStyle: { flex: 1, height: 1, backgroundColor: "#DEE1E9" },
     inputIcon2: {
       flex: 0,
       position: "absolute",
-      justifyContent: "flex-start",
+      justifyContent: "center",
       backgroundColor: "transparent",
       left: 12,
-      top: 15,
+      top: 18,
     },
     inputAlt: {
       borderWidth: 1,
@@ -551,15 +852,19 @@ const styles = (isDarkTheme?: boolean) =>
       fontFamily: "Figtree-Medium",
     },
     forgotTextColor: {
-      color: "rgba(26, 38, 58, 0.7)",
+      color: isDarkTheme
+        ? defaultColors.white
+        : defaultColors.secondaryTextColor,
       fontSize: 16,
       fontWeight: "400",
     },
-    dottedStyle:{
-        color: "rgba(26, 38, 58, 0.7)",
-        fontSize: 8,
-        fontWeight: "400",
-      }
+    dottedStyle: {
+      color: isDarkTheme
+        ? defaultColors.white
+        : defaultColors.secondaryTextColor,
+      fontSize: 8,
+      fontWeight: "400",
+    },
   });
 
 export default LoginScreen;

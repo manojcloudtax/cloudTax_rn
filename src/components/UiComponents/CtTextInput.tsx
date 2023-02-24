@@ -7,11 +7,12 @@ import { defaultColors } from '../../utils/defaultColors';
 const CtTextInput = ({ 
     style, value, multiline, placeholder, onChange, secureTextEntry,
      editable, onChangeText, onBlur, keyboardType, placeholderTextColor,
-      autoCapitalize, isMasked, maskedFormat, extract }: any) => {
+      autoCapitalize, isMasked, maskedFormat, extract, refName, ...props }: any) => {
     const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
     
     return (
         <TextInput
+        ref={refName}
             style={[styles(darkTheme).inputStyle, style ? style : null]}
             value={value || null}
             onChangeText={onChangeText}
@@ -25,6 +26,7 @@ const CtTextInput = ({
             onChange={onChange || null}
             editable={editable || false}
             autoCapitalize={autoCapitalize}
+            {...props}
         /> 
     );
 };

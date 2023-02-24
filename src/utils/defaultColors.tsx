@@ -1,5 +1,5 @@
 export const defaultColors = {
-    black: "#23242A",
+    black: "#121212",
     matBlack: "#323741",
     blue: "#009BF0",
     white: "#FFFFFF",
@@ -32,5 +32,33 @@ export const defaultColors = {
     primaryButtonText: '#FFFFFF',
     secondaryButtonText: '#0090EE',
     tertiaryButtonText: '#1A263A',
+    secondaryTextColor: 'rgba(26, 38, 58, 0.7)',
+    borderColor: "#DEE1E9",
+    transparent: "transparent",
+    primaryBlue: '#0A98FF',
+    darkModeTextColor:'rgba(255, 255, 255, 0.7)',
+    darkBorder: '#404040',
 
+
+    foreignPropertyDarkBackgrund: '#18202F',
+    foreignPropertyLightBackgrund: '#F3FAF2',
+    foreignPropertyDarkBorder: '#253669',
+    foreignPropertyLightBorder: '#DDE2F9',
+    foreignPropertytitle: '#3C59DD',
+
+    gSTHSTReturnDarkBackgrund: '#32291F',
+    gSTHSTReturnLightBackgrund: '#FDF4E9',
+    gSTHSTReturnDarkBorder: '#7E5D1F',
+    gSTHSTReturnLightBorder: '#F6D6A4',
+    gSTHSTReturntitle: '#E89817',
+
+    manageOnlineEmailDarkBackgrund: '#19271F',
+    manageOnlineEmailLightBackgrund: '#F3FAF2',
+    manageOnlineEmailDarkBorder: '#173F21',
+    manageOnlineEmailLighBorder: '#B5E5BB',
+    manageOnlineEmailLightitle: '#76B45A',
+
+
+
+// 3C59DD
 }

@@ -2,27 +2,31 @@ import React from "react";
 
 import { StyleSheet } from "react-native";
 import { CtView, CtText } from ".";
+import { defaultColors } from "../../utils/defaultColors";
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 const TextButton = ({ description, linkTextColor, linkText, onPress }: any) => {
+    const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
     return (
-        <CtView style={[styles.container, { justifyContent: description ? "center" : "flex-end" }]}>
+        <CtView style={[styles().container, { justifyContent: description ? "center" : "flex-end" }]}>
 
-            <CtText style={styles.linkDescription}>{description}
-                <CtText onPress={onPress} style={[styles.linkTextStyle, { fontSize: description ? 14 : 16, color: linkTextColor }]}> {linkText}</CtText>
+            <CtText style={styles(darkTheme).linkDescription}>{description}
+                <CtText onPress={onPress} style={[styles().linkTextStyle, { fontSize: description ? 14 : 16, color: linkTextColor }]}> {linkText}</CtText>
             </CtText>
         </CtView>
     );
 }
 
 
-const styles = StyleSheet.create({
+const styles = (isDarkTheme?: boolean) => StyleSheet.create({
     container: {
         flex: 0,
         flexDirection: 'row',
     },
     linkDescription: {
         fontSize: 16,
-        color: 'rgba(26, 38, 58, 0.7)',
+        color: isDarkTheme? defaultColors.whiteGrey : defaultColors.secondaryTextColor,
         fontWeight: '400'
     },
     linkTextStyle: {

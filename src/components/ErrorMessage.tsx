@@ -18,8 +18,8 @@ const ErrorMessage = (props: ErrorMessageProps) => {
       <View
         style={{
           backgroundColor: "transparent",
-          left: 12,
-          marginTop: -16,
+          left: 4,
+          // marginTop: -16,
           marginRight: 8,
         }}
       >
@@ -38,9 +38,9 @@ const styles = StyleSheet.create({
   error: {
     color: defaultColors.error,
     fontSize: 12,
-    marginTop: -15,
-    marginBottom: 15,
-    marginLeft: 15,
+    // marginTop: -15,
+    // marginBottom: 15,
+    marginLeft: 4,
     fontFamily: "Figtree-MediumItalic",
   },
 });

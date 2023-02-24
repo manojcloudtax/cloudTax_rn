@@ -7,7 +7,7 @@ import {
   launchImageLibrary,
   ImageLibraryOptions,
 } from "react-native-image-picker";
-import { SocialIcon } from "react-native-elements";
+import ImagePicker from 'react-native-image-crop-picker';
 
 import {
   StyleSheet,
@@ -19,6 +19,8 @@ import {
   Alert,
   Dimensions,
   SafeAreaView,
+  Image,
+  PermissionsAndroid,
 } from "react-native";
 import {
   CtText,
@@ -26,21 +28,47 @@ import {
   CtView,
   Button,
   TextButton,
+  Divider,
 } from "../components/UiComponents";
-import { Spinner, ErrorMessage } from "../components";
+import { Spinner, ErrorMessage, CommonModal } from "../components";
 
 import { defaultColors } from "../utils/defaultColors";
 
 import { validateEmail } from "../utils/email";
 import { validatePassword } from "../utils/password";
 import { useQuery } from "react-query";
-import { registerUser } from "../api/auth";
-import { imageUpload, register } from "../store/authSlice";
-import cr, { profile_img_upload } from "../api/cr";
+import {
+  registerUser,
+  SaveTaxpayerProfileInfo,
+  GetTPAccountInfo,
+  GetTaxPayerMyProfileInfo,
+  GetTaxPayerPersonalInfo,
+} from "../api/auth";
+import {
+  imageUpload,
+  register,
+  saveRegisteredSuccessUserData,
+  saveTaxPayerMyProfileInfo,
+  saveGetTPAccountData,
+  setIsPriorYearModalSelected,
+  saveLoggedInSuccessUserData,
+  resetAllStateData,
+} from "../store/authSlice";
 import { RootState } from "../store";
 import { useFocusEffect } from "@react-navigation/native";
+import axios from "axios";
+import {
+  resetOnBoardingData,
+  setOnBoardingData,
+} from "../store/onBoardingSlice";
+import { CustomButton } from "../components/CustomButton";
+import { CustomInput } from "../components/CustomInput";
 
 const RegisterScreen = ({ navigation, route }: any) => {
+  const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
+  const { savedUserData } = useSelector(
+    (state: RootState) => state.authReducer
+  );
   const [steps, setSteps] = useState(1);
   const [showConfrimPasswordCheck, setShowConfrimPasswordCheck] =
     useState(false);
@@ -58,12 +86,18 @@ const RegisterScreen = ({ navigation, route }: any) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showconfrimPassword, setShowConfrimPassword] =
     useState<boolean>(false);
+  const [loadingAvailable, setisLoading] = useState<boolean>(false);
+  const [isShowModal, setShowModal] = useState(false);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
     try {
-      console.log("init", navigation.getState(), route);
+      dispatch(setOnBoardingData({}));
+      dispatch(setIsPriorYearModalSelected(false));
+      dispatch(resetAllStateData());
+      dispatch(resetOnBoardingData());
+      setisLoading(false);
       if (route.params !== undefined) {
         const { step } = route.params;
         setSteps(step);
@@ -72,22 +106,81 @@ const RegisterScreen = ({ navigation, route }: any) => {
   }, []);
 
   const { isLoading, refetch } = useQuery(
-    "register",
-    () => registerUser({ name, email, password }),
+    "UserRegistration",
+    () =>
+      registerUser({
+        AcctEmail: email,
+        firstname: name,
+        lastname: "",
+        password: password,
+        plain: true,
+        Year: 2022,
+      }),
     {
       onSuccess: async (data) => {
         console.log("REGISTERED", data);
-        if (libraryData) {
-          dispatch(imageUpload(libraryData));
+        // await dispatch(
+        //   register({
+        //     token: data.token,
+        //     email,
+        //     password,
+        //     refreshToken: data.refresh,
+        //   })
+        // );
+
+        if (data.ErrCode == -1) {
+          if(data.ErrMsg == "Sorry, Given email was already registered!"){
+            Alert.alert("Sorry, Given email was already registered!");
+          }else{
+          Alert.alert("Something went wrong, please try again.");
+          }
+        } else {
+          const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
+            AcctID: data?.AcctID,
+            TaxPayerID: data?.TaxPayerID,
+            Year: 2022,
+            userToken: data?.token,
+          });
+
+          console.log(
+            "resGetTaxPayerMyProfileInfo res",
+            GetTaxPayerPersonalResponse
+          );
+
+          if (GetTaxPayerPersonalResponse) {
+            if (data.ErrCode == -1) {
+              Alert.alert("Error", "Invalid email or password!");
+            } else {
+              dispatch(
+                saveLoggedInSuccessUserData(GetTaxPayerPersonalResponse)
+              );
+            }
+          } else {
+          }
+          await dispatch(saveRegisteredSuccessUserData(data));
+          setSteps(2);
+          // const response = await GetTPAccountInfo({
+          //   AcctID: data.AcctID,
+          //   TaxPayerID: data.TaxPayerID,
+          //   Year: 2022,
+          //   userToken: data.token,
+          // });
+
+          // console.log("GetTPAccountInfo: Success", response);
+          // if (response) {
+          //   // const {data} = res
+          //   if (response[0].ErrCode == -1) {
+          //     console.log("GetTPAccountInfo: error error", response);
+          //   } else {
+          //     await dispatch(saveGetTPAccountData(response));
+          //     // navigation.navigate("ChooseTaxYearScreen");
+          //     setSteps(2);
+          //   }
+          // } else {
+          //   console.log("else case on checkSub:", response);
+          //   // return {}
+          // }
         }
-        await dispatch(
-          register({
-            token: data.token,
-            email,
-            password,
-            refreshToken: data.refresh,
-          })
-        );
       },
       onError: (data) => {
         console.log("ERROR", data);
@@ -96,6 +189,88 @@ const RegisterScreen = ({ navigation, route }: any) => {
       enabled: false,
     }
   );
+
+  const onPressLastStep = async () => {
+    setisLoading(true);
+
+    console.log("onPressLastStep savedUserData", savedUserData);
+    const resSaveTaxpayer = await SaveTaxpayerProfileInfo({
+      AcctEmail: savedUserData.email,
+      AcctID: savedUserData.AcctID,
+      FirstName: name,
+      PartnerID: savedUserData.PartnerID,
+      TaxPayerID: savedUserData.TaxPayerID,
+      TaxPayerName: name,
+      Year: 2022,
+      token: savedUserData.token,
+    });
+    console.log("onPressLastStep SaveTaxpayerProfileInfo res", resSaveTaxpayer);
+    if (resSaveTaxpayer) {
+      if (resSaveTaxpayer.ErrCode == -1) {
+        setisLoading(false);
+        console.log(
+          "onPressLastStep SaveTaxpayerProfileInfo error",
+          resSaveTaxpayer
+        );
+      } else {
+        console.log(
+          "onPressLastStep SaveTaxpayerProfileInfo success",
+          resSaveTaxpayer
+        );
+        if (libraryData) {
+          dispatch(imageUpload(libraryData));
+          let formData = new FormData();
+          formData.append("profileImg", {
+            uri: libraryData.path,
+            type: libraryData.mime,
+            name: libraryData.modificationDate,
+          });
+          const config = {
+            headers: { "content-type": "multipart/form-data", Authorization: `Bearer ${savedUserData.token}` },
+          };
+          axios
+            .post(
+              "https://app.cloudtax.ca/qa/api/2022/user/profile-img",
+              formData,
+              config
+            )
+            .then((res) => {
+              setisLoading(false);
+              console.log(res + "this is data after image upload");
+            })
+            .catch((err) => console.log(err));
+        }
+
+        const resGetTPAccountInfo = await GetTaxPayerMyProfileInfo({
+          AcctID: savedUserData.AcctID,
+          TaxPayerID: savedUserData.TaxPayerID,
+          Year: 2022,
+          userToken: savedUserData.token,
+        });
+        if (resGetTPAccountInfo) {
+          setisLoading(false);
+          if (resGetTPAccountInfo.ErrCode == -1) {
+            setisLoading(false);
+            console.log("resGetTPAccountInfo err:", resGetTPAccountInfo);
+          } else {
+            setisLoading(false);
+            console.log("resGetTPAccountInfo success", resGetTPAccountInfo);
+            dispatch(saveTaxPayerMyProfileInfo(resGetTPAccountInfo));
+            navigation.navigate("ChooseTaxYearScreen", {
+              isFromRegistration: true,
+            });
+          }
+        } else {
+          setisLoading(false);
+          console.log("resGetTPAccountInfo else");
+        }
+      }
+    } else {
+      setisLoading(false);
+      console.log("resGetTPAccountInfo checkSub:");
+      // return {}
+    }
+  };
 
   const onNameSubmit = () => {
     if (!name.trim()) {
@@ -116,13 +291,20 @@ const RegisterScreen = ({ navigation, route }: any) => {
   };
 
   const onPasswordBlur = () => {
+    console.log("Password is required.", email);
+    console.log("Password is required.", password);
+    console.log("Password is required.", confirmPassword);
+    console.log("Password is required.", emailError);
+    console.log("Password is required.", passwordError);
+    console.log("Password is required.", confirmPasswordError);
+
     if (!password) {
       setPasswordError("Password is required.");
       setShowPassword(false);
       setShowConfrimPasswordCheck(false);
     } else if (!validatePassword(password)) {
       setPasswordError(
-        "Password should at least contain 6 characters, a capital letter and a symbol."
+        "Please choose a strong password"
       );
     } else {
       setPasswordError(null);
@@ -143,33 +325,6 @@ const RegisterScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const renderEyeIcon = (isPasswordField: boolean) => {
-    return (
-      <CtView style={styles().inputIcon}>
-        <TouchableOpacity
-          onPress={() =>
-            isPasswordField
-              ? setShowPassword(!showPassword)
-              : setShowConfrimPassword(!showconfrimPassword)
-          }
-        >
-          <Feather
-            name={
-              isPasswordField
-                ? showPassword
-                  ? "eye"
-                  : "eye-off"
-                : showconfrimPassword
-                ? "eye"
-                : "eye-off"
-            }
-            style={styles().iconStyle}
-          />
-        </TouchableOpacity>
-      </CtView>
-    );
-  };
-
   const renderCheckIcon = () => {
     return (
       <CtView style={styles().inputIcon}>
@@ -181,35 +336,216 @@ const RegisterScreen = ({ navigation, route }: any) => {
     );
   };
 
-  const renderButton = () => {
-    const buttonDisabled =
-      !(name && email && password && confirmPassword) ||
-      nameError ||
-      emailError ||
-      passwordError ||
-      confirmPasswordError;
-    if (isLoading) {
-      return <Spinner style={styles().loading} />;
-    } else {
-      return (
-        <Button
-          activeOpacity={1}
-          disabled={!!buttonDisabled}
-          style={[
-            styles().button,
-            {
-              opacity: buttonDisabled ? 0.8 : 1,
-              marginBottom: 24,
-              marginTop: 42,
-            },
-          ]}
-          buttonText="Create a new account"
-          onPress={() => setSteps(2)}
-        />
-      );
-    }
-  };
+  const onPressCamera = () =>{
+    setShowModal(false);
+      setTimeout(async () => {
+        if (Platform.OS === 'android') {
+          try {
+            const granted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            );
+            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+              console.log('CAMERA permission allow');
+            ImagePicker.openCamera({
+              width: 300,
+              height: 300,
+              cropping: true,
+              cropperCircleOverlay: true,
+              mediaType: 'photo',
+            }) .then(image => {
+              console.log('received base64 image', image);
+              setLibraryData(image);
+            })
+            .catch(e => console.log('received base64 image', e));;
+            } else {
+              console.log('CAMERA permission denied');
+              alert('CAMERA permission denied');
+            }
+          } catch (e) {
+            console.log("catch", e)
+          } 
+      }
+      }, 500);
+  }
 
+  const onPressLibrary = () =>{
+    setShowModal(false);
+    setTimeout(async () => {
+      if (Platform.OS === 'android') {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('CAMERA permission allow');
+            
+          //   const options: ImageLibraryOptions = {
+          //     mediaType: 'photo',
+          // }
+          // const { assets } = await launchImageLibrary(options);
+          // setLibraryData(assets);
+          ImagePicker.openPicker({
+            // width: 300,
+            // height: 400,
+            cropping: true,
+            mediaType: 'photo',
+          }) .then(image => {
+            console.log('received base64 image', image);
+            setLibraryData(image);
+          
+          })
+          .catch(e => console.log('received base64 image', e));;
+          } else {
+            console.log('CAMERA permission denied');
+            alert('CAMERA permission denied');
+          }
+        } catch (e) {
+          console.log("catch", e)
+        } 
+    }
+    }, 500);
+  }
+
+  const confirmationModal = () => {
+    return (
+      <View
+        style={{
+          height: "auto",
+          width: "100%",
+          backgroundColor: darkTheme
+            ? defaultColors.black
+            : '#999999',
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+          alignItems: "center",
+          paddingLeft: 15,
+          paddingRight: 15,
+        }}
+      >
+        <View
+          style={{
+            height: "auto",
+            width: "100%",
+            backgroundColor: darkTheme
+              ? defaultColors.matBlack
+              : defaultColors.matBlack,
+            // margin: 20,
+            padding: 15,
+            borderTopLeftRadius: 10,
+            borderTopRightRadius: 10,
+          }}
+        >
+          <CtText
+            style={{ fontWeight: "600", fontSize: 15, textAlign: "center", color: defaultColors.white, 
+            fontFamily:'Figtree-SemiBold', }}
+          >
+            {"Pick a photo"}
+          </CtText>
+          <CtText
+            style={{
+              fontWeight: "600",
+              fontSize: 14,
+              marginTop: 4,
+              textAlign: "center",
+              color: defaultColors.white,
+              fontFamily:'Figtree-SemiBold', 
+            }}
+          >
+            {"Choose a picture from Library or Camera"}
+          </CtText>
+        </View>
+        <View
+          style={{
+            backgroundColor: darkTheme ? "transparent" : "transparent",
+            justifyContent: "center",
+            width: "100%",
+          }}
+        >
+          <Button
+            onPress={() => onPressCamera()}
+            style={{
+              paddingVertical: 16,
+              // borderRadius: 5,
+              backgroundColor: defaultColors.matBlack,
+              // marginBottom: 20,
+              borderTopColor: defaultColors.darkBorder,
+              borderTopWidth: 2,
+              borderBottomColor: defaultColors.darkBorder,
+              borderBottomWidth: 2,
+            }}
+          >
+            <CtText
+              style={{
+                fontSize: 18,
+                color: defaultColors.primaryBlue,
+                fontWeight: "600",
+                // borderRadius: 10,
+              }}
+            >
+              Camera
+            </CtText>
+          </Button>
+
+          <Button
+            onPress={() => onPressLibrary()}
+            style={{
+              backgroundColor: defaultColors.matBlack,
+
+          borderBottomLeftRadius: 10,
+          borderBottomRightRadius: 10,
+            }}
+          >
+            <CtText
+              style={{
+                paddingVertical: 16,
+                fontSize: 18,
+                color: defaultColors.primaryBlue,
+                fontWeight: "600",
+                // borderRadius: 10,
+                // marginBottom: 10,
+              }}
+            >
+              Library
+            </CtText>
+          </Button>
+        </View>
+
+        <View
+          style={{
+            backgroundColor: darkTheme ? "transparent" : "transparent",
+            justifyContent: "center",
+            width: "100%",
+            marginTop: 10,
+          }}
+        >
+          <Button
+            onPress={() => onBackdropPress()}
+            style={{
+              paddingVertical: 16,
+              borderRadius: 10,
+              backgroundColor: defaultColors.matBlack,
+              marginBottom: 10,
+              // borderTopColor: defaultColors.darkBorder,
+              // borderTopWidth: 2,
+              // borderBottomColor: defaultColors.darkBorder,
+              // borderBottomWidth: 2,
+            }}
+          >
+            <CtText
+              style={{
+                fontSize: 18,
+                color: darkTheme ? defaultColors.primaryBlue : defaultColors.white,
+                fontWeight: "700",
+                borderRadius: 10,
+              }}
+            >
+              Cancel
+            </CtText>
+          </Button>
+        </View>
+      </View>
+    );
+  };
   const handleOpenLibrary = async () => {
     const options: ImageLibraryOptions = {
       mediaType: "photo",
@@ -221,13 +557,39 @@ const RegisterScreen = ({ navigation, route }: any) => {
     }
   };
 
+  function getPasswordStrength(password: any) {
+    // Define the regular expressions to match different types of characters
+    const lowercaseRegex = /[a-z]/;
+    const uppercaseRegex = /[A-Z]/;
+    const digitRegex = /[0-9]/;
+    const symbolRegex = /[\W_]/;
+    
+    // Check the length of the password
+    if (password.length < 6) {
+      return "weak";
+    }
+    
+    // Check if the password contains at least one lowercase letter, uppercase letter, digit, and symbol
+    if (!lowercaseRegex.test(password) || !uppercaseRegex.test(password) || !digitRegex.test(password) || !symbolRegex.test(password)) {
+      return "normal";
+    }
+    
+    // Otherwise, the password is considered strong
+    return "strong";
+  }
+
+
   const renderPasswordStrength = useMemo(() => {
-    let passwordLength = password.length;
+    // let passwordLength = password.length;
     let passwordRating = "";
-    if (passwordLength < 9 && passwordLength >= 6) {
-      passwordRating = "can be longer";
-    } else if (passwordLength >= 9) {
-      passwordRating = "strong password length";
+
+
+    const PSStrength = getPasswordStrength(password)
+
+    if (PSStrength == 'normal') {
+      passwordRating = "could be stronger";
+    } else if (PSStrength == 'strong') {
+      passwordRating = "strong password";
     } else {
       passwordRating = "too short";
     }
@@ -239,9 +601,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
               style={[
                 {
                   backgroundColor:
-                    password.trim().length <= 5
-                      ? defaultColors.gray
-                      : "#F84D27",
+                  PSStrength ==  "weak" || PSStrength == 'normal' ||  PSStrength == 'strong'
+                      ? "#F84D27"
+                      : defaultColors.gray,
                 },
                 styles().passwordCheck,
               ]}
@@ -250,9 +612,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
               style={[
                 {
                   backgroundColor:
-                    password.trim().length <= 7
-                      ? defaultColors.gray
-                      : "#FFA100",
+                  PSStrength == 'normal' ||  PSStrength == 'strong'
+                      ? "#FFA100"
+                      : defaultColors.gray,
                 },
                 styles().passwordCheck,
               ]}
@@ -261,15 +623,15 @@ const RegisterScreen = ({ navigation, route }: any) => {
               style={[
                 {
                   backgroundColor:
-                    password.trim().length <= 8
-                      ? defaultColors.gray
-                      : "#1A9C60",
+                    PSStrength == 'strong'
+                      ? "#1A9C60"
+                      : defaultColors.gray,
                 },
                 styles().passwordCheck,
               ]}
             />
           </View>
-          <CtText style={{ marginLeft: 14, marginTop: -10, fontSize: 12 }}>
+          <CtText style={{ marginLeft: 14, marginTop: -8, fontSize: 12 }}>
             {password.trim().length !== 0 ? passwordRating : ""}
           </CtText>
         </View>
@@ -278,35 +640,57 @@ const RegisterScreen = ({ navigation, route }: any) => {
   }, [password, setPassword, passwordError]);
 
   const onPressText = (url: String) => {
-    navigation.navigate("WebViewScreen", { url: url });
+    navigation.navigate("WebViewWithoutPopUp", { url: url });
   };
-  console.log("init steps", steps);
+
+  const onBackdropPress = () => {
+    setShowModal(false);
+  }
+  console.log("init steps", isShowModal);
   return (
     <SafeAreaView
       style={{
         flex: 1,
-        paddingBottom: 15,
-        backgroundColor: defaultColors.white,
+        paddingTop: 15,
+        backgroundColor: darkTheme ? defaultColors.black : defaultColors.white,
       }}
     >
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles().scrollStyle}
-        keyboardShouldPersistTaps="handled"
+        <CommonModal
+        isShowModal={isShowModal}
+        ChildView={confirmationModal()}
+        onBackdropPress={() => onBackdropPress()}
+      />
+      <KeyboardAvoidingView
+        keyboardVerticalOffset={Platform.OS === "android" ? 20 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{
+          // flex: 1,
+          // paddingBottom: 15,
+          backgroundColor: darkTheme
+            ? defaultColors.black
+            : defaultColors.white,
+        }}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{
-            flex: 1,
-            paddingBottom: 15,
-            backgroundColor: defaultColors.white,
-          }}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles(darkTheme).scrollStyle}
+          keyboardShouldPersistTaps="handled"
+          // automaticallyAdjustKeyboardInsets={true}
         >
           <View style={{ alignItems: "center" }}>
-            <CtText>Step {steps} of 2</CtText>
+            <CtText
+              style={{
+                fontWeight: "400",
+                fontSize: 14,
+                color: darkTheme ? defaultColors.white : defaultColors.black,
+              }}
+            >
+              Step {steps} of 2
+            </CtText>
             <Progress.Bar
               width={200}
               unfilledColor={"#DFDFDF"}
+              color={'#0A98FF'}
               progress={steps === 1 ? 0.5 : 1}
               style={{ borderColor: "#FFF", marginVertical: 12 }}
               borderRadius={8}
@@ -324,31 +708,32 @@ const RegisterScreen = ({ navigation, route }: any) => {
           </View>
           {steps === 1 ? (
             <CtView style={{ marginTop: 30 }}>
-                {/* <CtView style={{
-                    height: 60,
-      borderRadius: 10,
-      justifyContent: "center",
-      //   backgroundColor: "green",
-      borderWidth: 2,
-      borderColor: "#DEE1E9",
-      alignContent: "center",
-      marginTop: 20,}}> */}
-
-                <CtView style={styles().googleSignInContainer}>
-                <TouchableOpacity style={styles().googleSignIn}>
-                  <SocialIcon
+              <CtView style={styles(darkTheme).googleSignInContainer}>
+                <TouchableOpacity style={styles(darkTheme).googleSignIn}>
+                  {/* <SocialIcon
                     iconSize={18}
                     light
                     raised={false}
                     type="google"
+                  /> */}
+                  <Image
+                    style={{
+                      height: 20,
+                      width: 20,
+                      marginRight: 8,
+                      backgroundColor: defaultColors.transparent,
+                    }}
+                    resizeMode={"contain"}
+                    source={require("../../assets/google.png")}
                   />
-                  <CtText style={styles().buttonTitle}>
+
+                  <CtText style={styles(darkTheme).buttonTitle}>
                     Continue with google
                   </CtText>
                 </TouchableOpacity>
               </CtView>
-                {/* </CtView> */}
-              <CtView style={styles().dividerContainer}>
+              {/* </CtView> */}
+              {/* <CtView style={styles().dividerContainer}>
                 <CtView style={styles().dividerStyle} />
                 <CtText
                   style={{ width: 60, textAlign: "center", fontSize: 16 }}
@@ -356,15 +741,21 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   or
                 </CtText>
                 <CtView style={styles().dividerStyle} />
-              </CtView>
-              <CtView style={styles().textInputContainer}>
+              </CtView> */}
+              <View
+                style={{
+                  height: 40,
+                  backgroundColor: defaultColors.transparent,
+
+                  marginBottom: 10,
+                  marginTop: 10,
+                }}
+              >
+                <Divider />
+              </View>
+              {/* <CtView style={styles().textInputContainer}>
                 <CtView style={styles().inputIcon2}>
-                  <TouchableOpacity>
-                    <Ionicons
-                      name={"mail-outline"}
-                      style={styles().iconStyle}
-                    />
-                  </TouchableOpacity>
+                  <Ionicons name={"mail-outline"} style={styles().iconStyle} />
                 </CtView>
                 <CtTextInput
                   editable={true}
@@ -377,12 +768,84 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   autoCapitalize="none"
                 />
               </CtView>
-              <ErrorMessage text={emailError} />
-              <CtView style={styles().textInputContainer}>
+              <ErrorMessage text={emailError} /> */}
+              <CustomInput
+                editable={true}
+                placeholder={"Your email address"}
+                placeholderTextColor={defaultColors.gray}
+                onChangeText={(email: string) => setEmail(email)}
+                onBlur={onEmailSubmit}
+                keyboardType={"email-address"}
+                autoCapitalize="none"
+                validationError={emailError}
+                customImage={
+                  darkTheme
+                    ? require("../../assets/msgIconDark.png")
+                    : require("../../assets/msgIcon.png")
+                }
+              />
+              <CustomInput
+                editable={true}
+                placeholder={"Password"}
+                placeholderTextColor={defaultColors.gray}
+                onChangeText={(text: string) => {setPassword(text), setPasswordError('')}}
+                onBlur={onPasswordBlur}
+                autoCapitalize="none"
+                validationError={passwordError}
+                secureTextEntry={!showPassword}
+                RightImage={
+                  showPassword
+                    ? darkTheme
+                      ? require("../../assets/eyecloseDark.png")
+                      : require("../../assets/eyeclose.png")
+                    : darkTheme
+                    ? require("../../assets/eyeDark.png")
+                    : require("../../assets/eye.png")
+                }
+                customImage={
+                  darkTheme
+                    ? require("../../assets/passwordDark.png")
+                    : require("../../assets/password.png")
+                }
+                onPressRightIcon={() => setShowPassword(!showPassword)}
+              />
+
+              {renderPasswordStrength}
+              <CustomInput
+                editable={true}
+                placeholder={"Confirm Password"}
+                placeholderTextColor={defaultColors.gray}
+                // onChangeText={(text: string) => setPassword(text)}
+                onBlur={onConfirmPasswordBlur}
+                autoCapitalize="none"
+                validationError={confirmPasswordError}
+                secureTextEntry={!showconfrimPassword}
+                RightImage={
+                  showconfrimPassword
+                    ? darkTheme
+                      ? require("../../assets/eyecloseDark.png")
+                      : require("../../assets/eyeclose.png")
+                    : darkTheme
+                    ? require("../../assets/eyeDark.png")
+                    : require("../../assets/eye.png")
+                }
+                customImage={
+                  darkTheme
+                    ? require("../../assets/passwordDark.png")
+                    : require("../../assets/password.png")
+                }
+                onChangeText={(confirmPassword: string) => {
+                  setConfirmPassword(confirmPassword);
+                  onConfirmPasswordBlur();
+                  setConfirmPasswordError('');
+                }}
+                onPressRightIcon={() =>
+                  setShowConfrimPassword(!showconfrimPassword)
+                }
+              />
+              {/* <CtView style={styles().textInputContainer}>
                 <CtView style={styles().inputIcon2}>
-                  <TouchableOpacity>
-                    <Ionicons name={"key-outline"} style={styles().iconStyle} />
-                  </TouchableOpacity>
+                  <Ionicons name={"key-outline"} style={styles().iconStyle} />
                 </CtView>
                 <CtTextInput
                   editable={true}
@@ -393,16 +856,14 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   style={styles().inputAlt}
                   onChangeText={(password: string) => setPassword(password)}
                   onBlur={onPasswordBlur}
+                  textContentType={"oneTimeCode"}
                 />
                 {!!password && renderEyeIcon(true)}
-              </CtView>
-              {renderPasswordStrength}
-              <ErrorMessage text={passwordError} />
-              <CtView style={styles().textInputContainer}>
+              </CtView> */}
+              {/* <ErrorMessage text={passwordError} /> */}
+              {/* <CtView style={styles().textInputContainer}>
                 <CtView style={styles().inputIcon2}>
-                  <TouchableOpacity>
-                    <Ionicons name={"key-outline"} style={styles().iconStyle} />
-                  </TouchableOpacity>
+                  <Ionicons name={"key-outline"} style={styles().iconStyle} />
                 </CtView>
                 <CtTextInput
                   testID={"private"}
@@ -421,9 +882,21 @@ const RegisterScreen = ({ navigation, route }: any) => {
                 {!!confirmPassword
                   ? showConfrimPasswordCheck && renderCheckIcon()
                   : null}
-              </CtView>
-              <ErrorMessage text={confirmPasswordError} />
-              {renderButton()}
+              </CtView> */}
+              {/* <ErrorMessage text={confirmPasswordError} /> */}
+              {/* {renderButton()} */}
+              <CustomButton
+                buttonText="Create a new account"
+                disabled={
+                  (email == "" && password == "" && confirmPassword == "") ||
+                  emailError !== null ||
+                  passwordError !== null ||
+                  confirmPasswordError !== null
+                }
+                onPress={() => refetch()}
+                showLoading={isLoading}
+                style={{ marginBottom: 30, marginTop: 10 }}
+              />
               <TextButton
                 description="Already have an account? "
                 linkText="Sign in"
@@ -438,7 +911,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   }}
                 >
                   <CtText
-                    style={styles().forgotTextColor}
+                    style={styles(darkTheme).forgotTextColor}
                     onPress={() =>
                       onPressText(
                         "https://www.npmjs.com/package/react-native-webview"
@@ -454,7 +927,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
                     alignItems: "center",
                   }}
                 >
-                  <CtText style={styles().dottedStyle}>{"\u2B24"}</CtText>
+                  <CtText style={styles(darkTheme).dottedStyle}>
+                    {"\u2B24"}
+                  </CtText>
                 </CtView>
                 <CtView
                   style={{
@@ -463,7 +938,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   }}
                 >
                   <CtText
-                    style={styles().forgotTextColor}
+                    style={styles(darkTheme).forgotTextColor}
                     onPress={() =>
                       onPressText(
                         "https://www.npmjs.com/package/react-native-webview"
@@ -477,23 +952,58 @@ const RegisterScreen = ({ navigation, route }: any) => {
             </CtView>
           ) : (
             <CtView style={{ marginTop: 24 }}>
+
+              {libraryData == null ?
+               <Avatar
+               size={"xlarge"}
+               rounded
+               icon={{ name: "person", type: "fontawesome" }}
+               containerStyle={{
+                 marginTop: 40,
+                 backgroundColor: defaultColors.whisper,
+                 alignSelf: "center",
+                 marginBottom: 24,
+               }}
+               title={name.trim().length !== 0 ? name.charAt(0) : ""}
+               onPress={() => console.log("Works!")}
+               activeOpacity={0.7}
+             >
+               <Accessory
+                 onPress={() => setShowModal(true)}
+                 style={{
+                   backgroundColor: "#0090EE",
+                   padding: 12,
+                   height: 42,
+                   width: 42,
+                   borderRadius: 42,
+                 }}
+                 source={require("../../assets/add-image.png")}
+                 size={32}
+                 color={"#FFF"}
+                 height={undefined}
+                 tvParallaxProperties={undefined}
+                 width={undefined}
+               />
+             </Avatar>
+             :
+             
               <Avatar
+                size={"xlarge"}
+                rounded
                 icon={{ name: "person", type: "fontawesome" }}
-                source={{ uri: libraryData !== null ? libraryData.uri : null }}
-                onPress={() => console.log("Works!")}
                 containerStyle={{
                   marginTop: 40,
                   backgroundColor: defaultColors.whisper,
                   alignSelf: "center",
                   marginBottom: 24,
                 }}
-                size={"xlarge"}
-                activeOpacity={0.7}
+                source={{ uri: libraryData.path }}
                 title={name.trim().length !== 0 ? name.charAt(0) : ""}
-                rounded
+                onPress={() => console.log("Works!")}
+                activeOpacity={0.7}
               >
                 <Accessory
-                  onPress={() => handleOpenLibrary()}
+                  onPress={() => setShowModal(true)}
                   style={{
                     backgroundColor: "#0090EE",
                     padding: 12,
@@ -509,6 +1019,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   width={undefined}
                 />
               </Avatar>
+}
               <CtText
                 style={{
                   fontWeight: "400",
@@ -516,45 +1027,44 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   fontSize: 14,
                   fontFamily: "Figtree-Regular",
                   marginBottom: 6,
-                  color:'rgba(26, 38, 58, 0.7)'
+                  color: darkTheme
+                    ? defaultColors.white
+                    : defaultColors.secondaryTextColor,
                 }}
               >
                 What should we call you?
               </CtText>
-              <CtTextInput
+              {/* <CtTextInput
                 editable={true}
                 placeholder={"Your name"}
                 placeholderTextColor={defaultColors.darkGray}
                 style={styles().input}
                 onChangeText={(name: string) => setName(name)}
                 onBlur={onNameSubmit}
-                keyboardType={"email-address"}
+                // keyboardType={"email-address"}
+              /> */}
+              <CustomInput
+                editable={true}
+                placeholder={"Your name"}
+                placeholderTextColor={defaultColors.gray}
+                onChangeText={(name: string) => setName(name)}
+                onBlur={onNameSubmit}
+                value={name}
+                autoCapitalize="none"
               />
-              <Button
-                activeOpacity={1}
-                disabled={name.trim() === ""}
-                style={[
-                  styles().button,
-                  { opacity: name.trim() === "" ? 0.8 : 1 },
-                ]}
-                buttonText="Next →"
-                onPress={() => {
-                  //   setSteps(2);
-                }}
-              />
-              <TextButton
-                description=" "
-                linkText={"Skip the step"}
-                fontSize={15}
-                linkTextColor={defaultColors.gray}
-                onPress={() => {
-                  //   setSteps(2);
-                }}
+
+              {/* {renderNextButton()} */}
+              <CustomButton
+                showLoading={loadingAvailable}
+                buttonText="Next"
+                disabled={!name || nameError}
+                onPress={() => onPressLastStep()}
+                style={{ marginBottom: 20 }}
               />
             </CtView>
           )}
-        </KeyboardAvoidingView>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -562,16 +1072,16 @@ const RegisterScreen = ({ navigation, route }: any) => {
 const styles = (isDarkTheme?: boolean) =>
   StyleSheet.create({
     scrollStyle: {
-      flexGrow: 1,
-      paddingBottom: 15,
-      backgroundColor: defaultColors.white,
+      // flexGrow: 1,
+      paddingBottom: 80,
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
       padding: 20,
     },
     input: {
       borderWidth: 1,
       borderColor: "#DADADA",
       backgroundColor: "transparent",
-      marginTop: 0,
+      marginTop: 10,
       padding: 15,
       marginBottom: 24,
       borderRadius: 8,
@@ -611,10 +1121,12 @@ const styles = (isDarkTheme?: boolean) =>
     inputIcon2: {
       flex: 0,
       position: "absolute",
-      justifyContent: "flex-start",
+      justifyContent: "center",
       backgroundColor: "transparent",
       left: 12,
-      top: 15,
+      // top: 18,
+
+      top: 18,
     },
     iconStyle: {
       fontSize: 20,
@@ -630,15 +1142,15 @@ const styles = (isDarkTheme?: boolean) =>
       flex: 0,
     },
     passwordCheck: {
-      width: 50,
+      width: Dimensions.get('window').width / 5,
       height: 6,
-      marginTop: -8,
+      marginTop: -5,
       borderRadius: 12,
       marginHorizontal: 2,
     },
 
     googleSignIn: {
-      backgroundColor: "#FFF",
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
       flexDirection: "row",
       justifyContent: "center",
       alignContent: "center",
@@ -648,17 +1160,19 @@ const styles = (isDarkTheme?: boolean) =>
       height: 54,
       borderRadius: 10,
       justifyContent: "center",
-      //   backgroundColor: "green",
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
       borderWidth: 2,
       marginTop: 20,
-      borderColor: "#DEE1E9",
+      borderColor: isDarkTheme ? defaultColors.darkBorder : "#DEE1E9",
       alignContent: "center",
     },
     buttonTitle: {
       textAlign: "center",
       fontSize: 16,
-      fontFamily: "Figtree-Regular",
-      color: defaultColors.primaryText,
+      fontFamily:'Figtree-SemiBold',
+      color: isDarkTheme
+        ? defaultColors.white
+        : defaultColors.secondaryTextColor,
       fontWeight: "600",
       paddingLeft: 8,
     },
@@ -666,16 +1180,20 @@ const styles = (isDarkTheme?: boolean) =>
       flexDirection: "row",
       alignItems: "center",
       marginTop: 30,
-      marginBottom: 30
+      marginBottom: 30,
     },
 
     forgotTextColor: {
-      color: "rgba(26, 38, 58, 0.7)",
+      color: isDarkTheme
+        ? defaultColors.white
+        : defaultColors.secondaryTextColor,
       fontSize: 16,
       fontWeight: "400",
     },
     dottedStyle: {
-      color: "rgba(26, 38, 58, 0.7)",
+      color: isDarkTheme
+        ? defaultColors.white
+        : defaultColors.secondaryTextColor,
       fontSize: 8,
       fontWeight: "400",
     },

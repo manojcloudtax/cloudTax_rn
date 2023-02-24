@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-    baseURL: "https://shoebox-dev-3yoh3ih4aa-uc.a.run.app/api"
+    baseURL: "https://app.cloudtax.ca/qa/api/2022"
 });
 
 instance.interceptors.request.use(

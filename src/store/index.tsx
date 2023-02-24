@@ -11,6 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import authSliceReducer, { resetState } from './authSlice';
 import themeSlice from "./themeSlice";
+import onBoarding from "./onBoardingSlice";
 import Reactotron from "../../ReactotronConfig";
 
 const persistConfig = {
@@ -21,6 +22,7 @@ const persistConfig = {
 const reducers = {
     authReducer: authSliceReducer,
     themeReducer: themeSlice,
+    onBoardingReducer: onBoarding,
 };
 
 const combinedReducer = combineReducers<RootState>(reducers as ReducersMapObject<RootState>);
