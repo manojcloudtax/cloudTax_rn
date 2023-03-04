@@ -92,8 +92,6 @@ const LoginScreen = ({ navigation }: any) => {
     GetAllProvinceData();
   }, []);
 
-
-
   const GetAllProvinceData = async () => {
     const allProvinceData = await getAllProvince();
     console.log("else case on checkSub:", allProvinceData);
@@ -101,15 +99,18 @@ const LoginScreen = ({ navigation }: any) => {
       // const {data} = res
       if (allProvinceData.ErrCode == -1) {
         console.log("else case on checkSub:", allProvinceData);
-        getArray()
+        getArray();
       } else {
         dispatch(setProvinces(allProvinceData));
         console.log("else case on checkSub:", JSON.stringify(allProvinceData));
-        await AsyncStorage.setItem('allProvinceData', JSON.stringify(allProvinceData))
+        await AsyncStorage.setItem(
+          "allProvinceData",
+          JSON.stringify(allProvinceData)
+        );
       }
     } else {
       console.log("else case on checkSub:", allProvinceData);
-      getArray()
+      getArray();
       // return {}
     }
   };
@@ -215,7 +216,7 @@ const LoginScreen = ({ navigation }: any) => {
               partnerFromList: "",
               ClaimCreditsFromSpouse:
                 resGetTaxPayerMyProfileInfo?.ClaimCreditsFromSpouse,
-                partnerDetailsList: responseGetTPAccountInfo,
+              partnerDetailsList: responseGetTPAccountInfo,
             };
 
             dispatch(setOnBoardingData(params));
@@ -241,7 +242,9 @@ const LoginScreen = ({ navigation }: any) => {
 
   const getArray = async () => {
     try {
-      const allProvinceDataArray = await AsyncStorage.getItem('allProvinceData');
+      const allProvinceDataArray = await AsyncStorage.getItem(
+        "allProvinceData"
+      );
       console.log("allProvinceDataArray:", allProvinceDataArray);
 
       if (allProvinceDataArray !== null) {
@@ -252,7 +255,7 @@ const LoginScreen = ({ navigation }: any) => {
     } catch (error) {
       // Error retrieving data
     }
-  }
+  };
   const onPasswordChange = () => {
     if (email && !password) {
       setPasswordError("Password is required.");
@@ -261,39 +264,6 @@ const LoginScreen = ({ navigation }: any) => {
       setPasswordError(null);
     }
   };
-
-  const renderButton = useMemo(() => {
-    const disabled = !email || !password;
-    const style = disabled
-      ? [styles().button, { opacity: 0.6 }]
-      : styles().button;
-    if (!isLoading) {
-      return (
-        <>
-          <Button
-            disabled={disabled}
-            style={style}
-            buttonText="Sign In"
-            onPress={async () => {
-              if (email && password) {
-                await refetch();
-              } else if (email && !password) {
-                await authenticate();
-              }
-            }}
-          />
-        </>
-      );
-    } else {
-      return (
-        <Spinner
-          style={{
-            flex: 0,
-          }}
-        />
-      );
-    }
-  }, [selectedAccount, email, password]);
 
   const decrypt = async () => {
     try {
@@ -402,11 +372,6 @@ const LoginScreen = ({ navigation }: any) => {
         backgroundColor: darkTheme ? defaultColors.black : defaultColors.white,
       }}
     >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles(darkTheme).scrollStyle}
-      >
         <KeyboardAvoidingView
           keyboardVerticalOffset={Platform.OS === "android" ? 20 : 0}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -416,6 +381,12 @@ const LoginScreen = ({ navigation }: any) => {
             backgroundColor: darkTheme ? defaultColors.black : "white",
           }}
         >
+
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles(darkTheme).scrollStyle}
+      >
           <CtView
             style={{
               marginTop: 30,
@@ -423,7 +394,7 @@ const LoginScreen = ({ navigation }: any) => {
             }}
           >
             <CtText style={styles().caption}>Welcome Back!</CtText>
-            <CtText style={[styles(darkTheme).subTitle, {marginBottom:60}]}>
+            <CtText style={[styles(darkTheme).subTitle, { marginBottom: 60 }]}>
               Good to see you again! Sign into your account
             </CtText>
             {/* <CtView style={styles(darkTheme).googleSignInContainer}>
@@ -564,7 +535,6 @@ const LoginScreen = ({ navigation }: any) => {
                 </CtText>
               </CtView>
             </View>
-            {/* <CtView style={styles().buttonContainer}>{renderButton}</CtView> */}
             <CustomButton
               showLoading={isLoading}
               buttonText="Sign In"
@@ -596,9 +566,7 @@ const LoginScreen = ({ navigation }: any) => {
                 <CtText
                   style={styles(darkTheme).forgotTextColor}
                   onPress={() =>
-                    onPressText(
-                      "https://cloudtax.ca/terms-and-conditions/"
-                    )
+                    onPressText("https://cloudtax.ca/terms-and-conditions/")
                   }
                 >
                   Terms of Service
@@ -623,9 +591,7 @@ const LoginScreen = ({ navigation }: any) => {
                 <CtText
                   style={styles(darkTheme).forgotTextColor}
                   onPress={() =>
-                    onPressText(
-                      "https://cloudtax.ca/privacy-policy/"
-                    )
+                    onPressText("https://cloudtax.ca/privacy-policy/")
                   }
                 >
                   Privacy Policy
@@ -636,8 +602,8 @@ const LoginScreen = ({ navigation }: any) => {
           </CtView>
           {/* </CtView> */}
           {/* </View> */}
-        </KeyboardAvoidingView>
       </ScrollView>
+        </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -680,7 +646,7 @@ const styles = (isDarkTheme?: boolean) =>
     buttonTitle: {
       textAlign: "center",
       fontSize: 16,
-      fontFamily:'Figtree-Bold',
+      fontFamily: "Figtree-Bold",
       color: isDarkTheme
         ? defaultColors.white
         : defaultColors.secondaryTextColor,

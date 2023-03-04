@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Avatar, Accessory } from "react-native-elements";
 import * as Progress from "react-native-progress";
 import { useDispatch, useSelector } from "react-redux";
-import ImagePicker from 'react-native-image-crop-picker';
+import ImagePicker from "react-native-image-crop-picker";
 
 import {
   StyleSheet,
@@ -110,10 +110,10 @@ const RegisterScreen = ({ navigation, route }: any) => {
       onSuccess: async (data) => {
         console.log("REGISTERED", data);
         if (data.ErrCode == -1) {
-          if(data.ErrMsg == "Sorry, Given email was already registered!"){
+          if (data.ErrMsg == "Sorry, Given email was already registered!") {
             Alert.alert("Sorry, Given email was already registered!");
-          }else{
-          Alert.alert("Something went wrong, please try again.");
+          } else {
+            Alert.alert("Something went wrong, please try again.");
           }
         } else {
           const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
@@ -186,7 +186,10 @@ const RegisterScreen = ({ navigation, route }: any) => {
             name: libraryData.modificationDate,
           });
           const config = {
-            headers: { "content-type": "multipart/form-data", Authorization: `Bearer ${savedUserData.token}` },
+            headers: {
+              "content-type": "multipart/form-data",
+              Authorization: `Bearer ${savedUserData.token}`,
+            },
           };
           axios
             .post(
@@ -263,9 +266,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
       setShowPassword(false);
       setShowConfrimPasswordCheck(false);
     } else if (!validatePassword(password)) {
-      setPasswordError(
-        "Please choose a strong password"
-      );
+      setPasswordError("Please choose a strong password");
     } else {
       setPasswordError(null);
     }
@@ -285,70 +286,70 @@ const RegisterScreen = ({ navigation, route }: any) => {
     }
   };
 
-
-  const onPressCamera = () =>{
+  const onPressCamera = () => {
     setShowModal(false);
-      setTimeout(async () => {
-        if (Platform.OS === 'android') {
-          try {
-            const granted = await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            );
-            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-              console.log('CAMERA permission allow');
+    setTimeout(async () => {
+      if (Platform.OS === "android") {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log("CAMERA permission allow");
             ImagePicker.openCamera({
               width: 300,
               height: 300,
               cropping: true,
               cropperCircleOverlay: true,
-              mediaType: 'photo',
-            }) .then(image => {
-              console.log('received base64 image', image);
-              setLibraryData(image);
+              mediaType: "photo",
             })
-            .catch(e => console.log('received base64 image', e));;
-            } else {
-              console.log('CAMERA permission denied');
-              alert('CAMERA permission denied');
-            }
-          } catch (e) {
-            console.log("catch", e)
-          } 
-      }
-      }, 500);
-  }
-
-  const onPressLibrary = () =>{
-    setShowModal(false);
-    setTimeout(async () => {
-      if (Platform.OS === 'android') {
-        try {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          );
-          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('CAMERA permission allow');
-          ImagePicker.openPicker({
-            // width: 300,
-            // height: 400,
-            cropping: true,
-            mediaType: 'photo',
-          }) .then(image => {
-            console.log('received base64 image', image);
-            setLibraryData(image);
-          
-          })
-          .catch(e => console.log('received base64 image', e));;
+              .then((image) => {
+                console.log("received base64 image", image);
+                setLibraryData(image);
+              })
+              .catch((e) => console.log("received base64 image", e));
           } else {
-            console.log('CAMERA permission denied');
-            alert('CAMERA permission denied');
+            console.log("CAMERA permission denied");
+            alert("CAMERA permission denied");
           }
         } catch (e) {
-          console.log("catch", e)
-        } 
-    }
+          console.log("catch", e);
+        }
+      }
     }, 500);
-  }
+  };
+
+  const onPressLibrary = () => {
+    setShowModal(false);
+    setTimeout(async () => {
+      if (Platform.OS === "android") {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log("CAMERA permission allow");
+            ImagePicker.openPicker({
+              // width: 300,
+              // height: 400,
+              cropping: true,
+              mediaType: "photo",
+            })
+              .then((image) => {
+                console.log("received base64 image", image);
+                setLibraryData(image);
+              })
+              .catch((e) => console.log("received base64 image", e));
+          } else {
+            console.log("CAMERA permission denied");
+            alert("CAMERA permission denied");
+          }
+        } catch (e) {
+          console.log("catch", e);
+        }
+      }
+    }, 500);
+  };
 
   const confirmationModal = () => {
     return (
@@ -356,9 +357,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
         style={{
           height: "auto",
           width: "100%",
-          backgroundColor: darkTheme
-            ? defaultColors.black
-            : '#999999',
+          backgroundColor: darkTheme ? defaultColors.black : "#999999",
           borderTopLeftRadius: 10,
           borderTopRightRadius: 10,
           alignItems: "center",
@@ -380,8 +379,13 @@ const RegisterScreen = ({ navigation, route }: any) => {
           }}
         >
           <CtText
-            style={{ fontWeight: "600", fontSize: 15, textAlign: "center", color: defaultColors.white, 
-            fontFamily:'Figtree-SemiBold', }}
+            style={{
+              fontWeight: "600",
+              fontSize: 15,
+              textAlign: "center",
+              color: defaultColors.white,
+              fontFamily: "Figtree-SemiBold",
+            }}
           >
             {"Pick a photo"}
           </CtText>
@@ -392,7 +396,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
               marginTop: 4,
               textAlign: "center",
               color: defaultColors.white,
-              fontFamily:'Figtree-SemiBold', 
+              fontFamily: "Figtree-SemiBold",
             }}
           >
             {"Choose a picture from Library or Camera"}
@@ -435,8 +439,8 @@ const RegisterScreen = ({ navigation, route }: any) => {
             style={{
               backgroundColor: defaultColors.matBlack,
 
-          borderBottomLeftRadius: 10,
-          borderBottomRightRadius: 10,
+              borderBottomLeftRadius: 10,
+              borderBottomRightRadius: 10,
             }}
           >
             <CtText
@@ -478,7 +482,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
             <CtText
               style={{
                 fontSize: 18,
-                color: darkTheme ? defaultColors.primaryBlue : defaultColors.white,
+                color: darkTheme
+                  ? defaultColors.primaryBlue
+                  : defaultColors.white,
                 fontWeight: "700",
                 borderRadius: 10,
               }}
@@ -497,32 +503,35 @@ const RegisterScreen = ({ navigation, route }: any) => {
     const uppercaseRegex = /[A-Z]/;
     const digitRegex = /[0-9]/;
     const symbolRegex = /[\W_]/;
-    
+
     // Check the length of the password
     if (password.length < 6) {
       return "weak";
     }
-    
+
     // Check if the password contains at least one lowercase letter, uppercase letter, digit, and symbol
-    if (!lowercaseRegex.test(password) || !uppercaseRegex.test(password) || !digitRegex.test(password) || !symbolRegex.test(password)) {
+    if (
+      !lowercaseRegex.test(password) ||
+      !uppercaseRegex.test(password) ||
+      !digitRegex.test(password) ||
+      !symbolRegex.test(password)
+    ) {
       return "normal";
     }
-    
+
     // Otherwise, the password is considered strong
     return "strong";
   }
-
 
   const renderPasswordStrength = useMemo(() => {
     // let passwordLength = password.length;
     let passwordRating = "";
 
+    const PSStrength = getPasswordStrength(password);
 
-    const PSStrength = getPasswordStrength(password)
-
-    if (PSStrength == 'normal') {
+    if (PSStrength == "normal") {
       passwordRating = "could be stronger";
-    } else if (PSStrength == 'strong') {
+    } else if (PSStrength == "strong") {
       passwordRating = "strong password";
     } else {
       passwordRating = "too short";
@@ -535,7 +544,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
               style={[
                 {
                   backgroundColor:
-                  PSStrength ==  "weak" || PSStrength == 'normal' ||  PSStrength == 'strong'
+                    PSStrength == "weak" ||
+                    PSStrength == "normal" ||
+                    PSStrength == "strong"
                       ? "#F84D27"
                       : defaultColors.gray,
                 },
@@ -546,7 +557,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
               style={[
                 {
                   backgroundColor:
-                  PSStrength == 'normal' ||  PSStrength == 'strong'
+                    PSStrength == "normal" || PSStrength == "strong"
                       ? "#FFA100"
                       : defaultColors.gray,
                 },
@@ -557,9 +568,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
               style={[
                 {
                   backgroundColor:
-                    PSStrength == 'strong'
-                      ? "#1A9C60"
-                      : defaultColors.gray,
+                    PSStrength == "strong" ? "#1A9C60" : defaultColors.gray,
                 },
                 styles().passwordCheck,
               ]}
@@ -579,7 +588,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
 
   const onBackdropPress = () => {
     setShowModal(false);
-  }
+  };
   console.log("init steps", isShowModal);
   return (
     <SafeAreaView
@@ -589,7 +598,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
         backgroundColor: darkTheme ? defaultColors.black : defaultColors.white,
       }}
     >
-        <CommonModal
+      <CommonModal
         isShowModal={isShowModal}
         ChildView={confirmationModal()}
         onBackdropPress={() => onBackdropPress()}
@@ -624,7 +633,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
             <Progress.Bar
               width={200}
               unfilledColor={"#DFDFDF"}
-              color={'#0A98FF'}
+              color={"#0A98FF"}
               progress={steps === 1 ? 0.5 : 1}
               style={{ borderColor: "#FFF", marginVertical: 12 }}
               borderRadius={8}
@@ -690,7 +699,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
                 editable={true}
                 placeholder={"Password"}
                 placeholderTextColor={defaultColors.gray}
-                onChangeText={(text: string) => {setPassword(text), setPasswordError('')}}
+                onChangeText={(text: string) => {
+                  setPassword(text), setPasswordError("");
+                }}
                 onBlur={onPasswordBlur}
                 autoCapitalize="none"
                 validationError={passwordError}
@@ -739,7 +750,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                 onChangeText={(confirmPassword: string) => {
                   setConfirmPassword(confirmPassword);
                   onConfirmPasswordBlur();
-                  setConfirmPasswordError('');
+                  setConfirmPasswordError("");
                 }}
                 onPressRightIcon={() =>
                   setShowConfrimPassword(!showconfrimPassword)
@@ -773,9 +784,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   <CtText
                     style={styles(darkTheme).forgotTextColor}
                     onPress={() =>
-                      onPressText(
-                        "https://cloudtax.ca/terms-and-conditions/"
-                      )
+                      onPressText("https://cloudtax.ca/terms-and-conditions/")
                     }
                   >
                     Terms of Service
@@ -800,9 +809,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   <CtText
                     style={styles(darkTheme).forgotTextColor}
                     onPress={() =>
-                      onPressText(
-                        "https://cloudtax.ca/privacy-policy/"
-                      )
+                      onPressText("https://cloudtax.ca/privacy-policy/")
                     }
                   >
                     Privacy Policy
@@ -812,74 +819,72 @@ const RegisterScreen = ({ navigation, route }: any) => {
             </CtView>
           ) : (
             <CtView style={{ marginTop: 24 }}>
-
-              {libraryData == null ?
-               <Avatar
-               size={"xlarge"}
-               rounded
-               icon={{ name: "person", type: "fontawesome" }}
-               containerStyle={{
-                 marginTop: 40,
-                 backgroundColor: defaultColors.whisper,
-                 alignSelf: "center",
-                 marginBottom: 24,
-               }}
-               title={name.trim().length !== 0 ? name.charAt(0) : ""}
-               onPress={() => console.log("Works!")}
-               activeOpacity={0.7}
-             >
-               <Accessory
-                 onPress={() => setShowModal(true)}
-                 style={{
-                   backgroundColor: "#0090EE",
-                   padding: 12,
-                   height: 42,
-                   width: 42,
-                   borderRadius: 42,
-                 }}
-                 source={require("../../assets/add-image.png")}
-                 size={32}
-                 color={"#FFF"}
-                 height={undefined}
-                 tvParallaxProperties={undefined}
-                 width={undefined}
-               />
-             </Avatar>
-             :
-             
-              <Avatar
-                size={"xlarge"}
-                rounded
-                icon={{ name: "person", type: "fontawesome" }}
-                containerStyle={{
-                  marginTop: 40,
-                  backgroundColor: defaultColors.whisper,
-                  alignSelf: "center",
-                  marginBottom: 24,
-                }}
-                source={{ uri: libraryData.path }}
-                title={name.trim().length !== 0 ? name.charAt(0) : ""}
-                onPress={() => console.log("Works!")}
-                activeOpacity={0.7}
-              >
-                <Accessory
-                  onPress={() => setShowModal(true)}
-                  style={{
-                    backgroundColor: "#0090EE",
-                    padding: 12,
-                    height: 42,
-                    width: 42,
-                    borderRadius: 42,
+              {libraryData == null ? (
+                <Avatar
+                  size={"xlarge"}
+                  rounded
+                  icon={{ name: "person", type: "fontawesome" }}
+                  containerStyle={{
+                    marginTop: 40,
+                    backgroundColor: defaultColors.whisper,
+                    alignSelf: "center",
+                    marginBottom: 24,
                   }}
-                  source={require("../../assets/add-image.png")}
-                  size={32}
-                  color={"#FFF"}
-                  height={undefined}
-                  tvParallaxProperties={undefined}
-                  width={undefined}
-                />
-              </Avatar>
-}
+                  title={name.trim().length !== 0 ? name.charAt(0) : ""}
+                  onPress={() => console.log("Works!")}
+                  activeOpacity={0.7}
+                >
+                  <Accessory
+                    onPress={() => setShowModal(true)}
+                    style={{
+                      backgroundColor: "#0090EE",
+                      padding: 12,
+                      height: 42,
+                      width: 42,
+                      borderRadius: 42,
+                    }}
+                    source={require("../../assets/add-image.png")}
+                    size={32}
+                    color={"#FFF"}
+                    height={undefined}
+                    tvParallaxProperties={undefined}
+                    width={undefined}
+                  />
+                </Avatar>
+              ) : (
+                <Avatar
+                  size={"xlarge"}
+                  rounded
+                  icon={{ name: "person", type: "fontawesome" }}
+                  containerStyle={{
+                    marginTop: 40,
+                    backgroundColor: defaultColors.whisper,
+                    alignSelf: "center",
+                    marginBottom: 24,
+                  }}
+                  source={{ uri: libraryData.path }}
+                  title={name.trim().length !== 0 ? name.charAt(0) : ""}
+                  onPress={() => console.log("Works!")}
+                  activeOpacity={0.7}
+                >
+                  <Accessory
+                    onPress={() => setShowModal(true)}
+                    style={{
+                      backgroundColor: "#0090EE",
+                      padding: 12,
+                      height: 42,
+                      width: 42,
+                      borderRadius: 42,
+                    }}
+                    source={require("../../assets/add-image.png")}
+                    size={32}
+                    color={"#FFF"}
+                    height={undefined}
+                    tvParallaxProperties={undefined}
+                    width={undefined}
+                  />
+                </Avatar>
+              )}
               <CtText
                 style={{
                   fontWeight: "400",
@@ -993,7 +998,7 @@ const styles = (isDarkTheme?: boolean) =>
       flex: 0,
     },
     passwordCheck: {
-      width: Dimensions.get('window').width / 5,
+      width: Dimensions.get("window").width / 5,
       height: 6,
       marginTop: -5,
       borderRadius: 12,
@@ -1020,7 +1025,7 @@ const styles = (isDarkTheme?: boolean) =>
     buttonTitle: {
       textAlign: "center",
       fontSize: 16,
-      fontFamily:'Figtree-Bold',
+      fontFamily: "Figtree-Bold",
       color: isDarkTheme
         ? defaultColors.white
         : defaultColors.secondaryTextColor,
