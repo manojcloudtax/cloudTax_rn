@@ -1,25 +1,17 @@
-import React, { useEffect, useMemo, useState, useRef, createRef } from "react";
+import React, { useEffect,useState} from "react";
 import {
   StyleSheet,
-  Image,
   Alert,
   ScrollView,
   TouchableOpacity,
   Platform,
-  KeyboardAvoidingView,
-  Dimensions,
-  View,
-  TextInput,
 } from "react-native";
 import {
   CtText,
   CtView,
-  CtTextInput,
   Button,
-  TextButton,
-  Divider,
 } from "../components/UiComponents";
-import { Spinner, ErrorMessage } from "../components";
+import { Spinner } from "../components";
 import { useDispatch } from "react-redux";
 import { defaultColors } from "../utils/defaultColors";
 import { useSelector } from "react-redux";
@@ -27,7 +19,6 @@ import { RootState } from "../store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import moment from "moment";
 import DatePicker from "react-native-date-picker";
-import { Ionicons } from "@expo/vector-icons";
 import {
   GetAfrUrl,
   GetSlips,
@@ -58,15 +49,18 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
 
   useEffect(() => {
     try {
-      console.log("onPressConfirm res", getSavedLoggedInData?.TaxPayerBirthDate);
+      console.log(
+        "onPressConfirm res",
+        getSavedLoggedInData?.TaxPayerBirthDate
+      );
       console.log("onPressConfirm res", getSavedLoggedInData);
-      if(getSavedLoggedInData?.TaxPayerBirthDate != undefined){
-        if(getSavedLoggedInData?.DefaultBirthDate == 'N'){
+      if (getSavedLoggedInData?.TaxPayerBirthDate != undefined) {
+        if (getSavedLoggedInData?.DefaultBirthDate == "N") {
           setDateValue(new Date(getSavedLoggedInData?.TaxPayerBirthDate));
           setDateAvailability(true);
         }
         setButtonEnable(true);
-      } else if(date){
+      } else if (date) {
         setButtonEnable(true);
       }
       if (route.params !== undefined) {
@@ -78,6 +72,10 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
     } catch (error) {}
   }, []);
   const onPressConfirm = async () => {
+    if (!isDateAvailable) {
+      Alert.alert("Please select valid date..!");
+      return;
+    }
     setisLoading(true);
     const resGetTaxPayerMyProfileInfo = await GetTaxPayerPersonalInfo({
       AcctID: savedUserData?.AcctID,
@@ -87,11 +85,11 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
     });
     console.log("resGetTaxPayerMyProfileInfo res", resGetTaxPayerMyProfileInfo);
     if (resGetTaxPayerMyProfileInfo) {
-      if(resGetTaxPayerMyProfileInfo.ErrCode == -1){
+      if (resGetTaxPayerMyProfileInfo.ErrCode == -1) {
         setisLoading(false);
         Alert.alert("Something went wrong..! Please try again..!");
         return;
-      } 
+      }
       const resSaveTaxPayerPersonal = await SaveTaxPayerPersonalInfo({
         TaxPayerID: resGetTaxPayerMyProfileInfo?.TaxPayerID,
         Year: 2022,
@@ -128,15 +126,15 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
           "onPressLastStep SaveTaxpayerProfileInfo res",
           resSaveTaxPayerPersonal
         );
-        if(resSaveTaxPayerPersonal.ErrCode == -1){
+        if (resSaveTaxPayerPersonal.ErrCode == -1) {
           setisLoading(false);
           Alert.alert("Something went wrong..! Please try again..!");
           return;
         }
-          
+
         dispatch(saveLoggedInSuccessUserData(resGetTaxPayerMyProfileInfo));
         console.log("resGetAfrUrl start", SelectedSin, savedUserData);
-        console.log("resGetAfrUrl getSavedLoggedInData",getSavedLoggedInData);
+        console.log("resGetAfrUrl getSavedLoggedInData", getSavedLoggedInData);
 
         const GetSlipsfileRes = await GetSlips(
           {
@@ -146,10 +144,11 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
             Year: 2022,
             year: 2022,
           },
-          savedUserData?.token);
-        console.log("Hello GetSlipsfileRes",GetSlipsfileRes);
+          savedUserData?.token
+        );
+        console.log("Hello GetSlipsfileRes", GetSlipsfileRes);
 
-        if(GetSlipsfileRes == null){
+        if (GetSlipsfileRes == null) {
           const resGetAfrUrl = await GetAfrUrl({
             Sin: SelectedSin,
             appType: "FREE",
@@ -159,9 +158,9 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
           console.log("resGetAfrUrl checkSub:", resGetAfrUrl);
           if (resGetAfrUrl) {
             setisLoading(false);
-            if(resGetAfrUrl?.status == 500){
-              Alert.alert('Error..!',resGetAfrUrl.data?.message);
-            }else if (resGetAfrUrl.ErrCode == -1) {
+            if (resGetAfrUrl?.status == 500) {
+              Alert.alert("Error..!", resGetAfrUrl.data?.message);
+            } else if (resGetAfrUrl.ErrCode == -1) {
               Alert.alert("Something went wrong..! Please try again..!");
             } else {
               navigation.navigate("WebViewScreen", { url: resGetAfrUrl?.url });
@@ -174,11 +173,10 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
           }
         } else {
           setisLoading(false);
-          navigation.navigate("CRADetailsScreen",{
-            data : GetSlipsfileRes,
+          navigation.navigate("CRADetailsScreen", {
+            data: GetSlipsfileRes,
           });
         }
-      
       } else {
         setisLoading(false);
         Alert.alert("Something went wrong, please try again.");
@@ -227,10 +225,8 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
 
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle} key={key}>
-
-
-    <Header onPressbackButton={() => onBackButtonPress()}/>
-{/* <TouchableOpacity
+      <Header onPressbackButton={() => onBackButtonPress()} />
+      {/* <TouchableOpacity
           style={{
             alignItems: "flex-start",
             height: "auto",
@@ -274,9 +270,11 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
           <CtText
             style={{
               fontSize: 25,
-              fontFamily:'Figtree-SemiBold',
+              fontFamily: "Figtree-SemiBold",
               fontWeight: "600",
-              color:darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
+              color: darkTheme
+                ? defaultColors.whiteGrey
+                : defaultColors.secondaryTextColor,
             }}
           >
             Date of birth
@@ -297,7 +295,9 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
               fontSize: 18,
               fontFamily: "Figtree",
               fontWeight: "400",
-              color: darkTheme? defaultColors.darkModeTextColor: defaultColors.secondaryTextColor,
+              color: darkTheme
+                ? defaultColors.darkModeTextColor
+                : defaultColors.secondaryTextColor,
             }}
           >
             Please provide your date of birth to calculate your tax credits
@@ -337,10 +337,14 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
                 fontFamily: "Figtree-Medium",
                 textAlign: "center",
                 fontWeight: "400",
-                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor
+                color: darkTheme
+                  ? defaultColors.whiteGrey
+                  : defaultColors.secondaryTextColor,
               }}
             >
-              {isDateAvailable ? moment(date, "YYYY/MM/DD").format("YYYY") : "YYYY"}
+              {isDateAvailable
+                ? moment(date, "YYYY/MM/DD").format("YYYY")
+                : "YYYY"}
             </CtText>
           </TouchableOpacity>
           <CtView
@@ -354,7 +358,9 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
               style={{
                 fontWeight: "400",
                 fontSize: 18,
-                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor
+                color: darkTheme
+                  ? defaultColors.whiteGrey
+                  : defaultColors.secondaryTextColor,
               }}
             >
               -
@@ -381,10 +387,12 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
                 fontFamily: "Figtree-Medium",
                 textAlign: "center",
                 fontWeight: "400",
-                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor
+                color: darkTheme
+                  ? defaultColors.whiteGrey
+                  : defaultColors.secondaryTextColor,
               }}
             >
-              {isDateAvailable? moment(date, "YYYY/MM/DD").format("M") : "MM"}
+              {isDateAvailable ? moment(date, "YYYY/MM/DD").format("M") : "MM"}
             </CtText>
           </TouchableOpacity>
           <CtView
@@ -398,7 +406,9 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
               style={{
                 fontWeight: "400",
                 fontSize: 18,
-                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
+                color: darkTheme
+                  ? defaultColors.whiteGrey
+                  : defaultColors.secondaryTextColor,
               }}
             >
               -
@@ -425,7 +435,9 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
                 fontFamily: "Figtree-Medium",
                 textAlign: "center",
                 fontWeight: "400",
-                color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
+                color: darkTheme
+                  ? defaultColors.whiteGrey
+                  : defaultColors.secondaryTextColor,
               }}
             >
               {isDateAvailable ? moment(date, "YYYY/MM/DD").format("D") : "DD"}
@@ -454,12 +466,11 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
           />
         ) : null}
         <CustomButton
-        showLoading={loadingAvailable}
-        buttonText="Confirm"
-        disabled={!isEnable}
-        onPress={() => onPressConfirm()}
-        style={{ marginBottom: 20, marginTop: 10,
-          margin: 20, }}
+          showLoading={loadingAvailable}
+          buttonText="Confirm"
+          disabled={!isEnable}
+          onPress={() => onPressConfirm()}
+          style={{ marginBottom: 20, marginTop: 10, margin: 20 }}
         />
       </ScrollView>
     </SafeAreaView>
@@ -471,13 +482,13 @@ const styles = (isDarkTheme?: boolean) =>
     scrollStyle: {
       flex: 1,
       paddingBottom: 15,
-      backgroundColor: isDarkTheme? defaultColors.black: defaultColors.white,
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
     },
     container: {
       flex: 1,
     },
     BottomViewContainer: {
-      backgroundColor: isDarkTheme? defaultColors.black: defaultColors.white,
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
       //   flex: 0.5
     },
     TopTextContainer: {

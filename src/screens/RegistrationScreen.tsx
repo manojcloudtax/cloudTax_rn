@@ -1,12 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Avatar, Accessory } from "react-native-elements";
-import { Ionicons, Feather } from "@expo/vector-icons";
 import * as Progress from "react-native-progress";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  launchImageLibrary,
-  ImageLibraryOptions,
-} from "react-native-image-picker";
 import ImagePicker from 'react-native-image-crop-picker';
 
 import {
@@ -24,13 +19,12 @@ import {
 } from "react-native";
 import {
   CtText,
-  CtTextInput,
   CtView,
   Button,
   TextButton,
   Divider,
 } from "../components/UiComponents";
-import { Spinner, ErrorMessage, CommonModal } from "../components";
+import { CommonModal } from "../components";
 
 import { defaultColors } from "../utils/defaultColors";
 
@@ -40,22 +34,18 @@ import { useQuery } from "react-query";
 import {
   registerUser,
   SaveTaxpayerProfileInfo,
-  GetTPAccountInfo,
   GetTaxPayerMyProfileInfo,
   GetTaxPayerPersonalInfo,
 } from "../api/auth";
 import {
   imageUpload,
-  register,
   saveRegisteredSuccessUserData,
   saveTaxPayerMyProfileInfo,
-  saveGetTPAccountData,
   setIsPriorYearModalSelected,
   saveLoggedInSuccessUserData,
   resetAllStateData,
 } from "../store/authSlice";
 import { RootState } from "../store";
-import { useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
 import {
   resetOnBoardingData,
@@ -119,15 +109,6 @@ const RegisterScreen = ({ navigation, route }: any) => {
     {
       onSuccess: async (data) => {
         console.log("REGISTERED", data);
-        // await dispatch(
-        //   register({
-        //     token: data.token,
-        //     email,
-        //     password,
-        //     refreshToken: data.refresh,
-        //   })
-        // );
-
         if (data.ErrCode == -1) {
           if(data.ErrMsg == "Sorry, Given email was already registered!"){
             Alert.alert("Sorry, Given email was already registered!");
@@ -159,27 +140,6 @@ const RegisterScreen = ({ navigation, route }: any) => {
           }
           await dispatch(saveRegisteredSuccessUserData(data));
           setSteps(2);
-          // const response = await GetTPAccountInfo({
-          //   AcctID: data.AcctID,
-          //   TaxPayerID: data.TaxPayerID,
-          //   Year: 2022,
-          //   userToken: data.token,
-          // });
-
-          // console.log("GetTPAccountInfo: Success", response);
-          // if (response) {
-          //   // const {data} = res
-          //   if (response[0].ErrCode == -1) {
-          //     console.log("GetTPAccountInfo: error error", response);
-          //   } else {
-          //     await dispatch(saveGetTPAccountData(response));
-          //     // navigation.navigate("ChooseTaxYearScreen");
-          //     setSteps(2);
-          //   }
-          // } else {
-          //   console.log("else case on checkSub:", response);
-          //   // return {}
-          // }
         }
       },
       onError: (data) => {
@@ -325,16 +285,6 @@ const RegisterScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const renderCheckIcon = () => {
-    return (
-      <CtView style={styles().inputIcon}>
-        <Feather
-          name={"check"}
-          style={[styles().iconStyle, styles().iconCheckStyle]}
-        />
-      </CtView>
-    );
-  };
 
   const onPressCamera = () =>{
     setShowModal(false);
@@ -378,12 +328,6 @@ const RegisterScreen = ({ navigation, route }: any) => {
           );
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {
             console.log('CAMERA permission allow');
-            
-          //   const options: ImageLibraryOptions = {
-          //     mediaType: 'photo',
-          // }
-          // const { assets } = await launchImageLibrary(options);
-          // setLibraryData(assets);
           ImagePicker.openPicker({
             // width: 300,
             // height: 400,
@@ -546,16 +490,6 @@ const RegisterScreen = ({ navigation, route }: any) => {
       </View>
     );
   };
-  const handleOpenLibrary = async () => {
-    const options: ImageLibraryOptions = {
-      mediaType: "photo",
-    };
-    const { assets } = await launchImageLibrary(options);
-    if (assets) {
-      setLibraryData(assets[0] as any);
-      console.log(assets[0]);
-    }
-  };
 
   function getPasswordStrength(password: any) {
     // Define the regular expressions to match different types of characters
@@ -707,15 +641,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
             </CtText>
           </View>
           {steps === 1 ? (
-            <CtView style={{ marginTop: 30 }}>
-              <CtView style={styles(darkTheme).googleSignInContainer}>
+            <CtView style={{ marginTop: 30, marginBottom: 60 }}>
+              {/* <CtView style={styles(darkTheme).googleSignInContainer}>
                 <TouchableOpacity style={styles(darkTheme).googleSignIn}>
-                  {/* <SocialIcon
-                    iconSize={18}
-                    light
-                    raised={false}
-                    type="google"
-                  /> */}
                   <Image
                     style={{
                       height: 20,
@@ -732,16 +660,6 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   </CtText>
                 </TouchableOpacity>
               </CtView>
-              {/* </CtView> */}
-              {/* <CtView style={styles().dividerContainer}>
-                <CtView style={styles().dividerStyle} />
-                <CtText
-                  style={{ width: 60, textAlign: "center", fontSize: 16 }}
-                >
-                  or
-                </CtText>
-                <CtView style={styles().dividerStyle} />
-              </CtView> */}
               <View
                 style={{
                   height: 40,
@@ -752,23 +670,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                 }}
               >
                 <Divider />
-              </View>
-              {/* <CtView style={styles().textInputContainer}>
-                <CtView style={styles().inputIcon2}>
-                  <Ionicons name={"mail-outline"} style={styles().iconStyle} />
-                </CtView>
-                <CtTextInput
-                  editable={true}
-                  placeholder={"Your email address"}
-                  placeholderTextColor={defaultColors.gray}
-                  style={styles().inputAlt}
-                  onChangeText={(email: string) => setEmail(email)}
-                  onBlur={onEmailSubmit}
-                  keyboardType={"email-address"}
-                  autoCapitalize="none"
-                />
-              </CtView>
-              <ErrorMessage text={emailError} /> */}
+              </View> */}
               <CustomInput
                 editable={true}
                 placeholder={"Your email address"}
@@ -843,48 +745,6 @@ const RegisterScreen = ({ navigation, route }: any) => {
                   setShowConfrimPassword(!showconfrimPassword)
                 }
               />
-              {/* <CtView style={styles().textInputContainer}>
-                <CtView style={styles().inputIcon2}>
-                  <Ionicons name={"key-outline"} style={styles().iconStyle} />
-                </CtView>
-                <CtTextInput
-                  editable={true}
-                  testID={"private"}
-                  placeholder={"Password"}
-                  placeholderTextColor={defaultColors.gray}
-                  secureTextEntry={!showPassword}
-                  style={styles().inputAlt}
-                  onChangeText={(password: string) => setPassword(password)}
-                  onBlur={onPasswordBlur}
-                  textContentType={"oneTimeCode"}
-                />
-                {!!password && renderEyeIcon(true)}
-              </CtView> */}
-              {/* <ErrorMessage text={passwordError} /> */}
-              {/* <CtView style={styles().textInputContainer}>
-                <CtView style={styles().inputIcon2}>
-                  <Ionicons name={"key-outline"} style={styles().iconStyle} />
-                </CtView>
-                <CtTextInput
-                  testID={"private"}
-                  editable={true}
-                  placeholder={"Confirm Password"}
-                  placeholderTextColor={defaultColors.gray}
-                  secureTextEntry={!showconfrimPassword}
-                  style={styles().inputAlt}
-                  onChangeText={(confirmPassword: string) => {
-                    setConfirmPassword(confirmPassword);
-                    onConfirmPasswordBlur();
-                  }}
-                  onBlur={onConfirmPasswordBlur}
-                />
-                {!!confirmPassword && renderEyeIcon(false)}
-                {!!confirmPassword
-                  ? showConfrimPasswordCheck && renderCheckIcon()
-                  : null}
-              </CtView> */}
-              {/* <ErrorMessage text={confirmPasswordError} /> */}
-              {/* {renderButton()} */}
               <CustomButton
                 buttonText="Create a new account"
                 disabled={
@@ -914,7 +774,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                     style={styles(darkTheme).forgotTextColor}
                     onPress={() =>
                       onPressText(
-                        "https://www.npmjs.com/package/react-native-webview"
+                        "https://cloudtax.ca/terms-and-conditions/"
                       )
                     }
                   >
@@ -941,7 +801,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                     style={styles(darkTheme).forgotTextColor}
                     onPress={() =>
                       onPressText(
-                        "https://www.npmjs.com/package/react-native-webview"
+                        "https://cloudtax.ca/privacy-policy/"
                       )
                     }
                   >
@@ -1034,15 +894,6 @@ const RegisterScreen = ({ navigation, route }: any) => {
               >
                 What should we call you?
               </CtText>
-              {/* <CtTextInput
-                editable={true}
-                placeholder={"Your name"}
-                placeholderTextColor={defaultColors.darkGray}
-                style={styles().input}
-                onChangeText={(name: string) => setName(name)}
-                onBlur={onNameSubmit}
-                // keyboardType={"email-address"}
-              /> */}
               <CustomInput
                 editable={true}
                 placeholder={"Your name"}
@@ -1050,7 +901,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                 onChangeText={(name: string) => setName(name)}
                 onBlur={onNameSubmit}
                 value={name}
-                autoCapitalize="none"
+                // autoCapitalize="none"
               />
 
               {/* {renderNextButton()} */}
@@ -1169,7 +1020,7 @@ const styles = (isDarkTheme?: boolean) =>
     buttonTitle: {
       textAlign: "center",
       fontSize: 16,
-      fontFamily:'Figtree-SemiBold',
+      fontFamily:'Figtree-Bold',
       color: isDarkTheme
         ? defaultColors.white
         : defaultColors.secondaryTextColor,

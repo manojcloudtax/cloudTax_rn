@@ -12,7 +12,6 @@ import {
 import {
   CtText,
   CtView,
-  CtTextInput,
   Button,
   TextButton,
   Divider,
@@ -38,17 +37,12 @@ import {
   getAllProvince,
 } from "../api/auth";
 import { useQuery } from "react-query";
-import { FontAwesome5 } from "@expo/vector-icons";
 import { validateEmail } from "../utils/email";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import { Ionicons, Feather } from "@expo/vector-icons";
-
 import DeviceCrypto from "react-native-device-crypto";
 import { decryptAccounts } from "../utils/crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SocialIcon } from "react-native-elements";
-import CheckBox from "@react-native-community/checkbox";
 import {
   setOnBoardingData,
   resetOnBoardingData,
@@ -61,7 +55,6 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CustomButton } from "../components/CustomButton";
 import { CustomInput } from "../components/CustomInput";
-import CheckmarkIcon from "react-native-vector-icons/Octicons";
 
 const LoginScreen = ({ navigation }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -429,44 +422,12 @@ const LoginScreen = ({ navigation }: any) => {
               backgroundColor: darkTheme ? defaultColors.black : "white",
             }}
           >
-            {/* <View style={styles().container}> */}
-            {/* <CtView style={styles().TopTextContainer}> */}
             <CtText style={styles().caption}>Welcome Back!</CtText>
-            <CtText style={styles(darkTheme).subTitle}>
+            <CtText style={[styles(darkTheme).subTitle, {marginBottom:60}]}>
               Good to see you again! Sign into your account
             </CtText>
-            {/* </CtView> */}
-            {/* <CtView style={styles().BottomViewContainer}> */}
-            {/* <CtView style={styles().googleSignInContainer}>
-                <TouchableOpacity style={styles().googleSignIn}>
-                  <SocialIcon
-                    iconSize={18}
-                    light
-                    raised={false}
-                    type="google"
-                  />
-                  <CtText style={styles().buttonTitle}>
-                    Continue with google
-                  </CtText>
-                </TouchableOpacity>
-              </CtView>
-              <CtView style={styles().dividerContainer}>
-                <CtView style={styles().dividerStyle} />
-                <CtText
-                  style={{ width: 60, textAlign: "center", fontSize: 16 }}
-                >
-                  or
-                </CtText>
-                <CtView style={styles().dividerStyle} />
-              </CtView> */}
-            <CtView style={styles(darkTheme).googleSignInContainer}>
+            {/* <CtView style={styles(darkTheme).googleSignInContainer}>
               <TouchableOpacity style={styles(darkTheme).googleSignIn}>
-                {/* <SocialIcon
-                    iconSize={18}
-                    light
-                    raised={false}
-                    type="google"
-                  /> */}
                 <Image
                   style={{
                     height: 20,
@@ -479,21 +440,11 @@ const LoginScreen = ({ navigation }: any) => {
                 />
 
                 <CtText style={styles(darkTheme).buttonTitle}>
-                  Continue with google
+                  Continue with Google
                 </CtText>
               </TouchableOpacity>
-            </CtView>
-            {/* </CtView> */}
-            {/* <CtView style={styles().dividerContainer}>
-                <CtView style={styles().dividerStyle} />
-                <CtText
-                  style={{ width: 60, textAlign: "center", fontSize: 16 }}
-                >
-                  or
-                </CtText>
-                <CtView style={styles().dividerStyle} />
-              </CtView> */}
-            <View
+            </CtView> */}
+            {/* <View
               style={{
                 height: 40,
                 backgroundColor: defaultColors.transparent,
@@ -503,7 +454,7 @@ const LoginScreen = ({ navigation }: any) => {
               }}
             >
               <Divider />
-            </View>
+            </View> */}
             {/* <CtView style={{ marginTop: 30 }}> */}
             <CustomInput
               editable={true}
@@ -564,7 +515,7 @@ const LoginScreen = ({ navigation }: any) => {
                       onFillColor={defaultColors.primaryButton}
                       onCheckColor={defaultColors.white}
                     /> */}
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={{ alignItems: "center", marginRight: 10 }}
                   onPress={toggleCheckbox}
                 >
@@ -601,7 +552,7 @@ const LoginScreen = ({ navigation }: any) => {
                 </TouchableOpacity>
                 <CtText style={styles(darkTheme).forgotTextColor}>
                   Keep me signed in
-                </CtText>
+                </CtText> */}
               </View>
 
               <CtView style={styles().forgotPassContainer}>
@@ -629,7 +580,7 @@ const LoginScreen = ({ navigation }: any) => {
             />
 
             <TextButton
-              description="New to Cloud Tax? "
+              description="New to CloudTax? "
               linkText="Create a new account"
               linkTextColor={defaultColors.links}
               onPress={() => navigation.navigate("RegisterScreen", { step: 1 })}
@@ -646,7 +597,7 @@ const LoginScreen = ({ navigation }: any) => {
                   style={styles(darkTheme).forgotTextColor}
                   onPress={() =>
                     onPressText(
-                      "https://www.npmjs.com/package/react-native-webview"
+                      "https://cloudtax.ca/terms-and-conditions/"
                     )
                   }
                 >
@@ -673,7 +624,7 @@ const LoginScreen = ({ navigation }: any) => {
                   style={styles(darkTheme).forgotTextColor}
                   onPress={() =>
                     onPressText(
-                      "https://www.npmjs.com/package/react-native-webview"
+                      "https://cloudtax.ca/privacy-policy/"
                     )
                   }
                 >
@@ -729,7 +680,7 @@ const styles = (isDarkTheme?: boolean) =>
     buttonTitle: {
       textAlign: "center",
       fontSize: 16,
-      fontFamily:'Figtree-SemiBold',
+      fontFamily:'Figtree-Bold',
       color: isDarkTheme
         ? defaultColors.white
         : defaultColors.secondaryTextColor,

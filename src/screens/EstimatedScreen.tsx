@@ -1,41 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   StyleSheet,
-  Image,
-  Alert,
   ScrollView,
-  TouchableOpacity,
-  Platform,
-  KeyboardAvoidingView,
-  Dimensions,
   View,
   Text,
 } from "react-native";
 import {
   CtText,
-  CtView,
-  CtTextInput,
-  Button,
-  TextButton,
-  Divider,
 } from "../components/UiComponents";
-import { Spinner, ErrorMessage } from "../components";
 import { useDispatch } from "react-redux";
-import { login } from "../store/authSlice";
 import { defaultColors } from "../utils/defaultColors";
-import auth, { loginUser } from "../api/auth";
-import { useQuery } from "react-query";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { validateEmail } from "../utils/email";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import { Ionicons, Feather } from "@expo/vector-icons";
-
-import DeviceCrypto from "react-native-device-crypto";
-import { decryptAccounts } from "../utils/crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SocialIcon } from "react-native-elements";
-import CheckBox from "@react-native-community/checkbox";
 import { Header } from "../components/Header";
 import { BottomButton } from "../components/BottomButton";
 
@@ -47,27 +24,6 @@ const EstimatedScreen = ({ navigation, route }: any) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-
-    // let vvv = {
-    //   Balance: 0,
-
-    //   ErrCode: 0,
-      
-    //   ErrMsg: "Success",
-      
-    //   NetIncome: 11700,
-      
-    //   Refund: -628.44,
-      
-    //   TaxableIncome: 10200,
-      
-    //   TotalCredits: 628.44,
-      
-    //   TotalIncome: 11700,
-      
-    //   TotalPayable: 0,
-    // }
-    // setData(vvv);
     try {
       if (route.params !== undefined) {
         const { data } = route.params;
@@ -96,54 +52,10 @@ const EstimatedScreen = ({ navigation, route }: any) => {
     <SafeAreaView style={styles(darkTheme).scrollStyle}>
       <Header onPressbackButton={() => onBackButtonPress()}/>
       <ScrollView
-        // contentContainerStyle={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* <View
-          style={{
-            // flex: 0.05,
-            marginBottom: 23.5,
-            // marginLeft:15
-          }}
-        > */}
-            {/* <CtView style={styles().inputIcon2}>
-                    <TouchableOpacity>
-                      <Ionicons
-                        name={"arrow-back-outline"}
-                        style={styles().iconStyle}
-                      />
-                    </TouchableOpacity>
-                  </CtView> */}
-                  {/* <TouchableOpacity
-            style={{
-              alignItems: "flex-start",
-              height: "auto",
-              width: "90%",
-              flexDirection: "row",
-              paddingLeft: 15,
-              paddingTop: 20
-            }}
-            onPress={() => onBackButtonPress()}
-          >
-            <Ionicons
-              name={"ios-chevron-back-outline"}
-              style={{
-                fontSize: 21,
-                color: defaultColors.primaryBlue,
-              }}
-            />
-            <CtText
-              style={{
-                fontWeight: "500",
-                fontSize: 18,
-                color: defaultColors.primaryBlue,
-              }}
-            >
-              {"Back"}
-            </CtText>
-          </TouchableOpacity> */}
-        {/* </View> */}
-
+ 
         <View
           style={{
             // flex: 0.2,
@@ -165,7 +77,7 @@ const EstimatedScreen = ({ navigation, route }: any) => {
               color: "#FFFFFF",
             }}
           >
-            {DataToRender.Refund > 0 ? "Your 2022 Tax Refund" : DataToRender.Balance > 0 ? "Your 2022 Balance owing" : ''}
+            {-(DataToRender.Refund) > 0 ? "Your 2022 Tax Refund" : DataToRender.Balance > 0 ? "Your 2022 Balance owing" : ''}
           </CtText>
 
           <CtText
@@ -178,7 +90,7 @@ const EstimatedScreen = ({ navigation, route }: any) => {
               color: "#FFFFFF",
             }}
           >
-            $ {getAmountFormatter(DataToRender?.Balance)}
+            $ {-(DataToRender.Refund) > 0? getAmountFormatter(-(DataToRender.Refund)):  DataToRender.Balance > 0 ? getAmountFormatter(DataToRender?.Balance): '$0.00'}
           </CtText>
         </View>
 

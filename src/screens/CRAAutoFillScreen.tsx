@@ -1,41 +1,21 @@
 import React, { useEffect, useMemo, useState, useRef, createRef } from "react";
 import {
   StyleSheet,
-  Image,
   Alert,
   ScrollView,
-  TouchableOpacity,
   Platform,
-  KeyboardAvoidingView,
-  Dimensions,
-  View,
   TextInput,
 } from "react-native";
 import {
   CtText,
   CtView,
   CtTextInput,
-  Button,
-  TextButton,
-  Divider,
 } from "../components/UiComponents";
-import { Spinner, ErrorMessage } from "../components";
 import { useDispatch } from "react-redux";
-import { login } from "../store/authSlice";
 import { defaultColors } from "../utils/defaultColors";
-import auth, { loginUser } from "../api/auth";
-import { useQuery } from "react-query";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { validateEmail } from "../utils/email";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import { Ionicons, Feather } from "@expo/vector-icons";
-
-import DeviceCrypto from "react-native-device-crypto";
-import { decryptAccounts } from "../utils/crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SocialIcon } from "react-native-elements";
-import CheckBox from "@react-native-community/checkbox";
 import { CustomButton } from "../components/CustomButton";
 import { Header } from "../components/Header";
 
@@ -130,26 +110,66 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
       thirdText.length === 3
     ) {
       console.log("SIN", firstText + secondText + thirdText);
-      navigation.navigate("DateOfBirthScreen", {
-        sin: firstText + secondText + thirdText,
-      });
+
+      console.log("thirdText.length", thirdText);
+      let SinNumber = firstText + secondText + thirdText;
+      console.log("thirdText.length", validateSIN(SinNumber));
+      if (validateSIN(SinNumber)) {
+        navigation.navigate("DateOfBirthScreen", {
+          sin: firstText + secondText + thirdText,
+        });
+      } else {
+        Alert.alert("Please enter valid SIN Number..!");
+      }
     }
   };
 
-  const setButtonStatus = () => {
-    console.log("thirdText.length", thirdText);
-    console.log("firstText.length", firstText.length);
-    console.log("secondText.length", secondText.length);
-    console.log("thirdText.length", thirdText.length);
-    if (
-      firstText.length === 3 &&
-      secondText.length === 3 &&
-      thirdText.length >= 2
-    ) {
-      setButtonEnable(true);
-    } else {
-      setButtonEnable(false);
+  function validateSIN(sin: string) {
+    if (!/^\d+$/.test(sin)) {
+      return false;
     }
+    if (sin.length !== 9) {
+      return false;
+    }
+    const sinReversed = sin.split("").reverse().map(Number);
+    const lastNumber = sinReversed.shift();
+    const multiplyArray = [2, 1, 2, 1, 2, 1, 2, 1];
+    let sum = 0;
+    for (let i = 0; i < sinReversed.length; i++) {
+      let value = sinReversed[i];
+      let multipliedValue = value * multiplyArray[i];
+      if (multipliedValue > 9) {
+        sum += 1 + (multipliedValue - 10);
+      } else {
+        sum += multipliedValue;
+      }
+    }
+    const remainder = sum % 10;
+    if (
+      10 - remainder === lastNumber ||
+      (remainder === 0 && lastNumber === 0)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  const setButtonStatus = () => {
+    // console.log("thirdText.length", thirdText);
+    // console.log("firstText.length", firstText.length);
+    // console.log("secondText.length", secondText.length);
+    // console.log("thirdText.length", thirdText.length);
+    // if (
+    //   firstText.length === 3 &&
+    //   secondText.length === 3 &&
+    //   thirdText.length >= 2
+    // ) {
+    //   setButtonEnable(true);
+    // } else {
+    //   setButtonEnable(false);
+    // }
+    console.log("validateSIN length", validateSIN(firstText + secondText + thirdText));
   };
   const onBackButtonPress = () => {
     navigation.goBack();
@@ -157,35 +177,7 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
 
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle} key={key}>
-       <Header onPressbackButton={() => onBackButtonPress()}/>
-      {/* <TouchableOpacity
-        style={{
-          alignItems: "flex-start",
-          height: "auto",
-          width: "90%",
-          flexDirection: "row",
-          paddingLeft: 20,
-          paddingTop: 20,
-        }}
-        onPress={() => onBackButtonPress()}
-      >
-        <Ionicons
-          name={"ios-chevron-back-outline"}
-          style={{
-            fontSize: 21,
-            color: defaultColors.primaryBlue,
-          }}
-        />
-        <CtText
-          style={{
-            fontWeight: "500",
-            fontSize: 18,
-            color: defaultColors.primaryBlue,
-          }}
-        >
-          {"Back"}
-        </CtText>
-      </TouchableOpacity> */}
+      <Header onPressbackButton={() => onBackButtonPress()} />
       <ScrollView showsVerticalScrollIndicator={false}>
         <CtView
           style={{
@@ -198,7 +190,7 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
           <CtText
             style={{
               fontSize: 25,
-              fontFamily:'Figtree-SemiBold',
+              fontFamily: "Figtree-SemiBold",
               fontWeight: "600",
               color: darkTheme
                 ? defaultColors.whiteGrey
@@ -288,7 +280,9 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
               style={{
                 fontWeight: "400",
                 fontSize: 18,
-                color: darkTheme? defaultColors.darkModeTextColor : defaultColors.secondaryTextColor,
+                color: darkTheme
+                  ? defaultColors.darkModeTextColor
+                  : defaultColors.secondaryTextColor,
               }}
             >
               -
@@ -337,7 +331,9 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
               style={{
                 fontWeight: "400",
                 fontSize: 18,
-                color: darkTheme? defaultColors.darkModeTextColor : defaultColors.secondaryTextColor,
+                color: darkTheme
+                  ? defaultColors.darkModeTextColor
+                  : defaultColors.secondaryTextColor,
               }}
             >
               -
@@ -374,12 +370,11 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
           </CtView>
         </CtView>
         <CustomButton
-        // showLoading={isLoading}
-        buttonText="Auto-Fill My Return"
-        // disabled={!isEnable}
-        onPress={() => onPressConfirm()}
-        style={{ marginBottom: 20, marginTop: 10, 
-          margin: 20, }}
+          // showLoading={isLoading}
+          buttonText="Auto-Fill My Return"
+          // disabled={!isEnable}
+          onPress={() => onPressConfirm()}
+          style={{ marginBottom: 20, marginTop: 10, margin: 20 }}
         />
       </ScrollView>
     </SafeAreaView>

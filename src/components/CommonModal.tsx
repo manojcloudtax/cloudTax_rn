@@ -20,6 +20,7 @@ const CommonModal = (props: Props ) => {
       backdropOpacity={0.4}
       onBackdropPress={props.onBackdropPress}
       avoidKeyboard
+      useNativeDriver={true} 
     >
       <View
         style={{

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, SafeAreaView, View } from "react-native";
 import { WebView } from "react-native-webview";
+import { Header } from "../components/Header";
 
 const WebViewWithoutPopUp = ({ navigation, route }: any) => {
   const [url, setUrl] = useState("");
@@ -12,10 +13,16 @@ const WebViewWithoutPopUp = ({ navigation, route }: any) => {
       }
     } catch (error) {}
   }, []);
+
+  const onBackButtonPress = () => {
+    navigation.goBack();
+  };
+
   return (
     <SafeAreaView
-      style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      style={{ flex: 1}}
     >
+      <Header onPressbackButton={() => onBackButtonPress()}/>
       <View style={styles.modalContainer}>
         <WebView style={{ flex: 1 }} source={{ uri: url }} />
       </View>

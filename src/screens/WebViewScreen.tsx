@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, SafeAreaView, View } from "react-native";
 import { WebView } from "react-native-webview";
-import { GetTDDNetfile, GetSlips } from "../api/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import _ from "lodash";
+import { Header } from "../components/Header";
 
 const WebViewScreen = ({ navigation, route }: any) => {
   const { getSavedLoggedInData } = useSelector(
@@ -12,9 +12,6 @@ const WebViewScreen = ({ navigation, route }: any) => {
   );
   const [url, setUrl] = useState("");
   const [isLoaded, setisLoaded] = useState(false);
-  const { savedUserData } = useSelector(
-    (state: RootState) => state.authReducer
-  );
   useEffect(() => {
     try {
       if (route.params !== undefined) {
@@ -130,10 +127,14 @@ const WebViewScreen = ({ navigation, route }: any) => {
   const onMessage = (event : any) => {
     console.log('Received: ', event.nativeEvent.data)
   }
+  const onBackButtonPress = () => {
+    navigation.goBack();
+  };
   return (
     <SafeAreaView
-      style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      style={{ flex: 1}}
     >
+      <Header onPressbackButton={() => onBackButtonPress()}/>
       <View style={styles.modalContainer}>
         <WebView
           style={{ flex: 1 }}

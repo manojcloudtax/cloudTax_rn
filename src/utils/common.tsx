@@ -101,3 +101,27 @@ export function getUrlParams(url: string) {
   }
   return params;
 }
+
+export function formattedNumString(num: string){
+  // console.log(
+  //   "formattedNumString",
+  //   num
+  // );
+
+  // console.log(
+  //   "formattedNumString",
+  //   parseFloat(num).toLocaleString("en-US", {
+  //     style: "decimal",
+  //     // currency: "USD",
+  //     minimumFractionDigits: 2,
+  //     maximumFractionDigits: 2,
+  //   })
+  // );
+
+  
+  return parseFloat(num).toLocaleString("en-US", {
+  style: "decimal",
+  // currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})};

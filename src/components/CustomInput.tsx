@@ -29,11 +29,12 @@ const CustomInput = ({
   onPressRightIcon,
   customImage,
   RightImage,
+  isHideBottom = false,
   ...props
 }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
   return (
-    <View style={styles(darkTheme).container}>
+    <View style={[styles(darkTheme).container, isHideBottom ? {marginBottom : 0} :{marginBottom : 15} ]}>
       <View style={styles(darkTheme).textViewContainer}>
         {
           customImage ? 
@@ -54,7 +55,6 @@ const CustomInput = ({
             onChangeText={onChangeText}
             value={value}
             placeholder={placeholder}
-            autoCapitalize="none"
             autoCorrect={false}
             placeholderTextColor={
               darkTheme ? "gray" : placeholderTextColor || "gray"
@@ -101,7 +101,6 @@ const styles = (isDarkTheme?: boolean) =>
     container: {
       height: "auto",
       backgroundColor: isDarkTheme ? defaultColors.darkBorder : defaultColors.transparent,
-      marginBottom: 15,
       borderRadius: 10,
     },
     textViewContainer: {

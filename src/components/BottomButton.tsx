@@ -24,9 +24,10 @@ const BottomButton = (props: ButtonProps)  => {
       justifyContent: "center",
       alignItems: "center",
       position: "absolute",
-      bottom: 10,
+      bottom: 0,
       borderTopWidth: 1.5,
       borderTopColor: defaultColors.borderColor,
+      paddingBottom: 10
     }}
   >
     <CtView
@@ -46,6 +47,7 @@ const BottomButton = (props: ButtonProps)  => {
             borderRadius: 10,
             justifyContent: 'center',
           }, style]}
+          disabled={showLoading}
       >
           {showLoading?
     

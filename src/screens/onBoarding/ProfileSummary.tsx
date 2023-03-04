@@ -33,9 +33,14 @@ import {
 } from "../../utils/common";
 import { Header } from "../../components/Header";
 import { BottomButton } from "../../components/BottomButton";
+import { saveLoggedInSuccessUserData } from "../../store/authSlice";
+import { useDispatch } from "react-redux";
 
 const ProfileSummary = ({ navigation, route }: any) => {
   const { savedUserData } = useSelector(
+    (state: RootState) => state.authReducer
+  );
+  let { getSavedLoggedInData } = useSelector(
     (state: RootState) => state.authReducer
   );
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -59,6 +64,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
   const [selectedPartnerName, setPartnerName] = useState("");
   const [loadingAvailable, setisLoading] = useState<boolean>(false);
 
+  const dispatch = useDispatch();
   useEffect(() => {
     setisLoading(false);
     try {
@@ -301,7 +307,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
           }}
           onPress={() => onPressQuestion()}
         >
-          <CtView style={{ flex: 0.45 }}>
+          <CtView style={{ flex: 0.6 }}>
             <CtText
               numberOfLines={1}
               style={{
@@ -316,7 +322,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
               {"Joint assesment"}
             </CtText>
           </CtView>
-          <CtView style={{ flex: 0.45, alignItems: "flex-end" }}>
+          <CtView style={{ flex: 0.3, alignItems: "flex-end" }}>
             <CtText
               numberOfLines={1}
               style={{
@@ -459,6 +465,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
       onBoardingData,
       savedUserData
     );
+    if(getMaritalStatus(selectedMaritalStatus) === "1" || getMaritalStatus(selectedMaritalStatus) === "2"){
     if (onBoardingData?.partnerDetailsList.PartnerID !== "") {
       const resAddNewPartnerInfo = await AddNewPartnerInfo({
         AcctID: savedUserData?.AcctID,
@@ -515,7 +522,9 @@ const ProfileSummary = ({ navigation, route }: any) => {
       }
     }
 
-    // }
+  } else {
+    onSuccessApiCall();
+  }
   };
 
   const onSuccessApiCall = async () => {
@@ -532,17 +541,27 @@ const ProfileSummary = ({ navigation, route }: any) => {
     if (resSaveTaxpayer) {
       if (resSaveTaxpayer.ErrCode == -1) {
         setisLoading(false);
-        console.log(
-          "onPressLastStep SaveTaxpayerProfileInfo error",
-          resSaveTaxpayer
-        );
       } else {
         // setisLoading(false);
         console.log(
           "onPressLastStep SaveTaxpayerProfileInfo success",
           resSaveTaxpayer
         );
+        console.log(
+          "onPressLastStep getSavedLoggedInData",
+          getSavedLoggedInData
+        );
 
+        let updateTaxIdTogetSavedLoggedInData = {...getSavedLoggedInData}
+        updateTaxIdTogetSavedLoggedInData["TaxID"]  = resSaveTaxpayer.TaxID
+
+          console.log(
+            "getSavedLoggedInData dataadcsd",
+            updateTaxIdTogetSavedLoggedInData
+          );
+        dispatch(
+          saveLoggedInSuccessUserData(updateTaxIdTogetSavedLoggedInData)
+        );
         const GetTaxPayerMyProfile = await SaveTaxPayerMyProfileInfo({
           AcctID: savedUserData.AcctID,
           ClaimCreditsFromSpouse: savedUserData.ClaimCreditsFromSpouse,
@@ -623,7 +642,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
     <SafeAreaView style={styles(darkTheme).view} key={key}>
       <Header onPressbackButton={() => onBackButtonPress()} />
       <CtView style={styles(darkTheme).view}>
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 110 }} >
           {/* <CtView style={styles(darkTheme).scrollStyle}> */}
           <>
             <CtView

@@ -265,7 +265,6 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
             flexDirection: "row",
             height: 60,
             alignContent: "flex-start",
-            marginTop: 10,
           }}
         >
           <TouchableOpacity
@@ -395,7 +394,7 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
           >
             <CtText style={{ fontWeight: "600", fontSize: 25,
               fontFamily:'Figtree-SemiBold', }}>
-              {"Create or Select Partner Profile"}
+              {(saveTPAccountData.length !== 0 && saveTPAccountData !== undefined) ? "Create or Select a partner profile" : "Create a partner profile"}
             </CtText>
             {(saveTPAccountData.length !== 0 && saveTPAccountData !== undefined ) ?
             <View style={{ marginTop: 10, maxHeight: 200}}>
@@ -632,7 +631,7 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
       setSelectedMaritalStatus(item);
       setKeyToRerender(key + 1);
     } else if (selectedScreenNo == 2) {
-      if (savedUserData?.PartnerID !== null && index == 0) {
+      if (savedUserData?.PartnerID !== null && index == 0 && onBoardingData.partnerName !== '') {
         return;
       } else {
         getQuestions[index].answer = item;
@@ -656,7 +655,7 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
       if (selectedScreenNo == 1 && selectedMaritalStatus !== "") {
         setSelectedScreen(selectedScreenNo + 1);
       } else if (selectedScreenNo == 2) {
-        if (getQuestions[0].answer === "Yes" && savedUserData?.PartnerID === null) {
+        if (getQuestions[0].answer === "Yes" && savedUserData?.PartnerID === null&& onBoardingData.partnerName !== '') {
           setShowModal(true);
         } else {
           if (getQuestions[2].answer === "Yes") {
@@ -1135,7 +1134,6 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
                                 flexDirection: "row",
                                 height: 60,
                                 alignContent: "flex-start",
-                                marginTop: 10,
                               }}
                             >
                               <TouchableOpacity
