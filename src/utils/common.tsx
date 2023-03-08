@@ -119,9 +119,16 @@ export function formattedNumString(num: string){
   // );
 
   
-  return parseFloat(num).toLocaleString("en-US", {
-  style: "decimal",
-  // currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})};
+//   return parseFloat(num).toLocaleString("en-US", {
+//   style: "decimal",
+//   // currency: "USD",
+//   minimumFractionDigits: 2,
+//   maximumFractionDigits: 2,
+// })
+if (num !== undefined) {
+  return parseFloat(num).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
+} else {
+  return null
+}
+
+};

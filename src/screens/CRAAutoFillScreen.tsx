@@ -5,12 +5,12 @@ import {
   ScrollView,
   Platform,
   TextInput,
+  View,
+  Dimensions,
+  TouchableOpacity,
+  Linking,
 } from "react-native";
-import {
-  CtText,
-  CtView,
-  CtTextInput,
-} from "../components/UiComponents";
+import { CtText, CtView, CtTextInput } from "../components/UiComponents";
 import { useDispatch } from "react-redux";
 import { defaultColors } from "../utils/defaultColors";
 import { useSelector } from "react-redux";
@@ -18,6 +18,16 @@ import { RootState } from "../store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CustomButton } from "../components/CustomButton";
 import { Header } from "../components/Header";
+import { Button } from "../components/UiComponents";
+import {
+  GetAfrUrl,
+  GetSlips,
+  GetTaxPayerPersonalInfo,
+  SaveTaxPayerPersonalInfo,
+} from "../api/auth";
+import { saveLoggedInSuccessUserData } from "../store/authSlice";
+import { CommonModal } from "../components";
+import { BottomButton } from "../components/BottomButton";
 
 const CRAAutoFillScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -25,24 +35,18 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
   const [secondText, setScondTextInputValue] = useState("");
   const [thirdText, setThirdTextInputValue] = useState("");
   const [isEnable, setButtonEnable] = useState(false);
+  const [isShowModal, setShowModal] = useState(false);
   const [key, setKeyToRerender] = useState(1);
   let secondInput = useRef<TextInput>();
   let thirdInput = useRef<TextInput>();
   let firstInput = useRef<TextInput>();
+  const [loadingAvailable, setisLoading] = useState<boolean>(false);
   const dispatch = useDispatch();
-  const { getSavedLoggedInData } = useSelector(
+  const { getSavedLoggedInData, savedUserData } = useSelector(
     (state: RootState) => state.authReducer
   );
-
   useEffect(() => {
     try {
-      console.log(
-        "init getSavedLoggedInData.TaxPayerSocialInsuranceNumber.match(/.{1,3}/g)",
-        getSavedLoggedInData.TaxPayerSocialInsuranceNumber.match(/.{1,3}/g)
-      );
-      // if (route.params !== undefined) {
-      //   const { isFromRegistration } = route.params;
-      // }
       const seperatedSinNumber =
         getSavedLoggedInData.TaxPayerSocialInsuranceNumber.match(/.{1,3}/g);
 
@@ -103,7 +107,9 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
     setButtonStatus();
   };
 
-  const onPressConfirm = () => {
+  const onPressConfirm = async () => {
+    console.log("onPressConfirm", firstText + secondText + thirdText);
+
     if (
       firstText.length === 3 &&
       secondText.length === 3 &&
@@ -115,14 +121,127 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
       let SinNumber = firstText + secondText + thirdText;
       console.log("thirdText.length", validateSIN(SinNumber));
       if (validateSIN(SinNumber)) {
-        navigation.navigate("DateOfBirthScreen", {
-          sin: firstText + secondText + thirdText,
-        });
+        // successApiCall();
+        setShowModal(true);
       } else {
         Alert.alert("Please enter valid SIN Number..!");
       }
     }
   };
+
+  const successApiCall = async () =>{
+    let SinNumber = firstText + secondText + thirdText;
+    console.log("thirdText.SinNumber", SinNumber);
+    setisLoading(true);
+    const resGetTaxPayerMyProfileInfo = await GetTaxPayerPersonalInfo({
+      AcctID: savedUserData?.AcctID,
+      TaxPayerID: savedUserData?.TaxPayerID,
+      Year: 2022,
+      userToken: savedUserData?.token,
+    });
+    console.log(
+      "resGetTaxPayerMyProfileInfo res",
+      resGetTaxPayerMyProfileInfo
+    );
+    if (resGetTaxPayerMyProfileInfo) {
+      if (resGetTaxPayerMyProfileInfo.ErrCode == -1) {
+      }
+      const resSaveTaxPayerPersonal = await SaveTaxPayerPersonalInfo({
+        TaxPayerID: resGetTaxPayerMyProfileInfo?.TaxPayerID,
+        Year: 2022,
+        TaxID: resGetTaxPayerMyProfileInfo?.TaxID,
+        TaxPayerName: resGetTaxPayerMyProfileInfo?.TaxPayerName,
+        TaxPayerMiddleName: resGetTaxPayerMyProfileInfo?.TaxPayerMiddleName,
+        TaxPayerLastName: resGetTaxPayerMyProfileInfo?.TaxPayerLastName,
+        TaxPayerSIN: SinNumber,
+        TaxPayerBirthDate: resGetTaxPayerMyProfileInfo?.TaxPayerBirthDate,
+        DefaultBirthDate: resGetTaxPayerMyProfileInfo?.DefaultBirthDate,
+        NameChangedStatus: resGetTaxPayerMyProfileInfo?.NameChangedStatus,
+        DisabledStatus: resGetTaxPayerMyProfileInfo?.DisabledStatus,
+        FirstYearClaimingStatus:
+          resGetTaxPayerMyProfileInfo?.FirstYearClaimingStatus,
+        Province: resGetTaxPayerMyProfileInfo?.Province,
+        T2201ApprovedStatus:
+          resGetTaxPayerMyProfileInfo?.T2201ApprovedStatus,
+        ConfinedToPrisonStatus:
+          resGetTaxPayerMyProfileInfo?.ConfinedToPrisonStatus,
+        PeriodOfTime: resGetTaxPayerMyProfileInfo?.PeriodOfTime,
+        TaxPayerMaritalStatus:
+          resGetTaxPayerMyProfileInfo?.TaxPayerMaritalStatus,
+        TaxPayerDeathDate: resGetTaxPayerMyProfileInfo?.TaxPayerDeathDate,
+        ClaimCAICreditForSelf:
+          resGetTaxPayerMyProfileInfo?.ClaimCAICreditForSelf,
+        NetfileAccessCode: resGetTaxPayerMyProfileInfo?.NetfileAccessCode,
+        userToken: savedUserData?.token,
+      });
+      console.log(
+        "onPressLastStep SaveTaxpayerProfileInfo res",
+        resSaveTaxPayerPersonal
+      );
+      if (resSaveTaxPayerPersonal) {
+        if (resSaveTaxPayerPersonal.ErrCode == -1) {
+          setisLoading(false);
+          // Alert.alert("Something went wrong..! Please try again..!");
+          // return;
+        }
+
+        dispatch(saveLoggedInSuccessUserData(resGetTaxPayerMyProfileInfo));
+        const GetSlipsfileRes = await GetSlips(
+          {
+            TaxID: resGetTaxPayerMyProfileInfo?.TaxID,
+            AcctID: savedUserData?.AcctID,
+            TaxPayerID: savedUserData?.TaxPayerID,
+            Year: 2022,
+            year: 2022,
+          },
+          savedUserData?.token
+        );
+        console.log("Hello GetSlipsfileRes", GetSlipsfileRes);
+
+        if (GetSlipsfileRes == null) {
+          const resGetAfrUrl = await GetAfrUrl({
+            Sin: SinNumber,
+            appType: "FREE",
+            Year: 2022,
+            userToken: savedUserData?.token,
+          });
+          console.log("resGetAfrUrl checkSub:", resGetAfrUrl);
+          if (resGetAfrUrl) {
+            setisLoading(false);
+            if (resGetAfrUrl?.status == 500) {
+              Alert.alert("Error..!", resGetAfrUrl.data?.message);
+            } else if (resGetAfrUrl.ErrCode == -1) {
+              Alert.alert("Something went wrong..! Please try again..!");
+            } else {
+              navigation.navigate("WebViewScreen", {
+                url: resGetAfrUrl?.url,
+              });
+            }
+          } else {
+            setisLoading(false);
+            Alert.alert("Something went wrong..! Please try again..!");
+            console.log("resGetAfrUrl checkSub:");
+            // return {}
+          }
+        } else {
+          setisLoading(false);
+          navigation.navigate("CRADetailsScreen", {
+            data: GetSlipsfileRes,
+          });
+        }
+      } else {
+        setisLoading(false);
+        Alert.alert("Something went wrong, please try again.");
+        console.log("GetTaxPayerMyProfileInfo checkSub:");
+        // return {}
+      }
+    } else {
+      Alert.alert("Something went wrong, please try again.");
+      console.log("resGetTaxPayerMyProfileInfo checkSub:");
+      // return {}
+      setisLoading(false);
+    }
+  }
 
   function validateSIN(sin: string) {
     if (!/^\d+$/.test(sin)) {
@@ -169,15 +288,211 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
     // } else {
     //   setButtonEnable(false);
     // }
-    console.log("validateSIN length", validateSIN(firstText + secondText + thirdText));
+    console.log(
+      "validateSIN length",
+      validateSIN(firstText + secondText + thirdText)
+    );
   };
   const onBackButtonPress = () => {
-    navigation.goBack();
+    navigation.navigate("SummaryScreen");
+  };
+  const onBackdropPress = () => {
+    setShowModal(false);
+    return;
   };
 
+  const handlePress = (number: Number) => {
+    switch (number) {
+      case 1:
+        Linking.openURL(
+          "https://www.canada.ca/en/revenue-agency/services/e-services/represent-a-client.html"
+        );
+        break;
+      case 2:
+        Linking.openURL(
+          "https://www.canada.ca/en/revenue-agency/services/e-services/e-services-individuals/account-individuals.html"
+        );
+        break;
+      case 3:
+        Linking.openURL(
+          "https://www.canada.ca/en/revenue-agency/services/tax/representative-authorization.html"
+        );
+        break;
+      default:
+        break;
+    }
+  };
+  const confirmationModal = () => {
+    return (
+      <View
+        style={{
+          height: Dimensions.get("window").height * 0.85,
+          width: "100%",
+          backgroundColor: darkTheme ? defaultColors.matBlack : "#F8F8F8",
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+          alignItems: "center",
+        }}
+      >
+        <ScrollView>
+          <View
+            style={{
+              height: "auto",
+              backgroundColor: darkTheme
+                ? defaultColors.black
+                : defaultColors.white,
+              margin: 20,
+              padding: 15,
+              borderRadius: 10,
+              paddingBottom: 90,
+            }}
+          >
+            <CtText
+              style={{
+                fontWeight: "600",
+                fontSize: 25,
+                marginTop: 20,
+                fontFamily: "Figtree-SemiBold",
+              }}
+            >
+              {"Terms and Conditions"}
+            </CtText>
+            <CtText
+              style={{
+                fontWeight: "400",
+                fontSize: 14,
+                marginTop: 20,
+                color: darkTheme
+                  ? defaultColors.white
+                  : defaultColors.secondaryText,
+              }}
+            >
+              You are about to be to a secure Canada Revenue Agency (CRA)
+              electronic service. You can automatically fill in parts of your
+              current or prior year tax return with the information the CRA has
+              available at the time of your request.{"\n\n"}To use this secure
+              service you must be signed up and registered with CRA’s My
+              Account.{"\n\n"}Each individual should enter their own userid and
+              password to use Auto-fill my return which will automatically fill
+              in parts of their current and prior year income tax return.
+              Individuals can also use Auto-fill my return on behalf of a family
+              member. If you prepare a tax return for a family member or a
+              friend, you need to:{"\n\n"} • Become authorized to use Auto-fill
+              my return on their behalf. You can get this authorization by
+              obtaining a RepID through the{" "}
+              <CtText
+                style={{
+                  fontWeight: "400",
+                  fontSize: 14,
+                  marginTop: 20,
+                  color: defaultColors.primaryBlue,
+                }}
+                onPress={() => handlePress(1)}
+              >
+                Represent a Client portal
+              </CtText>
+              , this identifies you with the CRA, and then complete an
+              E-Authorization web submission for Authorizing or Cancelling a
+              Representative.{"\n\n"} • Give your RepID to your family member or
+              friend so they can authorize you as their representative and then
+              complete an E-Authorization web submission for Authorizing or
+              Cancelling a Representative through their{" "}
+              <CtText
+                style={{
+                  fontWeight: "400",
+                  fontSize: 14,
+                  marginTop: 20,
+                  color: defaultColors.primaryBlue,
+                }}
+                onPress={() => handlePress(2)}
+              >
+                My Account.
+              </CtText>
+              {"\n\n"} • Once you are authorized, you can access their tax
+              information and file a return for them using NETFILE-certified
+              software.{"\n\n"} For more information on authorizing a
+              representative, please visit
+              <CtText
+                style={{
+                  fontWeight: "400",
+                  fontSize: 14,
+                  marginTop: 20,
+                  color: defaultColors.primaryBlue,
+                }}
+                onPress={() => handlePress(3)}
+              >
+                {" "}
+                Representative authorization.
+              </CtText>
+              {"\n\n"}
+              As per the CRA Terms and Conditions of Use, you are required to
+              ensure that all applicable fields contained on the tax return that
+              you will file with the CRA are completed, and that the information
+              provided is true and accurate.
+            </CtText>
+          </View>
+        </ScrollView>
+
+        <View
+          style={{
+            backgroundColor: darkTheme ? "transparent" : "white",
+            justifyContent: "center",
+            width: "100%",
+            flexDirection: "row",
+            flex: 1,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: darkTheme ? "transparent" : "white",
+              justifyContent: "center",
+              flex: 0.5,
+            }}
+          >
+            <BottomButton
+              onPress={() => onPressCancel()}
+              // style={[styles().button]}
+              buttonText={"Cancel"}
+              style={{
+                backgroundColor: defaultColors.secondaryButton,
+              }}
+              buttonTextStyle={{ color: defaultColors.primaryBlue }}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: darkTheme ? "transparent" : "white",
+              justifyContent: "center",
+              flex: 0.5,
+            }}
+          >
+            <BottomButton
+              onPress={() => onPressContinue()}
+              // style={[styles().button]}
+              buttonText={"I Agree"}
+            />
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const onPressCancel = () =>{
+    setShowModal(false);
+  }
+
+  const onPressContinue = () =>{
+    setShowModal(false);
+    successApiCall();
+  }
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle} key={key}>
       <Header onPressbackButton={() => onBackButtonPress()} />
+      <CommonModal
+        isShowModal={isShowModal}
+        ChildView={confirmationModal()}
+        onBackdropPress={() => onBackdropPress()}
+      />
       <ScrollView showsVerticalScrollIndicator={false}>
         <CtView
           style={{
@@ -370,9 +685,9 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
           </CtView>
         </CtView>
         <CustomButton
-          // showLoading={isLoading}
+          showLoading={loadingAvailable}
           buttonText="Auto-Fill My Return"
-          // disabled={!isEnable}
+          disabled={loadingAvailable}
           onPress={() => onPressConfirm()}
           style={{ marginBottom: 20, marginTop: 10, margin: 20 }}
         />
@@ -540,6 +855,13 @@ const styles = (isDarkTheme?: boolean) =>
       color: "rgba(26, 38, 58, 0.7)",
       fontSize: 8,
       fontWeight: "400",
+    },
+    buttonText: {
+      fontSize: 18,
+      color: isDarkTheme ? defaultColors.white : defaultColors.white,
+      fontWeight: "600",
+      borderRadius: 10,
+      fontFamily: "Figtree-SemiBold",
     },
   });
 

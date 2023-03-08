@@ -35,7 +35,14 @@ import { CustomButton } from "../../components/CustomButton";
 import { ImageUploadComponent } from "../../components/ImageUploadComponent";
 import ImageCropPicker from "react-native-image-crop-picker";
 import DocumentScanner from "react-native-document-scanner-plugin";
-import { getName, getSlips, getSlipsDeleteUrls } from "../../utils/OcrUtils/OcrUtils";
+import {
+  getName,
+  getSlipNo,
+  getSlips,
+  getSlipsDeleteUrls,
+  navigateToScreen,
+  navigateToScreenFromScanning,
+} from "../../utils/OcrUtils/OcrUtils";
 import { useIsFocused } from "@react-navigation/native";
 const MyTaxSlipsScreen = ({ navigation, route }: any) => {
   const isFocused = useIsFocused();
@@ -81,41 +88,42 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
   }, [isFocused]);
 
   const onPressRenderitem = (item: any) => {
-    navigation.navigate("T4OcrScreen", {
+    console.log("onPressRenderitem", item);
+    navigation.navigate(navigateToScreen(item.Type), {
       data: item,
       ScanID: item.ScanID,
       getSelectedFormsData: getSelectedFormsData,
-      listedT4Items : dataToRender.filter(item => item.Type === "1"),
+      listedT4Items: dataToRender.filter((obj: { [key: string]: any }) => {
+        return Object.entries(item).every(([key, value]) => {
+          return obj.hasOwnProperty(key);
+        });
+      }),
     });
   };
 
   const onPressDeleteitem = async (item: any) => {
-    Alert.alert('Confirm Delete', 'Are you sure you want to delete this?', [
+
+    Alert.alert("Confirm Delete", "Are you sure you want to delete this?", [
       {
-        text: 'Yes',
+        text: "Yes",
         onPress: () => onPressDeleteData(item),
       },
       {
-        text: 'No',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'destructive',
+        text: "No",
+        onPress: () => console.log("Cancel Pressed"),
+        style: "destructive",
       },
     ]);
-
   };
-
-  const onPressDeleteData = async(item: any) => {
+  const onPressDeleteData = async (item: any) => {
     setisLoading(true);
-    const indexToUpdate = dataToRender.findIndex(
-      (obj) => obj.ScanID === item.ScanID
-    );
     const resGetSelectedData = await deleteSlipData(
       {
-        SlipNo: (indexToUpdate + 1).toString(),
+        SlipNo: getSlipNo(item, item.Type),
         AcctID: savedUserData?.AcctID,
         Year: 2022,
         TaxID: getSavedLoggedInData?.TaxID,
-        TaxPayerID: savedUserData?.TaxPayerID
+        TaxPayerID: savedUserData?.TaxPayerID,
       },
       savedUserData?.token,
       getSlipsDeleteUrls(item.Type)
@@ -123,66 +131,140 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
     console.log("onPressScanYourBill", savedUserData, resGetSelectedData);
 
     if (resGetSelectedData) {
-      setisLoading(false);
       if (resGetSelectedData.ErrCode == -1) {
         console.log("resGetSelectedData else");
-      } else {
-        const resAvailableSlipsData = await GetAvailableSlipsData(
-          {
-            TaxPayerID: savedUserData?.TaxPayerID,
-            AcctID: savedUserData?.AcctID,
-            Year: 2022,
-            TaxID: getSavedLoggedInData?.TaxID,
-          },
-          savedUserData?.token,
-          getSelectedFormsData.IncomeSlipForms.split(",")
-        );
-    
-        if (resAvailableSlipsData) {
-          console.log("resAvailableSlipsData", resAvailableSlipsData);
-          setisLoading(false);
-          setDataToRender(resAvailableSlipsData);
-      } else {
         setisLoading(false);
-      }
-    //     const resGetSelectedData = await SaveShoeBoxForms(
-    //       {
-    //         TaxPayerID: savedUserData?.TaxPayerID,
-    //         AcctID: savedUserData?.AcctID,
-    //         Year: 2022,
-    //         TaxID: getSavedLoggedInData?.TaxID,
-    // //         CreditsForms: string;
-    // // DeductionsForms: string;
-    // // ExpensesForms: string;
-    // // IncomeSlipForms: string;
-    // // ProvincialSlipForms: string;
-    //         // CategoryID: item.Type,
-    //         // FormID: item.T4_no,
-    //       },
-    //       savedUserData?.token
-    //     );
-    //     console.log("onPressScanYourBill", savedUserData, resGetSelectedData);
-    
-    //     if (resGetSelectedData) {
-    //       setisLoading(false);
-    //       if (resGetSelectedData.ErrCode == -1) {
-    //         console.log("resGetSelectedData else");
-    //       } else {
-    //         // SaveShoeBoxForms
-    //       }
-    //     } else {
-    //       setisLoading(false);
-    //       console.log("resGetSelectedData else");
-    //     }
+      } else {
+        let renderedData = dataToRender.filter((obj) => {
+          return obj.Type === item.Type;
+        });
+
+        if (renderedData.length == 1) {
+          const typeArray = getSelectedFormsData.IncomeSlipForms.split(","); // Split the string into an array
+          const index = typeArray.indexOf(item.Type); // Find the index of the element to remove
+          if (index > -1) {
+            typeArray.splice(index, 1); // Remove the element at the found index
+          }
+          const updatedType = typeArray.join(",");
+
+          console.log("renderedData", updatedType);
+
+          const resSaveShoeBoxData = await SaveShoeBoxForms(
+            {
+              TaxPayerID: savedUserData?.TaxPayerID,
+              AcctID: savedUserData?.AcctID,
+              IncomeSlipForms: updatedType,
+              Year: 2022,
+              TaxID: getSavedLoggedInData?.TaxID,
+              CreditsForms: getSelectedFormsData.CreditsForms,
+              DeductionsForms: getSelectedFormsData.DeductionsForms,
+              ExpensesForms: getSelectedFormsData.ExpensesForms,
+              ProvincialSlipForms: getSelectedFormsData.ProvincialSlipForms,
+            },
+            savedUserData?.token
+          );
+          console.log("resSaveShoeBoxData", resSaveShoeBoxData);
+
+          if (resSaveShoeBoxData) {
+            if (resSaveShoeBoxData.ErrCode == -1) {
+              console.log("resGetSelectedData else");
+            } else {
+              // SaveShoeBoxForms
+            }
+            callGetAvailableSlipData();
+          } else {
+            console.log("resGetSelectedData else");
+            callGetAvailableSlipData();
+          }
+        } else {
+          callGetAvailableSlipData();
+        }
       }
     } else {
       setisLoading(false);
       console.log("resGetSelectedData else");
     }
-  }
+  };
+  const callGetAvailableSlipData = async () => {
+    const resGetSelectedData = await getSelectedSlipData(
+        {
+          TaxPayerID: savedUserData?.TaxPayerID,
+          AcctID: savedUserData?.AcctID,
+          Year: 2022,
+          TaxID: getSavedLoggedInData?.TaxID,
+        },
+        savedUserData?.token
+      );
+      if (resGetSelectedData) {
+        if (resGetSelectedData) {
+          setisLoading(false);
+          if (resGetSelectedData.ErrCode == -1) {
+            console.log("resGetSelectedData else");
+          } else {
+            setSelectedDataRender(resGetSelectedData)
+            if (resGetSelectedData.IncomeSlipForms == "") {
+              navigation.navigate("EmptySlipsScreen", {
+                data: resGetSelectedData,
+                getSelectedData: resGetSelectedData,
+              });
+            } else {
+              const resAvailableSlipsData = await GetAvailableSlipsData(
+                {
+                  TaxPayerID: savedUserData?.TaxPayerID,
+                  AcctID: savedUserData?.AcctID,
+                  Year: 2022,
+                  TaxID: getSavedLoggedInData?.TaxID,
+                },
+                savedUserData?.token,
+                resGetSelectedData.IncomeSlipForms.split(",")
+              );
+
+              if (resAvailableSlipsData) {
+                console.log("resAvailableSlipsData", resAvailableSlipsData);
+                setisLoading(false);
+                setDataToRender(resAvailableSlipsData);
+              } else {
+              }
+            }
+          }
+        } else {
+          setisLoading(false);
+          console.log("resGetSelectedData else");
+        }
+      }
+    // const resAvailableSlipsData = await GetAvailableSlipsData(
+    //   {
+    //     TaxPayerID: savedUserData?.TaxPayerID,
+    //     AcctID: savedUserData?.AcctID,
+    //     Year: 2022,
+    //     TaxID: getSavedLoggedInData?.TaxID,
+    //   },
+    //   savedUserData?.token,
+    //   getSelectedFormsData.IncomeSlipForms.split(",")
+    // );
+
+    // if (resAvailableSlipsData) {
+    //   console.log("resAvailableSlipsData", resAvailableSlipsData);
+    //   setisLoading(false);
+    //   setDataToRender(resAvailableSlipsData);
+    // } else {
+    //   setisLoading(false);
+    // }
+  };
 
   const renderSlips = (item: any) => {
     console.log("renderSlips res", item);
+    if (
+      item.ErrCode == -1 ||
+      !(
+        Object.keys(item).some((key) => key.startsWith("T4_")) ||
+        Object.keys(item).some((key) => key.startsWith("T5007")) ||
+        item.Type == "5"||
+        item.Type == "10"
+      )
+    ) {
+      return;
+    }
     return (
       <View
         key={item}
@@ -219,7 +301,7 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
             }}
             numberOfLines={1}
           >
-            {getName(item.Type, item)}
+            {getName(item)}
           </CtText>
         </TouchableOpacity>
 
@@ -246,8 +328,7 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
             <Ionicons
               name={"ios-chevron-forward-outline"}
               style={{
-                color: darkTheme ? defaultColors.white
-                :defaultColors.black,
+                color: darkTheme ? defaultColors.white : defaultColors.black,
               }}
               size={24}
               underlayColor={"white"}
@@ -260,7 +341,7 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
               borderRadius: 10,
               justifyContent: "center",
               alignItems: "center",
-              // backgroundColor: defaultColors.green,
+              // backgroundColor: defaultColors.green,darkTheme ?require("../../../assets/Ellipsis.png")
               height: "100%",
             }}
             onPress={() => onPressDeleteitem(item)}
@@ -272,10 +353,9 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
                 backgroundColor: defaultColors.transparent,
               }}
               resizeMode={"contain"}
-              source={require("../../../assets/Ellipsis.png")}
+              source={darkTheme ?require("../../../assets/darkEllipsis.png") :require("../../../assets/Ellipsis.png")}
             />
           </TouchableOpacity>
-
         </View>
       </View>
     );
@@ -325,7 +405,15 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
     if (Platform.OS === "android") {
       try {
         const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA
+          PermissionsAndroid.PERMISSIONS.CAMERA, 
+          {
+            title: 'CloudTax App Camera Permission',
+            message:
+              'Allow CloudTax to take pictures.',
+              buttonNeutral: "Ask Me Later",
+              buttonNegative: "Cancel",
+              buttonPositive: "OK"
+          },
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           console.log("CAMERA permission allow");
@@ -339,13 +427,11 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
           console.log("CAMERA permission fileName", fileName);
           formData.append("slip", {
             uri: scannedImages[0],
-            type: 'image/jpeg',
+            type: "image/jpeg",
             name: fileName,
             path: scannedImages[0],
           });
           scanApiCall(formData);
-
-          setScanLoading(false);
           console.log("CAMERA permission allow", scannedImages);
         } else {
           console.log("CAMERA permission denied");
@@ -367,7 +453,6 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
   };
 
   const onPressLibrary = async () => {
-    console.log("onPressLibrary");
     setShowModal(false);
 
     setTimeout(async () => {
@@ -395,14 +480,26 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
     }, 500);
   };
 
-  const scanApiCall = async (formData: FormData) =>{
-    const getScannedSlipParams = await scanSlip(
-      formData,
-      savedUserData.token
+  function filterByType(data: any[], selectedType: string) {
+    return data.filter(
+      (item: { [s: string]: unknown } | ArrayLike<unknown>) => {
+        for (const [key, value] of Object.entries(item)) {
+          if (key.startsWith(selectedType) && key == selectedType + "_no") {
+            return true;
+          }
+        }
+        return false;
+      }
     );
+  }
+
+  const scanApiCall = async (formData: FormData) => {
+    setScanLoading(true);
+    const getScannedSlipParams = await scanSlip(formData, savedUserData.token);
     console.log("getScannedSlipParams else", getScannedSlipParams);
     if (getScannedSlipParams) {
       if (getScannedSlipParams.ErrCode == -1) {
+        setisLoading(false);
         console.log("getScannedSlipParams else");
       } else {
         const getScannedSlipData = await getScannedSlip(
@@ -410,27 +507,46 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
           savedUserData.token
         );
         if (getScannedSlipData) {
+          console.log("getScannedSlipData else", getScannedSlipData);
           setScanLoading(false);
           if (getScannedSlipData.ErrCode == -1) {
             console.log("getScannedSlipData else");
           } else {
-            navigation.navigate("T4OcrScreen", {
-              data: getScannedSlipData.result,
-              ScanID: getScannedSlipParams.ScanID,
-              getSelectedFormsData: getSelectedFormsData,
-              listedT4Items : dataToRender.filter(item => item.Type === "1"),
-            });
+            console.log("getScannedSlipData else", getScannedSlipData);
+            if (getScannedSlipData.hasOwnProperty('result')) {
+              if(navigateToScreenFromScanning(getScannedSlipData.result.Type) !== null){
+                navigation.navigate(
+                  navigateToScreenFromScanning(getScannedSlipData.result.Type),
+                  {
+                    data: getScannedSlipData.result,
+                    ScanID: getScannedSlipParams.ScanID,
+                    getSelectedFormsData: getSelectedFormsData,
+                    listedT4Items: filterByType(
+                      dataToRender,
+                      getScannedSlipData.result.Type
+                    ),
+                  }
+                );
+              } else {
+                Alert.alert('We are sorry..! Unsupported file type for the moment..!');
+              }
+
+          } else {
+            Alert.alert('Something went wrong..! Please rescan again..!');
+          }
           }
         } else {
           setScanLoading(false);
           console.log("getScannedSlipData else");
+          Alert.alert("Something went wrong..! Please rescan again..!");
         }
       }
     } else {
       console.log("getScannedSlipParams else");
+      Alert.alert("Something went wrong..! Please rescan again..!");
       setScanLoading(false);
     }
-  }
+  };
 
   console.log("onPressConfirm res", dataToRender);
   return (
@@ -473,8 +589,8 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
               fontSize: 25,
               fontFamily: "Figtree-SemiBold",
               color: darkTheme
-              ? defaultColors.white
-              : defaultColors.primaryText
+                ? defaultColors.white
+                : defaultColors.primaryText,
             }}
           >
             {"My Tax Slips"}
@@ -503,7 +619,7 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
             />
           </CtView>
           <CustomButton
-            showLoading={isScanLoading}
+            showLoading={isScanLoading || loadingAvailable}
             buttonText="Scan New Slip"
             onPress={() => onPressScanNewSlip()}
             style={{

@@ -140,8 +140,11 @@ const T4OcrScreen = ({ navigation, route }: any) => {
 
   let Slipdata = [
     { id: 14, name: "Total Earnings", box: "Box14", value: "0.00" },
-    { id: 22, name: "Income Tax Deducted", box: "Box22", value: "0.00" },
     { id: 16, name: "Canada Pension Plan", box: "Box16", value: "0.00" },
+    { id: 17, name: "Quebec Pension Plan", box: "Box17", value: "0.00" },
+    { id: 18, name: "Employment Insurance", box: "Box18", value: "0.00" },
+    { id: 20, name: "RPP Contributions", box: "Box20", value: "0.00" },
+    { id: 22, name: "Income Tax Deducted", box: "Box22", value: "0.00" },
     {
       id: 24,
       name: "Insurable Earnings",
@@ -149,7 +152,6 @@ const T4OcrScreen = ({ navigation, route }: any) => {
       validation: "",
       value: "0.00",
     },
-    { id: 17, name: "Quebec Pension Plan", box: "Box17", value: "0.00" },
     {
       id: 26,
       name: "CPP / QPP Pensionable Earnings",
@@ -157,9 +159,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
       validation: "",
       value: "0.00",
     },
-    { id: 18, name: "Employment Insurance", box: "Box18", value: "0.00" },
     { id: 44, name: "Union Dues", box: "Box44", value: "0.00" },
-    { id: 20, name: "RPP Contributions", box: "Box20", value: "0.00" },
     { id: 46, name: "Charitable Donations", box: "Box46", value: "0.00" },
     // {
     //   id: 46,
@@ -584,7 +584,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
     let finalArrayForLastUpdate = [];
     if (listedT4Data != undefined) {
       const indexToUpdate = listedT4Data.findIndex(
-        (obj) => obj.ScanID === finalArray.ScanID
+        (obj) => obj["T4_no"] === getInitialDataFromOCR["T4_no"]
       );
 
       if (indexToUpdate !== -1) {

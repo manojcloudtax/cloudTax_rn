@@ -23,8 +23,8 @@ const CustomButton = (props: ButtonProps) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
   const { buttonText, style, activeOpacity, showLoading, disabled, buttonTextStyle } =
     props;
-  console.log("CustomButton disabled", disabled);
-  console.log("CustomButton showLoading", showLoading);
+  // console.log("CustomButton disabled", disabled);
+  // console.log("CustomButton showLoading", showLoading);
   return (
     <TouchableOpacity
       {...props}

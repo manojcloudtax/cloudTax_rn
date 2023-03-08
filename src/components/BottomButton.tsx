@@ -14,7 +14,7 @@ interface ButtonProps extends TouchableOpacityProps {
   }
 const BottomButton = (props: ButtonProps)  => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
-  const { buttonText, style, children, activeOpacity, showLoading } = props;
+  const { buttonText, style, children, activeOpacity, showLoading, buttonTextStyle } = props;
   return (
     <CtView
     style={{
@@ -25,9 +25,10 @@ const BottomButton = (props: ButtonProps)  => {
       alignItems: "center",
       position: "absolute",
       bottom: 0,
-      borderTopWidth: 1.5,
+      // borderTopWidth: 1.5,
       borderTopColor: defaultColors.borderColor,
-      paddingBottom: 10
+      paddingBottom: 10,
+      paddingTop: 10
     }}
   >
     <CtView
@@ -59,7 +60,7 @@ const BottomButton = (props: ButtonProps)  => {
        />
        :
        buttonText &&
-          <CtText style={[darkTheme ? null : {color: defaultColors.white}, {fontFamily: 'Figtree-SemiBold', fontSize: 18}]}>{buttonText}</CtText>}
+          <CtText style={[darkTheme ? null : {color: defaultColors.white}, {fontFamily: 'Figtree-SemiBold', fontSize: 18}, buttonTextStyle]}>{buttonText}</CtText>}
         {children}
       </TouchableOpacity>
     </CtView>

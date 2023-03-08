@@ -44,6 +44,7 @@ import {
   setIsPriorYearModalSelected,
   saveLoggedInSuccessUserData,
   resetAllStateData,
+  savePartnerDetails,
 } from "../store/authSlice";
 import { RootState } from "../store";
 import axios from "axios";
@@ -219,6 +220,14 @@ const RegisterScreen = ({ navigation, route }: any) => {
             setisLoading(false);
             console.log("resGetTPAccountInfo success", resGetTPAccountInfo);
             dispatch(saveTaxPayerMyProfileInfo(resGetTPAccountInfo));
+            let partnerDetails = {
+              PartnerID : resGetTPAccountInfo?.PartnerID,
+              PartnerName : resGetTPAccountInfo?.PartnerName,
+              TypedPartnerName: null,
+              SelectedPartnerID: null,
+              SelectedPartnerName: null,
+            }
+            dispatch(savePartnerDetails(partnerDetails));
             navigation.navigate("ChooseTaxYearScreen", {
               isFromRegistration: true,
             });
@@ -292,7 +301,15 @@ const RegisterScreen = ({ navigation, route }: any) => {
       if (Platform.OS === "android") {
         try {
           const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+            PermissionsAndroid.PERMISSIONS.CAMERA,
+            {
+              title: 'CloudTax App Camera Permission',
+              message:
+                'Allow CloudTax to take pictures.',
+                buttonNeutral: "Ask Me Later",
+                buttonNegative: "Cancel",
+                buttonPositive: "OK"
+            }
           );
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {
             console.log("CAMERA permission allow");

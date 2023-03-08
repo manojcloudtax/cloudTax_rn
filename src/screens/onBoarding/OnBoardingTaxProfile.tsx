@@ -32,6 +32,7 @@ import { Header } from "../../components/Header";
 import { BottomButton } from "../../components/BottomButton";
 import { CustomButton } from "../../components/CustomButton";
 import { CustomInput } from "../../components/CustomInput";
+import { savePartnerDetails } from "../../store/authSlice";
 
 interface Questions {
   questionId: Number;
@@ -54,7 +55,7 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
   const { savedUserData, saveTPAccountData } = useSelector(
     (state: RootState) => state.authReducer
   );
-  const { AllProvinces, saveTPMyProfileData } = useSelector((state: RootState) => state.authReducer);
+  const { AllProvinces, saveTPMyProfileData, getPartnerDetails } = useSelector((state: RootState) => state.authReducer);
 
   const [selectedMaritalStatus, setSelectedMaritalStatus] = useState("");
   const [selectedProvince, setSelectedProvince] = useState({
@@ -118,7 +119,7 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
   ];
 
   useEffect(() => {
-    console.log("init route.params", route.params);
+    // console.log("init route.params", route.params);
     try {
       if (route.params !== undefined) {
         const { selectedScreen, selectedYear } = route.params;
@@ -233,7 +234,6 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
   };
 
   const renderQuestions = (item: any, index: any) => {
-    console.log("renderQuestions", item, selectedMaritalStatus);
 
     if (
       item.questionId === 1 &&
@@ -252,11 +252,11 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
           }}
         >
           {item.question}
-          {item.questionId === 1 && onBoardingData?.partnerName ?  <CtText style={{
+          {item.questionId === 1 && getPartnerDetails.PartnerID !== null ?  <CtText style={{
             fontWeight: "400",
             fontSize: 18,
             color: defaultColors.blue,
-          }}> {'Linked to ' + onBoardingData.partnerName}</CtText> : null}
+          }}> {'Linked to ' + (getPartnerDetails.PartnerName  !== null ? getPartnerDetails.PartnerName : '-')}</CtText> : null}
          
         </CtText>
         <CtView
@@ -349,10 +349,6 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
       PartnerName: item?.TaxPayerName,
     }
     setPartnerDetails(SelectedData);
-//     console.log("onPressItem", partnerInput);
-//     if(partnerInput.current){
-// partnerInput.current.blur();
-//     }
   };
 
   const onChangePartnerName=(text: string) => {
@@ -404,6 +400,8 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
                 renderItem={
                   ({ item, index }) => (
                     // return(
+                      <>
+                      {(savedUserData?.TaxPayerID !== item.TaxPayerID) ?
                     <TouchableOpacity
                       key={item}
                       style={{
@@ -438,7 +436,10 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
                       >
                         {item.TaxPayerName}
                       </CtText>
-                    </TouchableOpacity>
+                    </TouchableOpacity>:
+                    null
+                    }
+                    </>
                   // )
                   )
                 }
@@ -631,7 +632,7 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
       setSelectedMaritalStatus(item);
       setKeyToRerender(key + 1);
     } else if (selectedScreenNo == 2) {
-      if (savedUserData?.PartnerID !== null && index == 0 && onBoardingData.partnerName !== '') {
+      if (getPartnerDetails.PartnerID  !== null && index == 0) {
         return;
       } else {
         getQuestions[index].answer = item;
@@ -655,8 +656,24 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
       if (selectedScreenNo == 1 && selectedMaritalStatus !== "") {
         setSelectedScreen(selectedScreenNo + 1);
       } else if (selectedScreenNo == 2) {
-        if (getQuestions[0].answer === "Yes" && savedUserData?.PartnerID === null&& onBoardingData.partnerName !== '') {
-          setShowModal(true);
+
+        if (getQuestions[0].answer === "No"){
+        let partnerDetails = {
+          PartnerID : getPartnerDetails?.PartnerID,
+          PartnerName : getPartnerDetails?.PartnerName,
+          TypedPartnerName: null,
+          SelectedPartnerID: null,
+          SelectedPartnerName: null,
+        }
+        dispatch(savePartnerDetails(partnerDetails));
+      }
+        console.log("selectedProvince.getPartnerDetails passed 1", getPartnerDetails);
+        if (getQuestions[0].answer === "Yes" &&  getPartnerDetails?.PartnerID === null) {
+          if(getPartnerDetails.SelectedPartnerID  === null && getPartnerDetails.TypedPartnerName === null){
+            setShowModal(true);
+          } else {
+            setSelectedScreen(selectedScreenNo + 1);
+          }
         } else {
           if (getQuestions[2].answer === "Yes") {
             setSelectedScreen(selectedScreenNo + 1);
@@ -724,6 +741,14 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
     setShowModal(false);
     if (partnerName !== "" || partnerFromList != '') {
       setSelectedScreen(selectedScreenNo + 1);
+      let partnerDetails = {
+        PartnerID : null,
+        PartnerName : null,
+        TypedPartnerName: partnerName == "" ? null: partnerName,
+        SelectedPartnerID: partnerDetailsList.PartnerID == "" ? null: partnerDetailsList.PartnerID,
+        SelectedPartnerName: partnerDetailsList.PartnerName == "" ? null: partnerDetailsList.PartnerName,
+      }
+      dispatch(savePartnerDetails(partnerDetails));
     }
   };
   const onBackdropPress = () => {

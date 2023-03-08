@@ -27,6 +27,7 @@ import {
   saveTaxPayerMyProfileInfo,
   saveRegisteredSuccessUserData,
   resetAllStateData,
+  savePartnerDetails,
 } from "../store/authSlice";
 import { defaultColors } from "../utils/defaultColors";
 import {
@@ -165,7 +166,10 @@ const LoginScreen = ({ navigation }: any) => {
                 responseGetTPAccountInfo
               );
             } else {
-              await dispatch(saveGetTPAccountData(responseGetTPAccountInfo));
+              let filteredData = responseGetTPAccountInfo.filter((item: { TaxPayerID: any; }) => {
+                return item.TaxPayerID !== data?.TaxPayerID;
+              });
+              await dispatch(saveGetTPAccountData(filteredData));
             }
           } else {
           }
@@ -218,7 +222,14 @@ const LoginScreen = ({ navigation }: any) => {
                 resGetTaxPayerMyProfileInfo?.ClaimCreditsFromSpouse,
               partnerDetailsList: responseGetTPAccountInfo,
             };
-
+            let partnerDetails = {
+              PartnerID : resGetTaxPayerMyProfileInfo?.PartnerID,
+              PartnerName : resGetTaxPayerMyProfileInfo?.PartnerName,
+              TypedPartnerName: null,
+              SelectedPartnerID: null,
+              SelectedPartnerName: null,
+            }
+            dispatch(savePartnerDetails(partnerDetails));
             dispatch(setOnBoardingData(params));
 
             navigation.navigate("ChooseTaxYearScreen", {

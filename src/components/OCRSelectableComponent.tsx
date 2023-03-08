@@ -23,13 +23,13 @@ const OCRSelectableComponent = ({
   return (
     <View style={styles(darkTheme).container}>
       <View style={styles(darkTheme).textViewContainer}>
-        <View style={styles().LeftIconContainer}>
+        <View style={styles(darkTheme).LeftIconContainer}>
           <CtText
             style={{
               fontWeight: "600",
               fontSize: 16,
               fontFamily: "Figtree-SemiBold",
-              color: defaultColors.white,
+              color: darkTheme? defaultColors.secondaryTextColor: defaultColors.white
             }}
           >
             {boxNumber}
@@ -39,7 +39,7 @@ const OCRSelectableComponent = ({
         <View
           style={{
             height: 50,
-            flex: 0.9,
+            flex: 0.88,
             // justifyContent: "center",
             // alignContent: "center",
             // marginLeft: 8,
@@ -253,8 +253,8 @@ const styles = (isDarkTheme?: boolean) =>
     LeftIconContainer: {
       justifyContent: "center",
       //   height: 50,
-      backgroundColor: defaultColors.darkGray,
-      flex: 0.1,
+      backgroundColor: isDarkTheme? defaultColors.secondaryWhiteText: defaultColors.ocrBoxColor,
+      flex: 0.12,
       margin: 8,
       alignItems: "center",
       borderRadius: 5,

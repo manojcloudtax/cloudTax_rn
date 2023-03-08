@@ -1,13 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-} from "react-native";
-import {
-  CtText,
-} from "../components/UiComponents";
+import { StyleSheet, ScrollView, View, Text, Alert } from "react-native";
+import { CtText } from "../components/UiComponents";
 import { useDispatch } from "react-redux";
 import { defaultColors } from "../utils/defaultColors";
 import { useSelector } from "react-redux";
@@ -15,10 +8,13 @@ import { RootState } from "../store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "../components/Header";
 import { BottomButton } from "../components/BottomButton";
+import { GetUrlData } from "../api/auth";
 
 const EstimatedScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
-  
+  const { savedUserData } = useSelector(
+    (state: RootState) => state.authReducer
+  );
   const [DataToRender, setData] = useState([] as any);
 
   const dispatch = useDispatch();
@@ -34,37 +30,53 @@ const EstimatedScreen = ({ navigation, route }: any) => {
     } catch (error) {}
   }, []);
 
-
   const getAmountFormatter = (amount: Number) => {
     console.log("getAmountFormatter data", amount);
-    
-    if(amount !== undefined){
-      return amount.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+
+    if (amount !== undefined) {
+      return amount.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
+    } else {
+      return null
     }
-    
-  }
+  };
   const onBackButtonPress = () => {
     navigation.goBack();
+  };
+
+  const onPressContinue = async () => {
+    let postData = {
+      Year: 2022,
+      TaxPayerID: savedUserData?.TaxPayerID,
+    };
+    const getUrl = await GetUrlData(postData, savedUserData?.token);
+
+    if (getUrl) {
+      console.log("getUrl", getUrl);
+      navigation.navigate("WebViewWithoutPopUp", {
+      url: getUrl.url,
+    });
+    } else {
+      Alert.alert("Something went wrong. Please try again...!")
+    }
   };
 
   console.log("datatorender data", DataToRender);
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle}>
-      <Header onPressbackButton={() => onBackButtonPress()}/>
+      <Header onPressbackButton={() => onBackButtonPress()} />
       <ScrollView
         contentContainerStyle={{ paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
       >
- 
         <View
           style={{
             // flex: 0.2,
-            height:125,
+            height: 125,
             marginRight: 28,
             marginLeft: 25,
             borderRadius: 10,
             backgroundColor: "#0A98FF",
-            marginTop: 20
+            marginTop: 20,
           }}
         >
           <CtText
@@ -77,7 +89,11 @@ const EstimatedScreen = ({ navigation, route }: any) => {
               color: "#FFFFFF",
             }}
           >
-            {-(DataToRender.Refund) > 0 ? "Your 2022 Tax Refund" : DataToRender.Balance > 0 ? "Your 2022 Balance owing" : ''}
+            {-DataToRender.Refund > 0
+              ? "Your 2022 Tax Refund"
+              : DataToRender.Balance > 0
+              ? "Your 2022 Balance owing"
+              : ""}
           </CtText>
 
           <CtText
@@ -90,14 +106,19 @@ const EstimatedScreen = ({ navigation, route }: any) => {
               color: "#FFFFFF",
             }}
           >
-            $ {-(DataToRender.Refund) > 0? getAmountFormatter(-(DataToRender.Refund)):  DataToRender.Balance > 0 ? getAmountFormatter(DataToRender?.Balance): '$0.00'}
+            ${" "}
+            {-DataToRender.Refund > 0
+              ? getAmountFormatter(-DataToRender.Refund)
+              : DataToRender.Balance > 0
+              ? getAmountFormatter(DataToRender?.Balance)
+              : "0.00"}
           </CtText>
         </View>
 
         <View
           style={{
             // flex: 0.4,
-            height:'auto',
+            height: "auto",
             marginRight: 28,
             marginLeft: 25,
             marginTop: 23,
@@ -106,12 +127,12 @@ const EstimatedScreen = ({ navigation, route }: any) => {
             // borderRadius: 10,
             // borderWidth: 1,
             display: "flex",
-            backgroundColor: darkTheme ?  defaultColors.black : defaultColors.white
+            backgroundColor: darkTheme
+              ? defaultColors.black
+              : defaultColors.white,
           }}
         >
-          <View
-            style={styles(darkTheme).TopItemContainer}
-          >
+          <View style={styles(darkTheme).TopItemContainer}>
             <CtText
               style={{
                 flex: 0.6,
@@ -120,157 +141,131 @@ const EstimatedScreen = ({ navigation, route }: any) => {
                 marginRight: 5,
                 // marginTop: 10,
                 // marginBottom: 10,
-              fontFamily:'Figtree-SemiBold',
+                fontFamily: "Figtree-SemiBold",
                 fontWeight: "600",
-                color: darkTheme ?  defaultColors.white : "#1A263A",
-                alignSelf: 'center'
+                color: darkTheme ? defaultColors.white : "#1A263A",
+                alignSelf: "center",
               }}
             >
               Tax Summary
             </CtText>
           </View>
 
-          <View
-            style={styles(darkTheme).itemContainer}
-          >
-            <CtText
-              style={styles(darkTheme).leftItem}
-            >
-              Total Income:
-            </CtText>
+          <View style={styles(darkTheme).itemContainer}>
+            <CtText style={styles(darkTheme).leftItem}>Total Income:</CtText>
 
-            <CtText
-              style={styles(darkTheme).rightItem}
-            >
+            <CtText style={styles(darkTheme).rightItem}>
               $ {getAmountFormatter(DataToRender?.TotalIncome)}
             </CtText>
           </View>
 
-          <View
-            style={styles(darkTheme).itemContainer}
-          >
-            <CtText
-            style={styles(darkTheme).leftItem}
-            >
-              Taxable Income:
-            </CtText>
+          <View style={styles(darkTheme).itemContainer}>
+            <CtText style={styles(darkTheme).leftItem}>Taxable Income:</CtText>
 
-            <CtText
-             style={styles(darkTheme).rightItem}
-            >
+            <CtText style={styles(darkTheme).rightItem}>
               $ {getAmountFormatter(DataToRender?.TaxableIncome)}
             </CtText>
           </View>
 
-          <View
-            style={styles(darkTheme).itemContainer}
-          >
-            <CtText
-               style={styles(darkTheme).leftItem}
-            >
-              Net Income:
-            </CtText>
+          <View style={styles(darkTheme).itemContainer}>
+            <CtText style={styles(darkTheme).leftItem}>Net Income:</CtText>
 
-            <CtText
-               style={styles(darkTheme).rightItem}
-            >
+            <CtText style={styles(darkTheme).rightItem}>
               $ {getAmountFormatter(DataToRender?.NetIncome)}
             </CtText>
           </View>
 
-          <View
-            style={styles(darkTheme).BottomItemContainer}
-          >
-            <CtText
-              style={styles(darkTheme).leftItem}
-            >
-              Total Payable:
-            </CtText>
+          <View style={styles(darkTheme).BottomItemContainer}>
+            <CtText style={styles(darkTheme).leftItem}>Total Payable:</CtText>
 
-            <CtText
-              style={styles(darkTheme).rightItem}
-            >
+            <CtText style={styles(darkTheme).rightItem}>
               $ {getAmountFormatter(DataToRender?.TotalPayable)}
             </CtText>
           </View>
         </View>
 
         <View
-          style={[styles(darkTheme).itemContainer,{ marginRight: 28,
-            marginLeft: 25,
+          style={[
+            styles(darkTheme).itemContainer,
+            {
+              marginRight: 28,
+              marginLeft: 25,
 
-            borderRadius: 10,
-          borderTopColor: darkTheme ?  defaultColors.gray : "#DEE1E9",
-        borderTopWidth: 1}]}
+              borderRadius: 10,
+              borderTopColor: darkTheme ? defaultColors.gray : "#DEE1E9",
+              borderTopWidth: 1,
+            },
+          ]}
         >
-            <Text
-              style={{
-                flex: 0.6,
-                fontSize: 18,
-                marginLeft: 15,
-                marginRight: 5,
-                // marginTop: 10,
-                // marginBottom: 10,
-              fontFamily:'Figtree-SemiBold',
-                fontWeight: "600",
-                color: darkTheme ?  defaultColors.white : "#1A263A",
-                alignSelf: 'center'
-              }}
-            >
-              Total Credits:
-            </Text>
+          <Text
+            style={{
+              flex: 0.6,
+              fontSize: 18,
+              marginLeft: 15,
+              marginRight: 5,
+              // marginTop: 10,
+              // marginBottom: 10,
+              fontFamily: "Figtree-SemiBold",
+              fontWeight: "600",
+              color: darkTheme ? defaultColors.white : "#1A263A",
+              alignSelf: "center",
+            }}
+          >
+            Total Credits:
+          </Text>
 
-            <CtText
-              style={{
-                flex: 0.4,
-                fontSize: 18,
-                marginRight: 15,
-                marginTop: 12,
-                marginBottom: 12,
-                fontFamily: "Figtree",
-                fontWeight: "700",
-                color: "#0090EE",
-                textAlign: "right",
-              }}
-            >
-              $ {getAmountFormatter(DataToRender?.TotalCredits)}
-            </CtText>
-
+          <CtText
+            style={{
+              flex: 0.4,
+              fontSize: 18,
+              marginRight: 15,
+              marginTop: 12,
+              marginBottom: 12,
+              fontFamily: "Figtree",
+              fontWeight: "700",
+              color: "#0090EE",
+              textAlign: "right",
+            }}
+          >
+            $ {getAmountFormatter(DataToRender?.TotalCredits)}
+          </CtText>
         </View>
 
         <View
           style={{
-            height:'auto',
+            height: "auto",
             marginRight: 20,
             marginLeft: 20,
-            marginTop:20,
+            marginTop: 20,
             borderColor: "#FFD88E",
-            borderRadius:10,
-            borderWidth:1.5,
-            backgroundColor:"#FFF7E8"
+            borderRadius: 10,
+            borderWidth: 1.5,
+            backgroundColor: "#FFF7E8",
           }}
         >
-            <CtText
-              style={{
-                fontSize: 14,
-                marginRight: 20,
-                marginLeft:20,
-                marginTop: 15,
-                marginBottom: 20,
-                fontFamily: "Figtree",
-                fontWeight: "400",
-                color: "#003A5B",
-              }}
-            >
-             This is an estimated refund/tax owing; however, the actual amount could vary depending on applicable deductions and credits.
-            </CtText>
+          <CtText
+            style={{
+              fontSize: 14,
+              marginRight: 20,
+              marginLeft: 20,
+              marginTop: 15,
+              marginBottom: 20,
+              fontFamily: "Figtree",
+              fontWeight: "400",
+              color: "#003A5B",
+            }}
+          >
+            This is an estimated refund/tax owing; however, the actual amount
+            could vary depending on applicable deductions and credits.
+          </CtText>
         </View>
       </ScrollView>
 
       <BottomButton
-        onPress={() => navigation.navigate("WebViewWithoutPopUp", { url: 'https://www.app.cloudtax.ca/ct_2022/auth/login' })}
+        onPress={() => onPressContinue()}
         // style={[styles().button]}
-        buttonText={'Continue'}/>
+        buttonText={"Continue"}
+      />
     </SafeAreaView>
   );
 };
@@ -280,8 +275,7 @@ const styles = (isDarkTheme?: boolean) =>
     scrollStyle: {
       flex: 1,
       paddingBottom: 15,
-      backgroundColor: isDarkTheme ?  defaultColors.black : defaultColors.white,
-      
+      backgroundColor: isDarkTheme ? defaultColors.black : defaultColors.white,
     },
     container: {
       flex: 1,
@@ -290,9 +284,9 @@ const styles = (isDarkTheme?: boolean) =>
       // flex: 0.2,
 
       height: 50,
-      borderBottomColor: isDarkTheme ?  defaultColors.gray : "#DEE1E9",
-      borderRightColor: isDarkTheme ?  defaultColors.gray : "#DEE1E9",
-      borderLeftColor: isDarkTheme ?  defaultColors.gray : "#DEE1E9",
+      borderBottomColor: isDarkTheme ? defaultColors.gray : "#DEE1E9",
+      borderRightColor: isDarkTheme ? defaultColors.gray : "#DEE1E9",
+      borderLeftColor: isDarkTheme ? defaultColors.gray : "#DEE1E9",
       borderBottomWidth: 1,
       borderRightWidth: 1,
       borderLeftWidth: 1,
@@ -300,9 +294,9 @@ const styles = (isDarkTheme?: boolean) =>
     },
     BottomItemContainer: {
       height: 50,
-      borderBottomColor: isDarkTheme ?  defaultColors.gray : "#DEE1E9",
-      borderRightColor: isDarkTheme ?  defaultColors.gray : "#DEE1E9",
-      borderLeftColor: isDarkTheme ?  defaultColors.gray : "#DEE1E9",
+      borderBottomColor: isDarkTheme ? defaultColors.gray : "#DEE1E9",
+      borderRightColor: isDarkTheme ? defaultColors.gray : "#DEE1E9",
+      borderLeftColor: isDarkTheme ? defaultColors.gray : "#DEE1E9",
       borderBottomWidth: 1,
       borderRightWidth: 1,
       borderLeftWidth: 1,
@@ -320,11 +314,11 @@ const styles = (isDarkTheme?: boolean) =>
       flexDirection: "row",
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      borderColor: isDarkTheme ?  defaultColors.gray : "#DEE1E9",
-      borderRightColor: isDarkTheme ?  defaultColors.gray : "#DEE1E9",
+      borderColor: isDarkTheme ? defaultColors.gray : "#DEE1E9",
+      borderRightColor: isDarkTheme ? defaultColors.gray : "#DEE1E9",
       // borderLeftColor: isDarkTheme ?  defaultColors.gray : "#DEE1E9",
     },
-    leftItem:{
+    leftItem: {
       flex: 0.6,
       fontSize: 18,
       marginLeft: 15,
@@ -333,22 +327,22 @@ const styles = (isDarkTheme?: boolean) =>
       // marginBottom: 10,
       fontFamily: "Figtree",
       fontWeight: "400",
-      color: isDarkTheme ?  defaultColors.white : "#1A263AB2",
-      alignSelf: 'center'
+      color: isDarkTheme ? defaultColors.white : "#1A263AB2",
+      alignSelf: "center",
     },
-    rightItem:{
+    rightItem: {
       flex: 0.4,
       justifyContent: "flex-end",
       fontSize: 16,
       marginRight: 15,
       // marginTop: 10,
       // marginBottom: 10,
-      fontFamily:'Figtree-SemiBold',
+      fontFamily: "Figtree-SemiBold",
       fontWeight: "600",
-      color: isDarkTheme ?  defaultColors.white : "#1A263A",
+      color: isDarkTheme ? defaultColors.white : "#1A263A",
       textAlign: "right",
-      alignSelf: 'center'
-    }
+      alignSelf: "center",
+    },
   });
 
 export default EstimatedScreen;

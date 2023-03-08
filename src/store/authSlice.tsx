@@ -24,6 +24,13 @@ const initialState = {
   saveTPMyProfileData: {},
   getPriorYearSelected: false,
   getSavedLoggedInData: {},
+  getPartnerDetails:{
+    PartnerID: null,
+    PartnerName: null,
+    TypedPartnerName: null,
+    SelectedPartnerID: null,
+    SelectedPartnerName: null,
+  }
 };
 
 export const authSlice = createSlice({
@@ -100,6 +107,10 @@ export const authSlice = createSlice({
       console.log("saveLoggedInSuccessUserData", action.payload);
       state.getSavedLoggedInData = action.payload;
     },
+    savePartnerDetails: (state, action) => {
+      console.log("savePartnerDetails", action.payload);
+      state.getPartnerDetails = action.payload;
+    },
     resetAllStateData: (state) => {
       (state.userToken = null),
         (state.user = null),
@@ -122,6 +133,13 @@ export const authSlice = createSlice({
         (state.saveTPMyProfileData = {}),
         (state.getPriorYearSelected = false),
         (state.getSavedLoggedInData = {});
+        (state.getPartnerDetails = {
+          PartnerID: null,
+          PartnerName: null,
+          TypedPartnerName: null,
+          SelectedPartnerID: null,
+          SelectedPartnerName: null,
+        });
     },
   },
 });
@@ -140,6 +158,7 @@ export const {
   saveTaxPayerMyProfileInfo,
   setIsPriorYearModalSelected,
   saveLoggedInSuccessUserData,
+  savePartnerDetails,
   resetAllStateData,
 } = authSlice.actions;
 

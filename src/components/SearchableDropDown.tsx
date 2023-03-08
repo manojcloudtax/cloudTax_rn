@@ -9,7 +9,8 @@ import {
 import { defaultColors } from "../utils/defaultColors";
 import { OCRListItem } from "./OCRListItem";
 import { CustomInput } from "./CustomInput";
-
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 const SearchableDropDown = ({
   value,
   placeholder,
@@ -17,10 +18,11 @@ const SearchableDropDown = ({
   onSubmit,
   drawerItems,
   onSelectListItem,
-  darkTheme = false,
   onFocus,
   isShowDropDown,
 }: any) => {
+
+const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
   return (
     <View style={styles().container}>
       <CustomInput
@@ -43,14 +45,14 @@ const SearchableDropDown = ({
         <View
           style={{
             maxHeight: 250,
-            // borderWidth: 1,
+            // borderWidth: darkTheme?  1 : 1.5,
             borderColor: defaultColors.borderColor,
           }}
         >
           <FlatList
             data={drawerItems}
             renderItem={({ item, index }) =>
-              renderDropDownList({ item, index, onSelectListItem })
+              renderDropDownList({ item, index, onSelectListItem, darkTheme })
             }
             keyExtractor={(item, index) => index.toString()}
             scrollEnabled={true}
@@ -64,7 +66,7 @@ const SearchableDropDown = ({
   );
 };
 
-const renderDropDownList = ({ item, index, onSelectListItem }: any) => {
+const renderDropDownList = ({ item, index, onSelectListItem, darkTheme }: any) => {
   // console.log("renderDropDownList", item);
   return (
     <TouchableOpacity
@@ -75,8 +77,8 @@ const renderDropDownList = ({ item, index, onSelectListItem }: any) => {
         justifyContent: "center",
         paddingLeft: 10,
         paddingRight: 10,
-        borderWidth: 1,
-        borderColor: "#DADADA"
+        borderWidth: darkTheme?  1 : 1.5,
+        borderColor: darkTheme ? defaultColors.darkBorder : "#DADADA",
         // borderRadius: 10,
       }}
       onPress={() => onSelectListItem(item)}

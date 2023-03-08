@@ -13,7 +13,7 @@ const Spinner = (props: SpinnerProps) => {
     const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
     return (
         <CtView style={[styles.container, style]}>
-            <ActivityIndicator color={darkTheme ? defaultColors.white : defaultColors.black} size={size || 'large'} />
+            <ActivityIndicator color={darkTheme ? defaultColors.black : defaultColors.black} size={size || 'large'} />
         </CtView>
     );
 }

@@ -60,6 +60,7 @@ const CRADetailsPopUP = ({
           style={{
             fontSize: 16,
             fontWeight: "400",
+            fontFamily: "Figtree-SemiBold",
             color: titleColor,
           }}
         >
@@ -69,6 +70,7 @@ const CRADetailsPopUP = ({
           style={{
             fontSize: 14,
             fontWeight: "400",
+            fontFamily: "Figtree-SemiBold",
             color: darkTheme
               ? defaultColors.darkModeTextColor
               : defaultColors.secondaryTextColor,

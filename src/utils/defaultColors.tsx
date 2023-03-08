@@ -31,6 +31,7 @@ export const defaultColors = {
     secondaryButton: '#E9EBEF',
     primaryButtonText: '#FFFFFF',
     secondaryButtonText: '#0090EE',
+    secondaryWhiteText: '#F8F8F8',
     tertiaryButtonText: '#1A263A',
     secondaryTextColor: 'rgba(26, 38, 58, 0.7)',
     borderColor: "#DEE1E9",
@@ -57,6 +58,7 @@ export const defaultColors = {
     manageOnlineEmailDarkBorder: '#173F21',
     manageOnlineEmailLighBorder: '#B5E5BB',
     manageOnlineEmailLightitle: '#76B45A',
+    ocrBoxColor: 'rgba(0, 0, 0, 0.6)',
 
 
 

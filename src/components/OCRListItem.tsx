@@ -17,27 +17,27 @@ const OCRListItem = ({
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
   return (
     <View style={styles(darkTheme).textViewContainer}>
-        <View style={styles().LeftIconContainer}>
+        <View style={styles(darkTheme).LeftIconContainer}>
           <CtText
             style={{
               fontWeight: "600",
               fontSize: 16,
               fontFamily: "Figtree-SemiBold",
-              color: defaultColors.white
+              color: darkTheme? defaultColors.secondaryTextColor: defaultColors.white
             }}
           >
             {boxNumber}
           </CtText>
         </View>
 
-        <View style={{ flex: 0.9, margin: 8, justifyContent: 'center'}}>
+        <View style={{ flex: 0.88, margin: 8, justifyContent: 'center'}}>
              <CtText
           style={{
             fontWeight: "600",
             fontSize: 14,
-            //   marginTop: 20,
+            //   marginTop: 20,darkTheme? defaultColors.white:
             fontFamily: "Figtree-Bold",
-            color: defaultColors.secondaryTextColor
+            color:darkTheme? defaultColors.white: defaultColors.secondaryTextColor
           }}
         >
           {value}
@@ -58,8 +58,8 @@ const styles = (isDarkTheme?: boolean) =>
     LeftIconContainer: {
       justifyContent: "center",
       //   height: 50,
-      backgroundColor: defaultColors.darkGray,
-      flex: 0.1,
+      backgroundColor: isDarkTheme? defaultColors.secondaryWhiteText: defaultColors.ocrBoxColor,
+      flex: 0.12,
       margin: 6,
       alignItems: "center",
       borderRadius: 5,

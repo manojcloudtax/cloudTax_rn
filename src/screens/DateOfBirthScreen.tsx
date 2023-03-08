@@ -28,7 +28,9 @@ import {
 import { saveLoggedInSuccessUserData } from "../store/authSlice";
 import { CustomButton } from "../components/CustomButton";
 import { Header } from "../components/Header";
+import { useIsFocused } from "@react-navigation/native";
 const DateOfBirthScreen = ({ navigation, route }: any) => {
+  const isFocused = useIsFocused();
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
   const { savedUserData } = useSelector(
     (state: RootState) => state.authReducer
@@ -42,12 +44,13 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
     new Date(moment().subtract(18, "y").format("YYYY-MM-DD"))
   );
   const [isDateAvailable, setDateAvailability] = useState(false);
-  const [SelectedSin, setSinValue] = useState("");
+  // const [SelectedSin, setSinValue] = useState("");
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [loadingAvailable, setisLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    setisLoading(false);
     try {
       console.log(
         "onPressConfirm res",
@@ -64,13 +67,13 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
         setButtonEnable(true);
       }
       if (route.params !== undefined) {
-        const { sin } = route.params;
-        setSinValue(sin);
-        console.log("onPressConfirm", sin);
+        // const { sin } = route.params;
+        // setSinValue(sin);
+        // console.log("onPressConfirm", sin);
         console.log("onPressConfirm", savedUserData);
       }
     } catch (error) {}
-  }, []);
+  }, [isFocused]);
   const onPressConfirm = async () => {
     if (!isDateAvailable) {
       Alert.alert("Please select valid date..!");
@@ -86,9 +89,9 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
     console.log("resGetTaxPayerMyProfileInfo res", resGetTaxPayerMyProfileInfo);
     if (resGetTaxPayerMyProfileInfo) {
       if (resGetTaxPayerMyProfileInfo.ErrCode == -1) {
-        setisLoading(false);
-        Alert.alert("Something went wrong..! Please try again..!");
-        return;
+        // setisLoading(false);
+        // Alert.alert("Something went wrong..! Please try again..!");
+        // return;
       }
       const resSaveTaxPayerPersonal = await SaveTaxPayerPersonalInfo({
         TaxPayerID: resGetTaxPayerMyProfileInfo?.TaxPayerID,
@@ -97,9 +100,9 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
         TaxPayerName: resGetTaxPayerMyProfileInfo?.TaxPayerName,
         TaxPayerMiddleName: resGetTaxPayerMyProfileInfo?.TaxPayerMiddleName,
         TaxPayerLastName: resGetTaxPayerMyProfileInfo?.TaxPayerLastName,
-        TaxPayerSIN: SelectedSin,
+        TaxPayerSIN: resGetTaxPayerMyProfileInfo?.TaxPayerSocialInsuranceNumber,
         TaxPayerBirthDate: moment(date).format("YYYY-MM-DD").toString(),
-        DefaultBirthDate: resGetTaxPayerMyProfileInfo?.DefaultBirthDate,
+        DefaultBirthDate: 'N',
         NameChangedStatus: resGetTaxPayerMyProfileInfo?.NameChangedStatus,
         DisabledStatus: resGetTaxPayerMyProfileInfo?.DisabledStatus,
         FirstYearClaimingStatus:
@@ -128,55 +131,55 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
         );
         if (resSaveTaxPayerPersonal.ErrCode == -1) {
           setisLoading(false);
-          Alert.alert("Something went wrong..! Please try again..!");
-          return;
+          // Alert.alert("Something went wrong..! Please try again..!");
+          // return;
         }
 
         dispatch(saveLoggedInSuccessUserData(resGetTaxPayerMyProfileInfo));
-        console.log("resGetAfrUrl start", SelectedSin, savedUserData);
+        // console.log("resGetAfrUrl start", SelectedSin, savedUserData);
         console.log("resGetAfrUrl getSavedLoggedInData", getSavedLoggedInData);
+        navigation.navigate("SummaryScreen");
+        // const GetSlipsfileRes = await GetSlips(
+        //   {
+        //     TaxID: resGetTaxPayerMyProfileInfo?.TaxID,
+        //     AcctID: savedUserData?.AcctID,
+        //     TaxPayerID: savedUserData?.TaxPayerID,
+        //     Year: 2022,
+        //     year: 2022,
+        //   },
+        //   savedUserData?.token
+        // );
+        // console.log("Hello GetSlipsfileRes", GetSlipsfileRes);
 
-        const GetSlipsfileRes = await GetSlips(
-          {
-            TaxID: resGetTaxPayerMyProfileInfo?.TaxID,
-            AcctID: savedUserData?.AcctID,
-            TaxPayerID: savedUserData?.TaxPayerID,
-            Year: 2022,
-            year: 2022,
-          },
-          savedUserData?.token
-        );
-        console.log("Hello GetSlipsfileRes", GetSlipsfileRes);
-
-        if (GetSlipsfileRes == null) {
-          const resGetAfrUrl = await GetAfrUrl({
-            Sin: SelectedSin,
-            appType: "FREE",
-            Year: 2022,
-            userToken: savedUserData?.token,
-          });
-          console.log("resGetAfrUrl checkSub:", resGetAfrUrl);
-          if (resGetAfrUrl) {
-            setisLoading(false);
-            if (resGetAfrUrl?.status == 500) {
-              Alert.alert("Error..!", resGetAfrUrl.data?.message);
-            } else if (resGetAfrUrl.ErrCode == -1) {
-              Alert.alert("Something went wrong..! Please try again..!");
-            } else {
-              navigation.navigate("WebViewScreen", { url: resGetAfrUrl?.url });
-            }
-          } else {
-            setisLoading(false);
-            Alert.alert("Something went wrong..! Please try again..!");
-            console.log("resGetAfrUrl checkSub:");
-            // return {}
-          }
-        } else {
-          setisLoading(false);
-          navigation.navigate("CRADetailsScreen", {
-            data: GetSlipsfileRes,
-          });
-        }
+        // if (GetSlipsfileRes == null) {
+        //   const resGetAfrUrl = await GetAfrUrl({
+        //     Sin: SelectedSin,
+        //     appType: "FREE",
+        //     Year: 2022,
+        //     userToken: savedUserData?.token,
+        //   });
+        //   console.log("resGetAfrUrl checkSub:", resGetAfrUrl);
+        //   if (resGetAfrUrl) {
+        //     setisLoading(false);
+        //     if (resGetAfrUrl?.status == 500) {
+        //       Alert.alert("Error..!", resGetAfrUrl.data?.message);
+        //     } else if (resGetAfrUrl.ErrCode == -1) {
+        //       Alert.alert("Something went wrong..! Please try again..!");
+        //     } else {
+        //       navigation.navigate("WebViewScreen", { url: resGetAfrUrl?.url });
+        //     }
+        //   } else {
+        //     setisLoading(false);
+        //     Alert.alert("Something went wrong..! Please try again..!");
+        //     console.log("resGetAfrUrl checkSub:");
+        //     // return {}
+        //   }
+        // } else {
+        //   setisLoading(false);
+        //   navigation.navigate("CRADetailsScreen", {
+        //     data: GetSlipsfileRes,
+        //   });
+        // }
       } else {
         setisLoading(false);
         Alert.alert("Something went wrong, please try again.");
@@ -199,61 +202,10 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
     setOpen(true);
   };
 
-  const renderButton = () => {
-    if (loadingAvailable) {
-      return <Spinner style={{ flex: 0 }} />;
-    } else {
-      return (
-        <Button
-          activeOpacity={1}
-          disabled={!isEnable}
-          style={[
-            styles().button,
-            {
-              opacity: !isEnable ? 0.8 : 1,
-              height: 60,
-              borderRadius: 10,
-              margin: 20,
-            },
-          ]}
-          buttonText="Confirm"
-          onPress={() => onPressConfirm()}
-        />
-      );
-    }
-  };
-
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle} key={key}>
       <Header onPressbackButton={() => onBackButtonPress()} />
-      {/* <TouchableOpacity
-          style={{
-            alignItems: "flex-start",
-            height: "auto",
-            width: "90%",
-            flexDirection: "row",
-            paddingLeft: 20,
-            paddingTop: 20
-          }}
-          onPress={() => onBackButtonPress()}
-        >
-          <Ionicons
-            name={"ios-chevron-back-outline"}
-            style={{
-              fontSize: 21,
-              color: defaultColors.primaryBlue,
-            }}
-          />
-          <CtText
-            style={{
-              fontWeight: "500",
-              fontSize: 18,
-              color: defaultColors.primaryBlue,
-            }}
-          >
-            {"Back"}
-          </CtText>
-        </TouchableOpacity> */}
+     
       <ScrollView
         // contentContainerStyle={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
@@ -453,6 +405,8 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
             mode="date"
             open={open}
             date={date}
+            textColor={darkTheme? "black": "black"}
+            theme={darkTheme ? 'dark':'light'}
             onConfirm={(date) => {
               console.log("onConfirm", date);
               setOpen(false);

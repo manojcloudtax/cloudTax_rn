@@ -55,20 +55,23 @@ const OCRTextInput = ({
       </View>
 
       <View style={styles(darkTheme).textViewContainer}>
-        <View style={styles().LeftIconContainer}>
+        <View style={styles(darkTheme).LeftIconContainer}>
           <CtText
             style={{
               fontWeight: "600",
               fontSize: 16,
               fontFamily: "Figtree-SemiBold",
-              color: defaultColors.white
+              color: darkTheme
+              ? defaultColors.secondaryTextColor
+              :defaultColors.white
             }}
+            numberOfLines={1}
           >
             {boxNumber}
           </CtText>
         </View>
 
-        <View style={{ flex: 0.9, margin: 8, justifyContent: 'center'}}>
+        <View style={{ flex: 0.88, margin: 8, justifyContent: 'center'}}>
           <TextInput
             style={[styles(darkTheme).inputStyle, style ? style : null]}
             onChangeText={onChangeText}
@@ -84,6 +87,7 @@ const OCRTextInput = ({
             onFocus={onFocus}
             keyboardType={keyboardType}
             underlineColorAndroid="transparent"
+            editable={editable}
             // selection={{start:0}}
             {...props}
           />
@@ -152,8 +156,8 @@ const styles = (isDarkTheme?: boolean) =>
     LeftIconContainer: {
       justifyContent: "center",
       //   height: 50,
-      backgroundColor: defaultColors.darkGray,
-      flex: 0.1,
+      backgroundColor: isDarkTheme? defaultColors.secondaryWhiteText: defaultColors.ocrBoxColor,
+      flex: 0.12,
       margin: 8,
       alignItems: "center",
       borderRadius: 5,

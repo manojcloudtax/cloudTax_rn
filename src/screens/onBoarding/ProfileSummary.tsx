@@ -25,6 +25,7 @@ import {
   SaveTaxPayerMyProfileInfo,
   AddNewPartnerInfo,
   SaveTPAccountInfo,
+  GetTaxPayerPersonalInfo,
 } from "../../api/auth";
 import {
   getAnswersOfQuestions,
@@ -33,14 +34,14 @@ import {
 } from "../../utils/common";
 import { Header } from "../../components/Header";
 import { BottomButton } from "../../components/BottomButton";
-import { saveLoggedInSuccessUserData } from "../../store/authSlice";
+import { saveLoggedInSuccessUserData, savePartnerDetails } from "../../store/authSlice";
 import { useDispatch } from "react-redux";
+import { CommonModal } from "../../components";
+import { CustomButton } from "../../components/CustomButton";
+import { CustomInput } from "../../components/CustomInput";
 
 const ProfileSummary = ({ navigation, route }: any) => {
-  const { savedUserData } = useSelector(
-    (state: RootState) => state.authReducer
-  );
-  let { getSavedLoggedInData } = useSelector(
+  const { savedUserData,getSavedLoggedInData, getPartnerDetails, saveTPAccountData } = useSelector(
     (state: RootState) => state.authReducer
   );
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -48,6 +49,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
     (state: RootState) => state.onBoardingReducer
   );
   const [key, setKeyToRerender] = useState(1);
+  const [isShowModal, setShowModal] = useState(false);
 
   const [selectedMaritalStatus, setSelectedMaritalStatus] = useState("");
   const [selectedProvince, setSelectedProvince] = useState({
@@ -61,14 +63,19 @@ const ProfileSummary = ({ navigation, route }: any) => {
       answer: "",
     },
   ]);
-  const [selectedPartnerName, setPartnerName] = useState("");
+  const [selectedPartnerName, setPartnerName] = useState("");  
+  const [partnerFromList, setPartnerFromList] = useState('');  
+  const [partnerDetailsList, setPartnerDetails] = useState({
+    PartnerID: "",
+    PartnerName: "",
+  });
   const [loadingAvailable, setisLoading] = useState<boolean>(false);
 
   const dispatch = useDispatch();
   useEffect(() => {
     setisLoading(false);
     try {
-      console.log("init", savedUserData);
+      console.log("init", getPartnerDetails, route.params);
       if (route.params !== undefined) {
         const {
           MaritialStatus,
@@ -80,13 +87,18 @@ const ProfileSummary = ({ navigation, route }: any) => {
         setSelectedMaritalStatus(MaritialStatus);
         setSelectedProvince(Province);
         setSelectedQuetions(questions);
-        if (partnerFromList !== "") {
-          setPartnerName(partnerFromList);
-        } else {
-          setPartnerName(partnerName);
+        // if (partnerFromList !== "") {
+        //   setPartnerName(partnerFromList);
+        // } else {
+        //   setPartnerName(partnerName);
+        // }
+        setPartnerName(getPartnerDetails.TypedPartnerName);
+        let SelectedData = {
+          PartnerID: getPartnerDetails?.SelectedPartnerID,
+          PartnerName: getPartnerDetails?.SelectedPartnerName,
         }
-
-        //   console.log("init questions", questions);
+        setPartnerDetails(SelectedData);
+          console.log("init getPartnerDetails", getPartnerDetails);
       }
     } catch (error) {}
   }, [key]);
@@ -154,11 +166,17 @@ const ProfileSummary = ({ navigation, route }: any) => {
     );
   };
 
+  const onPressEditPartnerButton = () =>{
+if(getPartnerDetails.PartnerID !== null){
+return
+}
+setShowModal(true);
+  };
+
   const renderPartnerProfileComponent = (
     title: String,
     subtitle: String,
     Value: String,
-    onPressEditButton: Function
   ) => {
     return (
       <CtView
@@ -181,7 +199,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
             borderColor: defaultColors.borderColor,
             borderBottomWidth: 0,
           }}
-          onPress={() => onPressEditButton()}
+          onPress={() => onPressEditPartnerButton()}
         >
           <CtText
             numberOfLines={1}
@@ -211,7 +229,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
             borderBottomLeftRadius: 10,
             borderBottomRightRadius: 10,
           }}
-          onPress={() => onPressEditButton()}
+          onPress={() => onPressEditPartnerButton()}
         >
           <CtView style={{ flex: 0.45 }}>
             <CtText
@@ -295,6 +313,8 @@ const ProfileSummary = ({ navigation, route }: any) => {
             {"Personal Information"}
           </CtText>
         </CtView>
+
+        {getMaritalStatus(selectedMaritalStatus) === "1" || getMaritalStatus(selectedMaritalStatus) === "2" ? 
         <TouchableOpacity
           style={{
             borderWidth: 1,
@@ -304,6 +324,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
             alignItems: "center",
             borderColor: defaultColors.borderColor,
             flexDirection: "row",
+            borderBottomWidth: 0,
           }}
           onPress={() => onPressQuestion()}
         >
@@ -346,7 +367,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
             />
           </CtView>
         </TouchableOpacity>
-
+:null}
         <TouchableOpacity
           style={{
             borderWidth: 1,
@@ -356,7 +377,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
             alignItems: "center",
             borderColor: defaultColors.borderColor,
             flexDirection: "row",
-            borderTopWidth: 0,
+            // borderTopWidth: 0,
             borderBottomWidth: 0,
           }}
           onPress={() => onPressQuestion()}
@@ -466,22 +487,28 @@ const ProfileSummary = ({ navigation, route }: any) => {
       savedUserData
     );
     if(getMaritalStatus(selectedMaritalStatus) === "1" || getMaritalStatus(selectedMaritalStatus) === "2"){
-    if (onBoardingData?.partnerDetailsList.PartnerID !== "") {
+      if(getPartnerDetails?.PartnerID === null){
+    if (getPartnerDetails.SelectedPartnerID !== null) {
       const resAddNewPartnerInfo = await AddNewPartnerInfo({
         AcctID: savedUserData?.AcctID,
         TaxPayerID: savedUserData?.TaxPayerID,
         Year: 2022,
-        PartnerID:
-          onBoardingData?.partnerDetailsList.PartnerID !== ""
-            ? onBoardingData?.partnerDetailsList.PartnerID
-            : savedUserData?.PartnerID,
-            userToken: savedUserData?.token,
+        PartnerID: getPartnerDetails.SelectedPartnerID,
+        userToken: savedUserData?.token,
       });
       console.log(
         "resAddNewPartnerInfo",
         resAddNewPartnerInfo
       );
       if (resAddNewPartnerInfo) {
+        // let partnerDetails = {
+        //   PartnerID : getPartnerDetails.SelectedPartnerID,
+        //   PartnerName : getPartnerDetails.SelectedPartnerName,
+        //   TypedPartnerName: getPartnerDetails.TypedPartnerName,
+        //   SelectedPartnerID: null,
+        //   SelectedPartnerName: null,
+        // }
+        // dispatch(savePartnerDetails(partnerDetails));
         onSuccessApiCall();
       } else {
         setisLoading(false);
@@ -492,7 +519,7 @@ const ProfileSummary = ({ navigation, route }: any) => {
         AcctID: savedUserData?.AcctID,
         TaxPayerID: savedUserData?.TaxPayerID,
         Year: 2022,
-        FirstName: onBoardingData?.partnerName,
+        FirstName: getPartnerDetails.TypedPartnerName,
         userToken: savedUserData?.token,
       });
       console.log(
@@ -512,7 +539,14 @@ const ProfileSummary = ({ navigation, route }: any) => {
           resAddNewPartnerInfo
         );
         if (resAddNewPartnerInfo) {
-
+          // let partnerDetails = {
+          //   PartnerID : resSaveTPAccountInfo?.TaxPayerID,
+          //   PartnerName : getPartnerDetails.TypedPartnerName,
+          //   TypedPartnerName: getPartnerDetails.TypedPartnerName,
+          //   SelectedPartnerID: null,
+          //   SelectedPartnerName: null,
+          // }
+          // dispatch(savePartnerDetails(partnerDetails));
           onSuccessApiCall();
         }
       } else {
@@ -521,6 +555,10 @@ const ProfileSummary = ({ navigation, route }: any) => {
         // return {}
       }
     }
+
+  } else {
+    onSuccessApiCall();
+  }
 
   } else {
     onSuccessApiCall();
@@ -562,6 +600,29 @@ const ProfileSummary = ({ navigation, route }: any) => {
         dispatch(
           saveLoggedInSuccessUserData(updateTaxIdTogetSavedLoggedInData)
         );
+
+        // let postData = {
+        //   AcctID: savedUserData.AcctID,
+        //   ClaimCreditsFromSpouse: savedUserData.ClaimCreditsFromSpouse,
+        //   DependentStatus: getAnswersOfQuestions(selectedQuestions[2].answer),
+        //   MaritalStatusChanged: getAnswersOfQuestions(
+        //     selectedQuestions[1].answer
+        //   ),
+        //   MaritalStatusChangedDate: savedUserData?.MaritalStatusChangedDate,
+        //   PartnerID: getPartnerDetails?.PartnerID !== null ? getPartnerDetails?.PartnerID : getPartnerDetails?.SelectedPartnerID,
+        //   PartnerName: getPartnerDetails.PartnerID !== null? getPartnerDetails.PartnerName : getPartnerDetails.SelectedPartnerID !== null ? getPartnerDetails.SelectedPartnerName : getPartnerDetails.TypedPartnerName,
+        //   Province: selectedProvince.ProvinceCode,
+        //   TaxID: resSaveTaxpayer.TaxID,
+        //   TaxPayerID: savedUserData?.TaxPayerID,
+        //   TaxPayerMaritalStatus: getMaritalStatus(selectedMaritalStatus),
+        //   TaxPayerPreviousMaritalStatus: getTaxPayerPreviousMaritalStatus(
+        //     savedUserData?.TaxPayerPreviousMaritalStatus
+        //   ),
+        //   Year: 2022,
+        //   _PartnerStatus: getAnswersOfQuestions(selectedQuestions[0].answer),
+        //   userToken: savedUserData.token,
+        // }
+        // console.log("GetTaxPayerMyProfile postData:", postData);
         const GetTaxPayerMyProfile = await SaveTaxPayerMyProfileInfo({
           AcctID: savedUserData.AcctID,
           ClaimCreditsFromSpouse: savedUserData.ClaimCreditsFromSpouse,
@@ -570,8 +631,8 @@ const ProfileSummary = ({ navigation, route }: any) => {
             selectedQuestions[1].answer
           ),
           MaritalStatusChangedDate: savedUserData?.MaritalStatusChangedDate,
-          PartnerID: savedUserData?.PartnerID,
-          PartnerName: selectedPartnerName,
+          PartnerID: getPartnerDetails?.PartnerID !== null ? getPartnerDetails?.PartnerID : getPartnerDetails?.SelectedPartnerID,
+          PartnerName: getPartnerDetails.PartnerID !== null? getPartnerDetails.PartnerName : getPartnerDetails.SelectedPartnerID !== null ? getPartnerDetails.SelectedPartnerName : getPartnerDetails.TypedPartnerName,
           Province: selectedProvince.ProvinceCode,
           TaxID: resSaveTaxpayer.TaxID,
           TaxPayerID: savedUserData?.TaxPayerID,
@@ -590,8 +651,33 @@ const ProfileSummary = ({ navigation, route }: any) => {
             console.log("GetTaxPayerMyProfile err:", GetTaxPayerMyProfile);
           } else {
             setisLoading(false);
+            const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
+              AcctID: savedUserData?.AcctID,
+              TaxPayerID: savedUserData?.TaxPayerID,
+              Year: 2022,
+              userToken: savedUserData?.token,
+            });
+
+            if (GetTaxPayerMyProfile) {
+              setisLoading(false);
+              if (GetTaxPayerMyProfile.ErrCode == -1) {
+                setisLoading(false);
+                console.log("GetTaxPayerMyProfile err:", GetTaxPayerPersonalResponse);
+              } else {
+                console.log("GetTaxPayerMyProfile Success:", GetTaxPayerPersonalResponse);
+
+                let partnerDetails = {
+            PartnerID : GetTaxPayerPersonalResponse?.PartnerID,
+            PartnerName : GetTaxPayerPersonalResponse.PartnerName,
+            TypedPartnerName: null,
+            SelectedPartnerID: null,
+            SelectedPartnerName: null,
+          }
+          dispatch(savePartnerDetails(partnerDetails));
+              }
+            } 
             console.log("GetTaxPayerMyProfile success", GetTaxPayerMyProfile);
-            navigation.navigate("SummaryScreen");
+            navigation.navigate("DateOfBirthScreen");
           }
         } else {
           console.log("GetTaxPayerMyProfile else");
@@ -637,10 +723,209 @@ const ProfileSummary = ({ navigation, route }: any) => {
     });
   };
 
-  console.log("selectedPartnerName checkSub:", selectedPartnerName);
+  const onBackdropPress = () => {
+    setShowModal(false);
+  };
+
+  const confirmationModal = () => {
+    console.log("init confirmationModal saveTPAccountData", saveTPAccountData);
+    return (
+      <View
+        style={{
+          height: "auto",
+          width: "100%",
+          backgroundColor: darkTheme ? defaultColors.matBlack : "#F8F8F8",
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+          alignItems: "center",
+        }}
+      >
+        <View
+          style={{
+            height: "auto",
+            marginTop: 10,
+            marginBottom: 80,
+            padding: 20,
+            width: "100%",
+          }}
+        >
+          <View
+            style={{
+              height: "auto",
+            }}
+          >
+            <CtText style={{ fontWeight: "600", fontSize: 25,
+              fontFamily:'Figtree-SemiBold', }}>
+              {(saveTPAccountData.length !== 0 && saveTPAccountData !== undefined) ? "Create or Select a partner profile" : "Create a partner profile"}
+            </CtText>
+            {(saveTPAccountData.length !== 0 && saveTPAccountData !== undefined ) ?
+            <View style={{ marginTop: 10, maxHeight: 200}}>
+              <FlatList
+                contentContainerStyle={{ paddingBottom: 20}}
+                data={saveTPAccountData}
+                renderItem={
+                  ({ item, index }) => (
+                    // return(
+                      <>
+                      {(savedUserData?.TaxPayerID !== item.TaxPayerID) ?
+                    <TouchableOpacity
+                      key={item}
+                      style={{
+                        marginVertical: 10,
+                        borderRadius: 12,
+                        borderWidth:  darkTheme?  1 : 1.5,
+                        height: 53,
+                        justifyContent: "center",
+                        alignContent: "center",
+                        alignItems: "center",
+                        backgroundColor:
+                          item.TaxPayerID === partnerDetailsList.PartnerID
+                            ? darkTheme
+                              ? "transparent"
+                              : "#F0FAFF"
+                            : "transparent",
+                        borderColor:
+                          item.TaxPayerID === partnerDetailsList.PartnerID
+                            ? defaultColors.blue
+                            : defaultColors.borderColor,
+                      }}
+                      onPress={() => onPressTPAccount(item.TaxPayerName, index, item)}
+                    >
+                      <CtText
+                        style={{
+                          fontWeight: "600",
+                          fontSize: 18,
+                          marginLeft: 12,
+                          color: defaultColors.primaryBlue,
+                          fontFamily:'Figtree-SemiBold',
+                        }}
+                      >
+                        {item.TaxPayerName}
+                      </CtText>
+                    </TouchableOpacity>:
+                    null
+                    }
+                    </>
+                  // )
+                  )
+                }
+                keyExtractor={(item, index) => index.toString()}
+                scrollEnabled={true}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
+             :
+             null
+           }
+          </View>
+          {(saveTPAccountData.length !== 0 && saveTPAccountData !== undefined )?
+          <View
+          style={{
+            flex: 0,
+            height: 40,
+            backgroundColor: defaultColors.transparent,
+          }}
+        >
+          <Divider/>
+        </View>
+          :
+          null
+        }
+          <CtText
+            style={{
+              fontSize: 14,
+              fontWeight: "400",
+              color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
+              marginTop: 10,
+              marginBottom: 6
+            }}
+          >
+            Create a new profile
+          </CtText>
+
+          <CustomInput
+              editable={true}
+              placeholder={"Your Name"}
+              placeholderTextColor={defaultColors.gray}
+              onChangeText={(partnerName: string) => onChangePartnerName(partnerName)}
+              // onBlur={onEmailSubmit}
+              keyboardType={"email-address"}
+              value={selectedPartnerName}
+              autoCapitalize="none"/>
+        </View>
+        <CtView
+          style={{
+            width: "100%",
+            height: 80,
+            backgroundColor: darkTheme? defaultColors.black: defaultColors.white,
+            justifyContent: "center",
+            alignItems: "center",
+            position: "absolute",
+            bottom: 10,
+            borderTopWidth: 1.5,
+            borderTopColor: defaultColors.borderColor,
+          }}
+        >
+          <CtView
+            style={{
+              backgroundColor: darkTheme ? "transparent" : "white",
+              justifyContent: "center",
+              width: "90%",
+            }}
+          >
+            <CustomButton
+                buttonText="Confirm"
+                onPress={() => onPressModalContinueButton()}
+                style={{marginBottom: 20}}/>
+          </CtView>
+        </CtView>
+      </View>
+    );
+  };
+
+  const onPressTPAccount = (name: any, index: any, item: any) => {
+    setPartnerFromList(name);
+    setPartnerName('');
+
+    let SelectedData = {
+      PartnerID: item?.TaxPayerID,
+      PartnerName: item?.TaxPayerName,
+    }
+    setPartnerDetails(SelectedData);
+  };
+
+  const onChangePartnerName=(text: string) => {
+    setPartnerName(text);
+     setPartnerFromList('');
+     let SelectedData = {
+      PartnerID: '',
+      PartnerName: '',
+    }
+    setPartnerDetails(SelectedData);
+  }
+
+  const onPressModalContinueButton = () => {
+    setShowModal(false);
+    if (selectedPartnerName !== "" || partnerFromList != '') {
+      let partnerDetails = {
+        PartnerID : null,
+        PartnerName : null,
+        TypedPartnerName: selectedPartnerName == "" ? null: selectedPartnerName,
+        SelectedPartnerID: partnerDetailsList.PartnerID == "" ? null: partnerDetailsList.PartnerID,
+        SelectedPartnerName: partnerDetailsList.PartnerName == "" ? null: partnerDetailsList.PartnerName,
+      }
+      dispatch(savePartnerDetails(partnerDetails));
+    }
+  };
+
   return (
     <SafeAreaView style={styles(darkTheme).view} key={key}>
       <Header onPressbackButton={() => onBackButtonPress()} />
+      <CommonModal
+        isShowModal={isShowModal}
+        ChildView={confirmationModal()}
+        onBackdropPress={() => onBackdropPress()}
+      />
       <CtView style={styles(darkTheme).view}>
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 110 }} >
           {/* <CtView style={styles(darkTheme).scrollStyle}> */}
@@ -672,14 +957,14 @@ const ProfileSummary = ({ navigation, route }: any) => {
               {selectedQuestions.length > 1
                 ? renderPersonalInfoComponent()
                 : null}
-              {selectedPartnerName !== "" && selectedPartnerName !== null
+              {getMaritalStatus(selectedMaritalStatus) === "1" || getMaritalStatus(selectedMaritalStatus) === "2" ? 
+              (getPartnerDetails.PartnerID || getPartnerDetails.TypedPartnerName || getPartnerDetails.SelectedPartnerID)
                 ? renderPartnerProfileComponent(
                     "Partner Profile ",
                     "Name",
-                    selectedPartnerName,
-                    onPressQuestion
+                    getPartnerDetails.PartnerID !== null? getPartnerDetails.PartnerName : getPartnerDetails.SelectedPartnerID !== null ? getPartnerDetails.SelectedPartnerName : getPartnerDetails.TypedPartnerName
                   )
-                : null}
+                : null : null}
               {renderProfileComponent(
                 "Province",
                 selectedProvince?.ProvinceName,

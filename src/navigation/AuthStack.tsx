@@ -24,6 +24,9 @@ import CRADetailsScreen from "../screens/CRADetailsScreen";
 import T4OcrScreen from "../screens/Ocr/T4OcrScreen";
 import EmptySlipsScreen from "../screens/Ocr/EmptySlipsScreen";
 import MyTaxSlipsScreen from "../screens/Ocr/MyTaxSlipsScreen";
+import T5007OcrScreen from "../screens/Ocr/T5007OcrScreen";
+import T4APOcrScreen from "../screens/Ocr/T4APOcrScreen";
+import T5OcrScreen from "../screens/Ocr/T5OcrScreen";
 
 const { Navigator, Screen } = createNativeStackNavigator();
 
@@ -138,6 +141,21 @@ const AuthStack = () => {
         <Screen
           name="MyTaxSlipsScreen"
           component={MyTaxSlipsScreen}
+          options={{ title: "", headerShown: false }}
+        />
+        <Screen
+          name="T5007OcrScreen"
+          component={T5007OcrScreen}
+          options={{ title: "", headerShown: false }}
+        />
+         <Screen
+          name="T4APOcrScreen"
+          component={T4APOcrScreen}
+          options={{ title: "", headerShown: false }}
+        />
+         <Screen
+          name="T5OcrScreen"
+          component={T5OcrScreen}
           options={{ title: "", headerShown: false }}
         />
       </Navigator>

@@ -531,29 +531,29 @@ export const deleteShoeBoxData = (
       return null;
     });
 
-    export const deleteSlipData = (
-      postData: {
-        SlipNo: string;
-        AcctID: string;
-        Year: 2022;
-        TaxID: string;
-        TaxPayerID: string;
-      },
-      userToken: string,
-      url: string,
-    ) =>
-      shoebox
-        .post(url, postData, {
-          headers: { Authorization: `Bearer ${userToken}` },
-        })
-        .then((res) => {
-          console.log("DeleteT4SlipInfo", res);
-          return res.data;
-        })
-        .catch((res) => {
-          console.log("DeleteT4SlipInfo", res);
-          return null;
-        });
+export const deleteSlipData = (
+  postData: {
+    SlipNo: string;
+    AcctID: string;
+    Year: 2022;
+    TaxID: string;
+    TaxPayerID: string;
+  },
+  userToken: string,
+  url: string
+) =>
+  shoebox
+    .post(url, postData, {
+      headers: { Authorization: `Bearer ${userToken}` },
+    })
+    .then((res) => {
+      console.log("DeleteT4SlipInfo", res);
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("DeleteT4SlipInfo", res);
+      return null;
+    });
 export const getData = async () => {
   try {
     const response1 = axios.get("https://api.example.com/data1");
@@ -755,12 +755,20 @@ export const GetAvailableSlipsData = async (
       : null;
     res4 !== ""
       ? res4.data.ErrCode !== -1
-        ? reponseArray.push(res4.data)
+        ? reponseArray.push(
+          res4.data.map((obj: any) => {
+            return { ...obj, Type: "4" };
+          })
+        )
         : null
       : null;
     res5 !== ""
       ? res5.data.ErrCode !== -1
-        ? reponseArray.push(res5.data)
+        ? reponseArray.push(
+          res5.data.map((obj: any) => {
+            return { ...obj, Type: "5" };
+          })
+        )
         : null
       : null;
     res6 !== ""
@@ -785,12 +793,20 @@ export const GetAvailableSlipsData = async (
       : null;
     res10 !== ""
       ? res10.data.ErrCode !== -1
-        ? reponseArray.push(res10.data)
+        ? reponseArray.push(
+          res10.data.map((obj: any) => {
+            return { ...obj, Type: "10" };
+          })
+        )
         : null
       : null;
     res11 !== ""
       ? res11.data.ErrCode !== -1
-        ? reponseArray.push(res11.data)
+        ? reponseArray.push(
+          res11.data.map((obj: any) => {
+            return { ...obj, Type: "11" };
+          })
+        )
         : null
       : null;
     res12 !== ""
@@ -836,6 +852,35 @@ export const SaveShoeBoxForms = (
     })
     .catch((res) => {
       console.log("SaveShoeBoxForms catch", res);
+      return null;
+    });
+
+export const SaveSlipData = (postData: any, userToken: string, url: string) =>
+  shoebox
+    .post(getSlipsUrls(url), postData, {
+      headers: { Authorization: `Bearer ${userToken}` },
+    })
+    .then((res) => {
+      console.log("SaveT4SlipInfoList", res);
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("catch", res);
+      return "";
+    });
+
+
+  export const GetUrlData = (postData: any, userToken: string) =>
+  shoebox
+    .post('https://app.cloudtax.ca/qa/api/2022/login-url', postData, {
+      headers: { Authorization: `Bearer ${userToken}` },
+    })
+    .then((res) => {
+      console.log("GetUrlData", res);
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("GetUrlData", res);
       return null;
     });
 export default auth;
