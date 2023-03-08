@@ -185,6 +185,8 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
           // return;
         }
 
+        let updatedData = resGetTaxPayerMyProfileInfo;
+        updatedData['TaxPayerSocialInsuranceNumber'] = SinNumber
         dispatch(saveLoggedInSuccessUserData(resGetTaxPayerMyProfileInfo));
         const GetSlipsfileRes = await GetSlips(
           {

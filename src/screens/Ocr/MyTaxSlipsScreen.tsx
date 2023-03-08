@@ -28,7 +28,6 @@ import {
   SaveShoeBoxForms,
   scanSlip,
 } from "../../api/auth";
-import { setIsPriorYearModalSelected } from "../../store/authSlice";
 import { BottomButton } from "../../components/BottomButton";
 import { Header } from "../../components/Header";
 import { CustomButton } from "../../components/CustomButton";
@@ -102,7 +101,6 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
   };
 
   const onPressDeleteitem = async (item: any) => {
-
     Alert.alert("Confirm Delete", "Are you sure you want to delete this?", [
       {
         text: "Yes",
@@ -116,122 +114,131 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
     ]);
   };
   const onPressDeleteData = async (item: any) => {
+    console.log("onPressDeleteData", item);
     setisLoading(true);
-    const resGetSelectedData = await deleteSlipData(
-      {
-        SlipNo: getSlipNo(item, item.Type),
-        AcctID: savedUserData?.AcctID,
-        Year: 2022,
-        TaxID: getSavedLoggedInData?.TaxID,
-        TaxPayerID: savedUserData?.TaxPayerID,
-      },
-      savedUserData?.token,
-      getSlipsDeleteUrls(item.Type)
-    );
-    console.log("onPressScanYourBill", savedUserData, resGetSelectedData);
+    if (item.Type !== "4") {
+      const resGetSelectedData = await deleteSlipData(
+        {
+          SlipNo: getSlipNo(item, item.Type),
+          AcctID: savedUserData?.AcctID,
+          Year: 2022,
+          TaxID: getSavedLoggedInData?.TaxID,
+          TaxPayerID: savedUserData?.TaxPayerID,
+        },
+        savedUserData?.token,
+        getSlipsDeleteUrls(item.Type)
+      );
+      console.log("onPressScanYourBill", savedUserData, resGetSelectedData);
 
-    if (resGetSelectedData) {
-      if (resGetSelectedData.ErrCode == -1) {
-        console.log("resGetSelectedData else");
-        setisLoading(false);
-      } else {
-        let renderedData = dataToRender.filter((obj) => {
-          return obj.Type === item.Type;
-        });
-
-        if (renderedData.length == 1) {
-          const typeArray = getSelectedFormsData.IncomeSlipForms.split(","); // Split the string into an array
-          const index = typeArray.indexOf(item.Type); // Find the index of the element to remove
-          if (index > -1) {
-            typeArray.splice(index, 1); // Remove the element at the found index
-          }
-          const updatedType = typeArray.join(",");
-
-          console.log("renderedData", updatedType);
-
-          const resSaveShoeBoxData = await SaveShoeBoxForms(
-            {
-              TaxPayerID: savedUserData?.TaxPayerID,
-              AcctID: savedUserData?.AcctID,
-              IncomeSlipForms: updatedType,
-              Year: 2022,
-              TaxID: getSavedLoggedInData?.TaxID,
-              CreditsForms: getSelectedFormsData.CreditsForms,
-              DeductionsForms: getSelectedFormsData.DeductionsForms,
-              ExpensesForms: getSelectedFormsData.ExpensesForms,
-              ProvincialSlipForms: getSelectedFormsData.ProvincialSlipForms,
-            },
-            savedUserData?.token
-          );
-          console.log("resSaveShoeBoxData", resSaveShoeBoxData);
-
-          if (resSaveShoeBoxData) {
-            if (resSaveShoeBoxData.ErrCode == -1) {
-              console.log("resGetSelectedData else");
-            } else {
-              // SaveShoeBoxForms
-            }
-            callGetAvailableSlipData();
-          } else {
-            console.log("resGetSelectedData else");
-            callGetAvailableSlipData();
-          }
+      if (resGetSelectedData) {
+        if (resGetSelectedData.ErrCode == -1) {
+          console.log("resGetSelectedData else");
+          setisLoading(false);
         } else {
-          callGetAvailableSlipData();
+          SaveShoeBoxDetails(item, false);
         }
+      } else {
+        setisLoading(false);
+        console.log("resGetSelectedData else");
       }
     } else {
-      setisLoading(false);
-      console.log("resGetSelectedData else");
+      SaveShoeBoxDetails(item, true);
+    }
+  };
+
+  const SaveShoeBoxDetails = async (item: any, IncomeSlipData: boolean) => {
+    let renderedData = dataToRender.filter((obj) => {
+      return obj.Type === item.Type;
+    });
+
+    if (IncomeSlipData || renderedData.length == 1) {
+      const typeArray = getSelectedFormsData.IncomeSlipForms.split(","); // Split the string into an array
+      const index = typeArray.indexOf(item.Type); // Find the index of the element to remove
+      if (index > -1) {
+        typeArray.splice(index, 1); // Remove the element at the found index
+      }
+      const updatedType = typeArray.join(",");
+
+      console.log("renderedData", updatedType);
+
+      const resSaveShoeBoxData = await SaveShoeBoxForms(
+        {
+          TaxPayerID: savedUserData?.TaxPayerID,
+          AcctID: savedUserData?.AcctID,
+          IncomeSlipForms: updatedType,
+          Year: 2022,
+          TaxID: getSavedLoggedInData?.TaxID,
+          CreditsForms: getSelectedFormsData.CreditsForms,
+          DeductionsForms: getSelectedFormsData.DeductionsForms,
+          ExpensesForms: getSelectedFormsData.ExpensesForms,
+          ProvincialSlipForms: getSelectedFormsData.ProvincialSlipForms,
+        },
+        savedUserData?.token
+      );
+      console.log("resSaveShoeBoxData", resSaveShoeBoxData);
+
+      if (resSaveShoeBoxData) {
+        if (resSaveShoeBoxData.ErrCode == -1) {
+          console.log("resGetSelectedData else");
+        } else {
+          // SaveShoeBoxForms
+        }
+        callGetAvailableSlipData();
+      } else {
+        console.log("resGetSelectedData else");
+        callGetAvailableSlipData();
+      }
+    } else {
+      callGetAvailableSlipData();
     }
   };
   const callGetAvailableSlipData = async () => {
     const resGetSelectedData = await getSelectedSlipData(
-        {
-          TaxPayerID: savedUserData?.TaxPayerID,
-          AcctID: savedUserData?.AcctID,
-          Year: 2022,
-          TaxID: getSavedLoggedInData?.TaxID,
-        },
-        savedUserData?.token
-      );
+      {
+        TaxPayerID: savedUserData?.TaxPayerID,
+        AcctID: savedUserData?.AcctID,
+        Year: 2022,
+        TaxID: getSavedLoggedInData?.TaxID,
+      },
+      savedUserData?.token
+    );
+    if (resGetSelectedData) {
       if (resGetSelectedData) {
-        if (resGetSelectedData) {
-          setisLoading(false);
-          if (resGetSelectedData.ErrCode == -1) {
-            console.log("resGetSelectedData else");
+        setisLoading(false);
+        if (resGetSelectedData.ErrCode == -1) {
+          console.log("resGetSelectedData else");
+        } else {
+          setSelectedDataRender(resGetSelectedData);
+          if (resGetSelectedData.IncomeSlipForms == "") {
+            navigation.navigate("EmptySlipsScreen", {
+              data: resGetSelectedData,
+              getSelectedData: resGetSelectedData,
+            });
           } else {
-            setSelectedDataRender(resGetSelectedData)
-            if (resGetSelectedData.IncomeSlipForms == "") {
-              navigation.navigate("EmptySlipsScreen", {
-                data: resGetSelectedData,
-                getSelectedData: resGetSelectedData,
-              });
-            } else {
-              const resAvailableSlipsData = await GetAvailableSlipsData(
-                {
-                  TaxPayerID: savedUserData?.TaxPayerID,
-                  AcctID: savedUserData?.AcctID,
-                  Year: 2022,
-                  TaxID: getSavedLoggedInData?.TaxID,
-                },
-                savedUserData?.token,
-                resGetSelectedData.IncomeSlipForms.split(",")
-              );
+            const resAvailableSlipsData = await GetAvailableSlipsData(
+              {
+                TaxPayerID: savedUserData?.TaxPayerID,
+                AcctID: savedUserData?.AcctID,
+                Year: 2022,
+                TaxID: getSavedLoggedInData?.TaxID,
+              },
+              savedUserData?.token,
+              resGetSelectedData.IncomeSlipForms.split(",")
+            );
 
-              if (resAvailableSlipsData) {
-                console.log("resAvailableSlipsData", resAvailableSlipsData);
-                setisLoading(false);
-                setDataToRender(resAvailableSlipsData);
-              } else {
-              }
+            if (resAvailableSlipsData) {
+              console.log("resAvailableSlipsData", resAvailableSlipsData);
+              setisLoading(false);
+              setDataToRender(resAvailableSlipsData);
+            } else {
             }
           }
-        } else {
-          setisLoading(false);
-          console.log("resGetSelectedData else");
         }
+      } else {
+        setisLoading(false);
+        console.log("resGetSelectedData else");
       }
+    }
     // const resAvailableSlipsData = await GetAvailableSlipsData(
     //   {
     //     TaxPayerID: savedUserData?.TaxPayerID,
@@ -259,8 +266,9 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
       !(
         Object.keys(item).some((key) => key.startsWith("T4_")) ||
         Object.keys(item).some((key) => key.startsWith("T5007")) ||
-        item.Type == "5"||
-        item.Type == "10"
+        item.Type == "5" ||
+        item.Type == "10" ||
+        item.Type == "4"
       )
     ) {
       return;
@@ -353,7 +361,11 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
                 backgroundColor: defaultColors.transparent,
               }}
               resizeMode={"contain"}
-              source={darkTheme ?require("../../../assets/darkEllipsis.png") :require("../../../assets/Ellipsis.png")}
+              source={
+                darkTheme
+                  ? require("../../../assets/darkEllipsis.png")
+                  : require("../../../assets/Ellipsis.png")
+              }
             />
           </TouchableOpacity>
         </View>
@@ -405,15 +417,14 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
     if (Platform.OS === "android") {
       try {
         const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA, 
+          PermissionsAndroid.PERMISSIONS.CAMERA,
           {
-            title: 'CloudTax App Camera Permission',
-            message:
-              'Allow CloudTax to take pictures.',
-              buttonNeutral: "Ask Me Later",
-              buttonNegative: "Cancel",
-              buttonPositive: "OK"
-          },
+            title: "CloudTax App Camera Permission",
+            message: "Allow CloudTax to take pictures.",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
+          }
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           console.log("CAMERA permission allow");
@@ -512,28 +523,38 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
           if (getScannedSlipData.ErrCode == -1) {
             console.log("getScannedSlipData else");
           } else {
-            console.log("getScannedSlipData else", getScannedSlipData);
-            if (getScannedSlipData.hasOwnProperty('result')) {
-              if(navigateToScreenFromScanning(getScannedSlipData.result.Type) !== null){
-                navigation.navigate(
-                  navigateToScreenFromScanning(getScannedSlipData.result.Type),
-                  {
-                    data: getScannedSlipData.result,
-                    ScanID: getScannedSlipParams.ScanID,
-                    getSelectedFormsData: getSelectedFormsData,
-                    listedT4Items: filterByType(
-                      dataToRender,
+            if (getScannedSlipData.hasOwnProperty("result")) {
+              if (
+                navigateToScreenFromScanning(getScannedSlipData.result.Type) !==
+                null
+              ) {
+                console.log("getScannedSlipData else", dataToRender.find((obj) => obj.Type === "4"));
+                if (dataToRender.find((obj) => obj.Type === "4" &&getScannedSlipData.result.Type === 'T4A(OAS)')) {
+                  Alert.alert("T4A(OAS) Already exists..!");
+                } else {
+                  navigation.navigate(
+                    navigateToScreenFromScanning(
                       getScannedSlipData.result.Type
                     ),
-                  }
-                );
+                    {
+                      data: getScannedSlipData.result,
+                      ScanID: getScannedSlipParams.ScanID,
+                      getSelectedFormsData: getSelectedFormsData,
+                      listedT4Items: filterByType(
+                        dataToRender,
+                        getScannedSlipData.result.Type
+                      ),
+                    }
+                  );
+                }
               } else {
-                Alert.alert('We are sorry..! Unsupported file type for the moment..!');
+                Alert.alert(
+                  "We are sorry..! Unsupported file type for the moment..!"
+                );
               }
-
-          } else {
-            Alert.alert('Something went wrong..! Please rescan again..!');
-          }
+            } else {
+              Alert.alert("Something went wrong..! Please rescan again..!");
+            }
           }
         } else {
           setScanLoading(false);

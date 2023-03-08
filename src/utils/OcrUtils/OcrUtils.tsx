@@ -498,6 +498,8 @@ export function getSlipsDeleteUrls(item: string) {
       return "/DeleteT4SlipInfo";
     case "5":
       return "/DeleteT4APSlipInfo";
+      case "4":
+      return "/DeleteT4AOASlipInfo";
     case "11":
       return "/DeleteT5007SlipInfo";
     case "10":
@@ -517,6 +519,8 @@ export function getSlipNo(item: any, key: string) {
       return item["T5007_no"];
     case "10":
       return item["T5_no"];
+      case "4":
+        return "1";
     default:
       return "";
   }
@@ -556,33 +560,38 @@ export function getSlips(key: string) {
 }
 
 export function getName(item: any) {
-  switch (true) {
-    case Object.keys(item).some((key) => key.startsWith("T3")):
-      return "T3 " + (item.TrustsName ? item.TrustsName : "");
-    case Object.keys(item).some((key) => key.startsWith("T4E")):
-      return "T4E - Employment Insurance Benefits";
-    case Object.keys(item).some((key) => key.startsWith("T4AP_no")):
+  switch (item.Type) {
+    case "1":
+      return "T4 " + (item.EmployersName ? item.EmployersName : ""); 
+      case "4":
+      return "T4A(OAS)";
+      case "5":
       return "T4AP " + (item.Description ? item.Description : "");
-    case Object.keys(item).some((key) => key.startsWith("T4A")):
-      return "T4A " + (item.TaxPayersName ? item.TaxPayersName : "");
-    case Object.keys(item).some((key) => key.startsWith("T4AOAS")):
-      return "T4A OAS - Old Age Security";
-    case Object.keys(item).some((key) => key.startsWith("T4RSP")):
-      return "T4RSP - RRSP Income";
-    case Object.keys(item).some((key) => key.startsWith("T4RIF")):
-      return "T4RIF - RIF Income";
-    case Object.keys(item).some((key) => key.startsWith("T4ARCA")):
-      return "T4A-RCA Statement of Distributions";
-    case Object.keys(item).some((key) => key.startsWith("T5007")):
+      case "11":
       return "T5007";
-    case Object.keys(item).some((key) => key.startsWith("T5008")):
-      return "T5008 - Statement of Securities Transactions";
-    case Object.keys(item).some((key) => key.startsWith("T4PS")):
-      return "T4PS - Employee Profit Sharing";
-    case Object.keys(item).some((key) => key.startsWith("T4")):
-      return "T4 " + (item.EmployersName ? item.EmployersName : "");
-    case Object.keys(item).some((key) => key.startsWith("T5")):
+      case "10":
       return "T5 " + (item.Description ? item.Description : "");
+    // case Object.keys(item).some((key) => key.startsWith("T3")):
+    //   return "T3 " + (item.TrustsName ? item.TrustsName : "");
+    // case Object.keys(item).some((key) => key.startsWith("T4E")):
+    //   return "T4E - Employment Insurance Benefits";
+    
+    // case Object.keys(item).some((key) => key.startsWith("T4A")):
+    //   return "T4A " + (item.TaxPayersName ? item.TaxPayersName : "");
+   
+    // case Object.keys(item).some((key) => key.startsWith("T4RSP")):
+    //   return "T4RSP - RRSP Income";
+    // case Object.keys(item).some((key) => key.startsWith("T4RIF")):
+    //   return "T4RIF - RIF Income";
+    // case Object.keys(item).some((key) => key.startsWith("T4ARCA")):
+    //   return "T4A-RCA Statement of Distributions";
+    
+    // case Object.keys(item).some((key) => key.startsWith("T5008")):
+    //   return "T5008 - Statement of Securities Transactions";
+    // case Object.keys(item).some((key) => key.startsWith("T4PS")):
+    //   return "T4PS - Employee Profit Sharing";
+    
+    
     default:
       return "";
   }
@@ -598,6 +607,8 @@ export function navigateToScreen(item: string) {
       return "T4APOcrScreen";
     case "10":
       return "T5OcrScreen";
+      case "4":
+        return "T4OASScreen";
     default:
       return null;
   }
@@ -611,6 +622,8 @@ export function navigateToScreenFromScanning(key: string) {
       return "T5007OcrScreen";
     case "T4A(P)":
       return "T4APOcrScreen";
+      case "T4A(OAS)":
+      return "T4OASScreen";
     case "T5":
       return "T5OcrScreen";
     default:
