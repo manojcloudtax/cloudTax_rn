@@ -28,6 +28,7 @@ import T5007OcrScreen from "../screens/Ocr/T5007OcrScreen";
 import T4APOcrScreen from "../screens/Ocr/T4APOcrScreen";
 import T5OcrScreen from "../screens/Ocr/T5OcrScreen";
 import T4OASScreen from "../screens/Ocr/T4OASScreen";
+import T4EOcrScreen from "../screens/Ocr/T4EOcrScreen";
 
 const { Navigator, Screen } = createNativeStackNavigator();
 
@@ -162,6 +163,11 @@ const AuthStack = () => {
          <Screen
           name="T4OASScreen"
           component={T4OASScreen}
+          options={{ title: "", headerShown: false }}
+        />
+        <Screen
+          name="T4EOcrScreen"
+          component={T4EOcrScreen}
           options={{ title: "", headerShown: false }}
         />
       </Navigator>

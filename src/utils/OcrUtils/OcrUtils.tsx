@@ -471,6 +471,8 @@ export function getSlipsUrls(type: string) {
       return "/GetT4ASlipInfo";
     case "GetT4APSlipInfo":
       return "/GetT4APSlipInfo";
+    case "GetT4ESlipInfo":
+      return "/GetT4ESlipInfo";
     case "SaveT4SlipInfoList":
       return "/SaveT4SlipInfoList";
     case "SaveT5SlipInfoList":
@@ -483,6 +485,8 @@ export function getSlipsUrls(type: string) {
       return "/SaveT4APSlipInfoList";
     case "SaveT5007SlipInfoList":
       return "/SaveT5007SlipInfoList";
+    case "SaveT4ESlipInfoList":
+      return "/SaveT4ESlipInfoList";
     default:
       return "";
   }
@@ -490,20 +494,18 @@ export function getSlipsUrls(type: string) {
 
 export function getSlipsDeleteUrls(item: string) {
   switch (item) {
-    // case Object.keys(item).some((key) => key.startsWith("T4")):
-    //   return "/GetT4APSlipInfo";
-    // case Object.keys(item).some((key) => key.startsWith("T5007")):
-    //   return "/DeleteT4APSlipInfo";
     case "1":
       return "/DeleteT4SlipInfo";
     case "5":
       return "/DeleteT4APSlipInfo";
-      case "4":
+    case "4":
       return "/DeleteT4AOASlipInfo";
     case "11":
       return "/DeleteT5007SlipInfo";
     case "10":
       return "/DeleteT5SlipInfo";
+    case "6":
+      return "/DeleteT4ESlipInfo";
     default:
       return "";
   }
@@ -519,8 +521,10 @@ export function getSlipNo(item: any, key: string) {
       return item["T5007_no"];
     case "10":
       return item["T5_no"];
-      case "4":
-        return "1";
+    case "4":
+      return "1";
+    case "6":
+      return item["T4E_no"];
     default:
       return "";
   }
@@ -562,36 +566,37 @@ export function getSlips(key: string) {
 export function getName(item: any) {
   switch (item.Type) {
     case "1":
-      return "T4 " + (item.EmployersName ? item.EmployersName : ""); 
-      case "4":
+      return "T4 " + (item.EmployersName ? item.EmployersName : "");
+    case "4":
       return "T4A(OAS)";
-      case "5":
+    case "5":
       return "T4AP " + (item.Description ? item.Description : "");
-      case "11":
+    case "6":
+      return "T4E " + (item.TaxPayersName ? item.TaxPayersName : "");
+    case "11":
       return "T5007";
-      case "10":
+    case "10":
       return "T5 " + (item.Description ? item.Description : "");
     // case Object.keys(item).some((key) => key.startsWith("T3")):
     //   return "T3 " + (item.TrustsName ? item.TrustsName : "");
     // case Object.keys(item).some((key) => key.startsWith("T4E")):
     //   return "T4E - Employment Insurance Benefits";
-    
+
     // case Object.keys(item).some((key) => key.startsWith("T4A")):
     //   return "T4A " + (item.TaxPayersName ? item.TaxPayersName : "");
-   
+
     // case Object.keys(item).some((key) => key.startsWith("T4RSP")):
     //   return "T4RSP - RRSP Income";
     // case Object.keys(item).some((key) => key.startsWith("T4RIF")):
     //   return "T4RIF - RIF Income";
     // case Object.keys(item).some((key) => key.startsWith("T4ARCA")):
     //   return "T4A-RCA Statement of Distributions";
-    
+
     // case Object.keys(item).some((key) => key.startsWith("T5008")):
     //   return "T5008 - Statement of Securities Transactions";
     // case Object.keys(item).some((key) => key.startsWith("T4PS")):
     //   return "T4PS - Employee Profit Sharing";
-    
-    
+
     default:
       return "";
   }
@@ -607,8 +612,10 @@ export function navigateToScreen(item: string) {
       return "T4APOcrScreen";
     case "10":
       return "T5OcrScreen";
-      case "4":
-        return "T4OASScreen";
+    case "4":
+      return "T4OASScreen";
+    case "6":
+      return "T4EOcrScreen";
     default:
       return null;
   }
@@ -622,10 +629,12 @@ export function navigateToScreenFromScanning(key: string) {
       return "T5007OcrScreen";
     case "T4A(P)":
       return "T4APOcrScreen";
-      case "T4A(OAS)":
+    case "T4A(OAS)":
       return "T4OASScreen";
     case "T5":
       return "T5OcrScreen";
+    case "T4E":
+      return "T4EOcrScreen";
     default:
       return null;
   }

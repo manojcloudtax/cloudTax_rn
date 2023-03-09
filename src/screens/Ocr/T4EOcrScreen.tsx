@@ -19,15 +19,12 @@ import { OCRTextInput } from "../../components/OCRTextInput";
 import SearchableDropDown from "../../components/SearchableDropDown";
 import { formattedNumString } from "../../utils/common";
 import _ from "lodash";
-import { OCRDropdown } from "../../components/OCRDropdown";
-import ReactNativePickerModule, { PickerRef } from "react-native-picker-module";
-import { OCRSelectableComponent } from "../../components/OCRSelectableComponent";
 import { CheckBox } from "react-native-elements";
 import {
   GetAvailableSlipsData,
   getSelectedSlipData,
   SaveShoeBoxForms,
-  SaveT4SlipInfoList,
+  SaveSlipData,
 } from "../../api/auth";
 
 interface SlipData {
@@ -40,7 +37,7 @@ interface SlipData {
 type StringMap = {
   [key: string]: string;
 };
-const T4OcrScreen = ({ navigation, route }: any) => {
+const T4EOcrScreen = ({ navigation, route }: any) => {
   const dispatch = useDispatch();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -66,15 +63,10 @@ const T4OcrScreen = ({ navigation, route }: any) => {
   );
   const [getFilteredArray, setFilteredArray] = useState<SlipData[]>([]);
   const [getInitialDataFromOCR, setInitialDataFromOCR] = useState({});
-  const pickerRef = useRef<PickerRef>(null);
-  const pickerEmploymentRef = useRef<PickerRef>(null);
-  const [setProvinceValue, setValueOfProvince] = useState<string>("");
-  const [setEmpValue, setEmploymentValue] = useState<string>("");
-
-  const [isSelectFirstBox, selectFirstBox] = useState(false);
-  const [isSelectSecondBox, selectSecondBox] = useState(false);
-  const [isSelectThirdBox, selectThirdBox] = useState(false);
-  const [selectedIndex, setIndex] = useState(0);
+  const [repayment, setRepaymentValue] = useState<string>("");
+  const [amountValue, setAmountRecievedValue] = useState<string>("");
+  const [selectedIndex, setIndex] = useState(1);
+  const [selectedSecondIndex, setSecondIndex] = useState(1);
   const [loadingAvailable, setisLoading] = useState<boolean>(false);
   const [ScanNewloadingAvailable, setScanNewLoading] = useState<boolean>(false);
   const [listedT4Data, setlistedT4Data] = useState([]);
@@ -87,240 +79,76 @@ const T4OcrScreen = ({ navigation, route }: any) => {
   });
 
   const [scanID, setScanID] = useState("");
-  const slip: StringMap = {
-    Blur: "Not Blur",
-    Box10: "ON",
-
-    Box12: "544734460",
-
-    Box14: "10829.63",
-
-    Box16: "538.26",
-
-    Box17: "",
-
-    Box18: "171.11",
-
-    Box20: "",
-
-    Box22: "1003.76",
-
-    Box24: "10829.63",
-
-    Box26: "10829.63",
-
-    Box28CPPQPP: "N",
-
-    Box28EI: "N",
-
-    Box28PPIP: "N",
-
-    Box29: "",
-
-    Box44: "",
-
-    Box46: "",
-
-    Box52: "",
-
-    Box54: "",
-
-    Box55: "",
-
-    EmployersName: "779414 ONTARIO INC",
-
-    ScanID: "63fcc4e50b9dd85a7f7074e5",
-
-    Type: "T4",
-
-    Year: "2022",
-
-    proc_time: "6.1897s",
-  };
-
   let Slipdata = [
-    { id: 14, name: "Total Earnings", box: "Box14", value: "0.00" },
-    { id: 16, name: "Canada Pension Plan", box: "Box16", value: "0.00" },
-    { id: 17, name: "Quebec Pension Plan", box: "Box17", value: "0.00" },
-    { id: 18, name: "Employment Insurance", box: "Box18", value: "0.00" },
-    { id: 20, name: "RPP Contributions", box: "Box20", value: "0.00" },
-    { id: 22, name: "Income Tax Deducted", box: "Box22", value: "0.00" },
+    { id: 14, name: "Total benefits paid", box: "Box14", value: "0.00" },
     {
-      id: 24,
-      name: "Insurable Earnings",
-      box: "Box24",
+      id: 15,
+      name: "Regular and other benefits paid",
+      box: "Box15",
+      value: "0.00",
+    },
+    {
+      id: 17,
+      name: "Employment benefits & support measures paid",
+      box: "Box17",
+      value: "0.00",
+    },
+    {
+      id: 20,
+      name: "Texation tuition assistance",
+      box: "Box20",
+      value: "0.00",
+    },
+    {
+      id: 21,
+      name: "Non-taxable tuition assistance",
+      box: "Box21",
+      value: "0.00",
+    },
+    {
+      id: 22,
+      name: "Income tax deducted",
+      box: "Box22",
+      value: "0.00",
+    },
+    {
+      id: 23,
+      name: "Quebec income tax deducted",
+      box: "Box23",
       validation: "",
       value: "0.00",
     },
     {
-      id: 26,
-      name: "CPP / QPP Pensionable Earnings",
-      box: "Box26",
-      validation: "",
-      value: "0.00",
-    },
-    { id: 44, name: "Union Dues", box: "Box44", value: "0.00" },
-    { id: 46, name: "Charitable Donations", box: "Box46", value: "0.00" },
-    // {
-    //   id: 46,
-    //   name: "Donations made to government bodies?",
-    //   box: "Box46_government",
-    //   type: "select",
-    //   value: "0.00",
-    // },
-    { id: 52, name: "Pensions Adjustment", box: "Box52", value: "0.00" },
-    { id: 56, name: "PPIP Insurable Earnings", box: "Box56", value: "0.00" },
-    {
-      id: 55,
-      name: "Employee´s PPIP Premiums",
-      box: "Box55",
-      validation: "",
+      id: 37,
+      name: "Ei maternity and parental benefits payments",
+      box: "Box37",
       value: "0.00",
     },
   ];
 
   let restData = [
     {
-      id: 30,
-      name: "Housing, Board, and Lodging",
-      box: "Box30",
+      id: 18,
+      name: "Tax exempt benefits",
+      box: "Box18",
       value: "0.00",
     },
-    { id: 31, name: "Special work site", box: "Box31", value: "0.00" },
-    // { id: 37, name: 'HOME RELOCATION LOAN DEDUCTION', box: 'Box37' },
-    { id: 38, name: "Security options benefits", box: "Box38", value: "0.00" },
-    { id: 39, name: "Stock opt/shares 110.1.D", box: "Box39", value: "0.00" },
-    { id: 41, name: "Stock opt/shares 110.1.D.1", box: "Box41", value: "0.00" },
-    { id: 42, name: "Employment commissions", box: "Box42", value: "0.00" },
-    { id: 43, name: "Canadian forces personnel", box: "Box43", value: "0.00" },
+    { id: 24, name: "Non-resident tax deducted", box: "Box24", value: "0.00" },
+    { id: 30, name: "Ei benefits repaid", box: "Box30", value: "0.00" },
     {
-      id: 57,
-      name: "Employment income – March 15 to May 9",
-      box: "Box57",
+      id: 33,
+      name: "Payments out of the consolidated revenue fund",
+      box: "Box33",
       value: "0.00",
     },
     {
-      id: 58,
-      name: "Employment income – May 10 to July 4",
-      box: "Box58",
+      id: 36,
+      name: "Provincial parental insurance plan benefits",
+      box: "Box36",
       value: "0.00",
     },
-    {
-      id: 59,
-      name: "Employment income – July 5 to August 29",
-      box: "Box59",
-      value: "0.00",
-    },
-    {
-      id: 60,
-      name: "Employment income – August 30 to September 26",
-      box: "Box60",
-      value: "0.00",
-    },
-    {
-      id: 66,
-      name: "Eligible retiring allowances",
-      box: "Box66",
-      value: "0.00",
-    },
-    {
-      id: 67,
-      name: "Non-eligible retiring allowances",
-      box: "Box67",
-      value: "0.00",
-    },
-    {
-      id: 68,
-      name: "Indian - eligible retiring allowances",
-      box: "Box68",
-      value: "0.00",
-    },
-    {
-      id: 69,
-      name: "Indian - IDN-eligible retiring allowances",
-      box: "Box69",
-      value: "0.00",
-    },
-    {
-      id: 71,
-      name: "Indian (exempt income) - employment",
-      box: "Box71",
-      value: "0.00",
-    },
-    { id: 72, name: "BOX 72", box: "Box72", value: "0.00" },
-    { id: 73, name: "BOX 73", box: "Box73", value: "0.00" },
-    {
-      id: 74,
-      name: "Pre-1990 while a contributor",
-      box: "Box74",
-      value: "0.00",
-    },
-    {
-      id: 75,
-      name: "Pre-1990 while IDT a contributor",
-      box: "Box75",
-      value: "0.00",
-    },
-    {
-      id: 77,
-      name: "Workers comp. benefits repaid",
-      box: "Box77",
-      value: "0.00",
-    },
-    { id: 78, name: "Fishers - gross earnings", box: "Box78", value: "0.00" },
-    {
-      id: 79,
-      name: "Fishers - net partnership amount",
-      box: "Box79",
-      value: "0.00",
-    },
-    {
-      id: 80,
-      name: "Fishers - shareperson amount",
-      box: "Box80",
-      value: "0.00",
-    },
-    { id: 81, name: "Agency workers", box: "Box81", value: "0.00" },
-    {
-      id: 82,
-      name: "Passenger-carrying vehicles",
-      box: "Box82",
-      value: "0.00",
-    },
-    { id: 83, name: "Barbers or hairdressers", box: "Box83", value: "0.00" },
-    { id: 84, name: "Public transit pass", box: "Box84", value: "0.00" },
-    {
-      id: 85,
-      name: "Private health services plans",
-      box: "Box85",
-      value: "0.00",
-    },
-    {
-      id: 87,
-      name: "Emergency serv. volunteers exemption",
-      box: "Box87",
-      value: "0.00",
-    },
-    { id: 88, name: "Indian (exempt income)", box: "Box88", value: "0.00" },
   ];
 
-  const dataset_1 = [
-    "AB",
-    "BC",
-    "MB",
-    "NB",
-    "NL",
-    "NS",
-    "NT",
-    "NU",
-    "ON",
-    "PE",
-    "QC",
-    "SK",
-    "YT",
-  ];
-
-  const Empset_1 = ["", "11", "12", "13", "14", "15", "16", "17"];
   useEffect(() => {
     try {
       if (route.params !== undefined) {
@@ -329,7 +157,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
         setInitialDataToRender(data, ScanID);
         setFormData(getSelectedFormsData);
         setlistedT4Data(listedT4Items);
-        console.log("T4OcrScreen listedT4Items", listedT4Items);
+        console.log("T4EOcrScreen listedT4Items", listedT4Items);
       }
     } catch (error) {}
   }, []);
@@ -339,14 +167,12 @@ const T4OcrScreen = ({ navigation, route }: any) => {
     setScanNewLoading(false);
     setInitialDataFromOCR(data);
     setScanID(scanID);
-    setValueOfProvince(data["Box10"]);
     let clonedSlipData = _.cloneDeep(Slipdata);
-    let FilteredObjectsofRestData = restData.filter(obj => (obj.box in data && data[obj.box] !== "0.00"));
+    let FilteredObjectsofRestData = restData.filter(
+      (obj) => obj.box in data && data[obj.box] !== "0.00"
+    );
     console.log("FilteredObjectsofRestData", FilteredObjectsofRestData);
     clonedSlipData = clonedSlipData.concat(FilteredObjectsofRestData);
-    selectFirstBox(data["Box28CPPQPP"] == "Y" ? true : false);
-    selectSecondBox(data["Box28EI"] == "Y" ? true : false);
-    selectThirdBox(data["Box28PPIP"] == "Y" ? true : false);
 
     for (let i = 0; i < clonedSlipData.length; i++) {
       clonedSlipData[i].value = data[clonedSlipData[i].box]
@@ -355,11 +181,28 @@ const T4OcrScreen = ({ navigation, route }: any) => {
     }
     console.log("getSlipData", clonedSlipData);
     setinitialFlatListArray(clonedSlipData);
-    let FilteredRestData = restData.filter(obj => !(obj.box in data && data[obj.box] !== "0.00"));
+    let FilteredRestData = restData.filter(
+      (obj) => !(obj.box in data && data[obj.box] !== "0.00")
+    );
     setSearchedArraySlips(FilteredRestData);
     console.log("getSlipData restData", FilteredRestData);
     setFilteredArray(FilteredRestData);
     setDropdownShow(false);
+
+    setRepaymentValue(
+      data["Box7"] !== "" ? parseFloat(data["Box7"])
+        .toFixed(2)
+        .replace(/\.?0+$/, "") : "0"
+    );
+    setIndex(data["Include_maternal"] == "Y" ? 0 : 1);
+    setSecondIndex(data["indian_maternal"] == "Y" ? 0 : 1);
+    setIndex(data["Include_maternal"] == "Y" ? 0 : 1);
+    let ReceivedAmount: string = data["Amount_maternal"]
+      ? _.isNaN(formattedNumString(data["Amount_maternal"]))
+        ? "0.00"
+        : formattedNumString(data["Amount_maternal"])
+      : "0.00";
+    setAmountRecievedValue(ReceivedAmount);
   };
 
   const renderSlipItems = (item: any) => {
@@ -513,6 +356,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
     updatedSlip.push(item);
     setinitialFlatListArray(updatedSlip);
     const newArray = updatedSlip.filter((obj) => obj.id !== item.id);
+    console.log("onSelectListItem", newArray);
     setSearchedArraySlips(newArray);
     setFilteredArray(newArray);
     setDropdownShow(false);
@@ -523,7 +367,6 @@ const T4OcrScreen = ({ navigation, route }: any) => {
     // setDropdownShow(false);
     console.log("onSubmit");
   };
-
 
   const onPressLetsStartButton = async () => {
     setisLoading(true);
@@ -537,7 +380,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
           CreditsForms: "",
           DeductionsForms: "",
           ExpensesForms: "",
-          IncomeSlipForms: "1",
+          IncomeSlipForms: "6",
           ProvincialSlipForms: "",
         },
         savedUserData?.token
@@ -557,25 +400,14 @@ const T4OcrScreen = ({ navigation, route }: any) => {
       {}
     );
     //inserting missed key values for the t4 parms
-    finalArray["Box28CPPQPP"] = isSelectFirstBox ? "Y" : "N";
-    finalArray["Box28EI"] = isSelectSecondBox ? "Y" : "N";
-    finalArray["Box28PPIP"] = isSelectThirdBox ? "Y" : "N";
-    finalArray["Box10"] = setProvinceValue;
-    finalArray["Box12"] = getInitialDataFromOCR["Box12"];
-    finalArray["EmployersName"] = getInitialDataFromOCR["EmployersName"];
-    finalArray["ScanID"] = scanID;
-    finalArray["Type"] = getInitialDataFromOCR["Type"];
-    finalArray["Year"] = getInitialDataFromOCR["Year"];
-    finalArray["proc_time"] = getInitialDataFromOCR["proc_time"];
-    finalArray["EI_voting_shares_status"] = isSelectSecondBox
-      ? selectedIndex == 0
-        ? "Y"
-        : "N"
-      : "null";
-    finalArray["Box29"] = setEmpValue == "" ? "null" : setEmpValue;
+    finalArray["Box7"] = repayment;
+    finalArray["TaxPayersName"] = getInitialDataFromOCR["TaxPayersName"];
+    finalArray["Amount_maternal"] = amountValue;
+    finalArray["Include_maternal"] = selectedIndex === 0 ? "Y" : "N";
+    finalArray["indian_maternal"] = selectedSecondIndex === 0 ? "Y" : "N";
 
-    (finalArray["AcctID"] = savedUserData?.AcctID),
-      (finalArray["TaxID"] = getSavedLoggedInData?.TaxID);
+    finalArray["ScanID"] = scanID;
+    finalArray["TaxID"] = getSavedLoggedInData?.TaxID;
     finalArray["selectNo"] = "-1";
     finalArray["Year"] = "2022";
 
@@ -584,7 +416,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
     let finalArrayForLastUpdate = [];
     if (listedT4Data != undefined) {
       const indexToUpdate = listedT4Data.findIndex(
-        (obj) => obj["T4_no"] === getInitialDataFromOCR["T4_no"]
+        (obj) => obj["T4E_no"] === getInitialDataFromOCR["T4E_no"]
       );
 
       if (indexToUpdate !== -1) {
@@ -594,6 +426,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
             ...obj,
             ActionType: index === listedT4Data.length - 1 ? 2 : 1,
             SlipNo: index + 1,
+            AcctID: savedUserData?.AcctID,
             TaxPayerID: savedUserData?.TaxPayerID,
           };
         });
@@ -606,6 +439,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
             ...obj,
             ActionType: index === concatedFinalData.length - 1 ? 2 : 1,
             SlipNo: index + 1,
+            AcctID: savedUserData?.AcctID,
             TaxPayerID: savedUserData?.TaxPayerID,
           };
         });
@@ -613,29 +447,31 @@ const T4OcrScreen = ({ navigation, route }: any) => {
         finalArrayForLastUpdate = newData;
       }
     } else {
-      (finalArray["ActionType"] = "2"),
-        (finalArray["SlipNo"] = "1"),
-        (finalArray["TaxPayerID"] = savedUserData?.TaxPayerID);
+      finalArray["ActionType"] = "2";
+      finalArray["SlipNo"] = "1";
+      finalArray["AcctID"] = savedUserData?.AcctID;
+      (finalArray["TaxPayerID"] = savedUserData?.TaxPayerID);
       finalArrayForLastUpdate = [finalArray];
     }
 
     console.log("finalArray finalArrayForLastUpdate", finalArrayForLastUpdate);
-    const PostT4SlipInfoList = await SaveT4SlipInfoList(
+    const PostT4SlipInfoList = await SaveSlipData(
       finalArrayForLastUpdate,
-      savedUserData?.token
+      savedUserData?.token,
+      "SaveT4ESlipInfoList"
     );
     if (PostT4SlipInfoList) {
       let setIncomeSlipForms = "";
 
       if (getFormsData !== undefined) {
         let splitttedArray = getFormsData.IncomeSlipForms.split(",");
-        if (!splitttedArray.includes("1")) {
-          splitttedArray.unshift("1");
+        if (!splitttedArray.includes("6")) {
+          splitttedArray.unshift("6");
         }
 
         setIncomeSlipForms = splitttedArray.join(",");
       } else {
-        setIncomeSlipForms = "1";
+        setIncomeSlipForms = "6";
       }
       const resGetSelectedData = await SaveShoeBoxForms(
         {
@@ -727,6 +563,14 @@ const T4OcrScreen = ({ navigation, route }: any) => {
     }
   };
 
+  const onChangeRepaymentRate = (text: string) => {
+    setRepaymentValue(text);
+  };
+
+  const onChangeAmountRecieved = (text: string) => {
+    setAmountRecievedValue(text);
+  };
+
   console.log("getInitialDataFromOCR", getInitialDataFromOCR);
   return (
     <SafeAreaView style={styles(darkTheme).view}>
@@ -797,7 +641,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
               >
                 {Object.keys(getInitialDataFromOCR).length === 0
                   ? ""
-                  : getInitialDataFromOCR.Type +
+                  : "T4E" +
                     " - " +
                     (getInitialDataFromOCR.EmployersName
                       ? getInitialDataFromOCR.EmployersName
@@ -805,11 +649,13 @@ const T4OcrScreen = ({ navigation, route }: any) => {
               </CtText>
             </View>
             <CtView style={{ marginTop: 20, width: "100%" }}>
-              <OCRDropdown
-                title={"Province of Employment"}
-                boxNumber={"10"}
-                value={setProvinceValue}
-                onPressDropDown={() => pickerRef.current?.show()}
+              <OCRTextInput
+                title={"Repayment Rate %"}
+                boxNumber={"%"}
+                value={repayment}
+                placeholder={"0"}
+                onChangeText={(text: string) => onChangeRepaymentRate(text)}
+                //  onBlur={() => onBlur(item)}
               />
             </CtView>
             <CtView style={{ marginTop: 4, width: "100%" }}>
@@ -822,25 +668,7 @@ const T4OcrScreen = ({ navigation, route }: any) => {
                 showsVerticalScrollIndicator={false}
               />
             </CtView>
-            <CtView style={{ marginTop: -10, width: "100%" }}>
-              <OCRDropdown
-                title={"Employment code"}
-                boxNumber={"29"}
-                value={setEmpValue}
-                onPressDropDown={() => pickerEmploymentRef.current?.show()}
-              />
-            </CtView>
-            <CtView style={{ marginTop: 14, width: "100%" }}>
-              <OCRSelectableComponent
-                boxNumber={"28"}
-                isSelectFirstBox={isSelectFirstBox}
-                isSelectSecondBox={isSelectSecondBox}
-                isSelectThirdBox={isSelectThirdBox}
-                OnPressCheckBox0={() => selectFirstBox(!isSelectFirstBox)}
-                OnPressCheckBox1={() => selectSecondBox(!isSelectSecondBox)}
-                OnPressCheckBox2={() => selectThirdBox(!isSelectThirdBox)}
-              />
-            </CtView>
+
             <CtView style={{ marginTop: 10, width: "100%", marginBottom: 10 }}>
               <SearchableDropDown
                 value={searchValue}
@@ -853,178 +681,169 @@ const T4OcrScreen = ({ navigation, route }: any) => {
                 onFocus={() => onFocus()}
               />
             </CtView>
+            <CtView style={{ marginTop: 10, width: "100%", marginBottom: 100 }}>
+              <CtText
+                style={{
+                  fontSize: 16,
+                  // marginBottom: 42,
+                  marginTop: 8,
 
-            {isSelectSecondBox ? (
-              <CtView
-                style={{ marginTop: 10, width: "100%", marginBottom: 100 }}
+                  fontFamily: "Figtree-SemiBold",
+                  color: darkTheme
+                    ? defaultColors.darkModeTextColor
+                    : defaultColors.secondaryTextColor,
+                }}
               >
-                <CtText
-                  style={{
-                    fontSize: 16,
-                    // marginBottom: 42,
-                    marginTop: 8,
+                Did your EI benefits include maternity and parental benefits?
+              </CtText>
 
-                    fontFamily: "Figtree-SemiBold",
-                    color: darkTheme
-                      ? defaultColors.darkModeTextColor
-                      : defaultColors.secondaryTextColor,
+              <View style={{ height: 60, flexDirection: "row" }}>
+                <View
+                  style={{
+                    height: 60,
+                    flexDirection: "row",
+                    alignItems: "center",
                   }}
                 >
-                  Do you control more than 40% of the voting shares of this
-                  company?
-                </CtText>
-
-                <View style={{ height: 60, flexDirection: "row" }}>
-                  <View
+                  <CheckBox
+                    checked={selectedIndex === 0}
+                    onPress={() => setIndex(0)}
+                    checkedIcon="dot-circle-o"
+                    uncheckedIcon="circle-o"
+                  />
+                  <CtText
                     style={{
-                      height: 60,
-                      flexDirection: "row",
-                      alignItems: "center",
+                      fontSize: 16,
+                      marginLeft: -10,
+                      fontFamily: "Figtree-SemiBold",
+                      color: darkTheme
+                        ? defaultColors.darkModeTextColor
+                        : defaultColors.secondaryTextColor,
                     }}
                   >
-                    <CheckBox
-                      checked={selectedIndex === 0}
-                      onPress={() => setIndex(0)}
-                      checkedIcon="dot-circle-o"
-                      uncheckedIcon="circle-o"
-                    />
-                    <CtText
-                      style={{
-                        fontSize: 16,
-                        marginLeft: -10,
-                        fontFamily: "Figtree-SemiBold",
-                        color: darkTheme
-                          ? defaultColors.darkModeTextColor
-                          : defaultColors.secondaryTextColor,
-                      }}
-                    >
-                      Yes
-                    </CtText>
-                  </View>
-                  <View
-                    style={{
-                      height: 60,
-                      flexDirection: "row",
-                      alignItems: "center",
-                    }}
-                  >
-                    <CheckBox
-                      checked={selectedIndex === 1}
-                      onPress={() => setIndex(1)}
-                      checkedIcon="dot-circle-o"
-                      uncheckedIcon="circle-o"
-                    />
-                    <CtText
-                      style={{
-                        fontSize: 16,
-                        marginLeft: -10,
-                        fontFamily: "Figtree-SemiBold",
-                        color: darkTheme
-                          ? defaultColors.darkModeTextColor
-                          : defaultColors.secondaryTextColor,
-                      }}
-                    >
-                      No
-                    </CtText>
-                  </View>
+                    Yes
+                  </CtText>
                 </View>
-              </CtView>
-            ) : (
-              <View />
-            )}
+                <View
+                  style={{
+                    height: 60,
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <CheckBox
+                    checked={selectedIndex === 1}
+                    onPress={() => setIndex(1)}
+                    checkedIcon="dot-circle-o"
+                    uncheckedIcon="circle-o"
+                  />
+                  <CtText
+                    style={{
+                      fontSize: 16,
+                      marginLeft: -10,
+                      fontFamily: "Figtree-SemiBold",
+                      color: darkTheme
+                        ? defaultColors.darkModeTextColor
+                        : defaultColors.secondaryTextColor,
+                    }}
+                  >
+                    No
+                  </CtText>
+                </View>
+              </View>
+
+              {selectedIndex == 0 ? (
+                <>
+                  <CtView style={{ width: "100%" }}>
+                    <OCRTextInput
+                      title={"Amount Received"}
+                      boxNumber={"CAD"}
+                      value={amountValue}
+                      placeholder={"$0.00"}
+                      onChangeText={(text: string) =>
+                        onChangeAmountRecieved(text)
+                      }
+                    />
+                  </CtView>
+                  <CtView
+                    style={{ marginTop: 10, width: "100%", marginBottom: 100 }}
+                  >
+                    <CtText
+                      style={{
+                        fontSize: 16,
+                        // marginBottom: 42,
+                        marginTop: 8,
+
+                        fontFamily: "Figtree-SemiBold",
+                        color: darkTheme
+                          ? defaultColors.darkModeTextColor
+                          : defaultColors.secondaryTextColor,
+                      }}
+                    >
+                      Is this amount exempt under Section 87 of the Indian Act?
+                    </CtText>
+
+                    <View style={{ height: 60, flexDirection: "row" }}>
+                      <View
+                        style={{
+                          height: 60,
+                          flexDirection: "row",
+                          alignItems: "center",
+                        }}
+                      >
+                        <CheckBox
+                          checked={selectedSecondIndex === 0}
+                          onPress={() => setSecondIndex(0)}
+                          checkedIcon="dot-circle-o"
+                          uncheckedIcon="circle-o"
+                        />
+                        <CtText
+                          style={{
+                            fontSize: 16,
+                            marginLeft: -10,
+                            fontFamily: "Figtree-SemiBold",
+                            color: darkTheme
+                              ? defaultColors.darkModeTextColor
+                              : defaultColors.secondaryTextColor,
+                          }}
+                        >
+                          Yes
+                        </CtText>
+                      </View>
+                      <View
+                        style={{
+                          height: 60,
+                          flexDirection: "row",
+                          alignItems: "center",
+                        }}
+                      >
+                        <CheckBox
+                          checked={selectedSecondIndex === 1}
+                          onPress={() => setSecondIndex(1)}
+                          checkedIcon="dot-circle-o"
+                          uncheckedIcon="circle-o"
+                        />
+                        <CtText
+                          style={{
+                            fontSize: 16,
+                            marginLeft: -10,
+                            fontFamily: "Figtree-SemiBold",
+                            color: darkTheme
+                              ? defaultColors.darkModeTextColor
+                              : defaultColors.secondaryTextColor,
+                          }}
+                        >
+                          No
+                        </CtText>
+                      </View>
+                    </View>
+                  </CtView>
+                </>
+              ) : null}
+            </CtView>
           </CtView>
         </KeyboardAvoidingView>
       </ScrollView>
-
-      <ReactNativePickerModule
-        ref={pickerRef}
-        value={setProvinceValue}
-        title={""}
-        items={dataset_1}
-        titleStyle={{ color: "grey" }}
-        itemStyle={{ color: "black" }}
-        selectedColor={defaultColors.primaryBlue}
-        confirmButtonEnabledTextStyle={{
-          color: "black",
-        }}
-        confirmButtonDisabledTextStyle={{
-          color: "black",
-        }}
-        cancelButtonTextStyle={{ color: "black" }}
-        confirmButtonStyle={{
-          backgroundColor: "white",
-        }}
-        cancelButtonStyle={{
-          backgroundColor: "white",
-        }}
-        contentContainerStyle={{
-          backgroundColor: darkTheme
-            ? defaultColors.black
-            : defaultColors.white,
-        }}
-        onCancel={() => {
-          console.log("Cancelled");
-        }}
-        onValueChange={(value) => {
-          console.log("value: ", value);
-          setValueOfProvince(value);
-          pickerRef.current?.hide();
-        }}
-      />
-
-      <ReactNativePickerModule
-        ref={pickerEmploymentRef}
-        value={setEmpValue}
-        title={""}
-        items={Empset_1}
-        titleStyle={{ color: "grey" }}
-        itemStyle={{ color: "black" }}
-        selectedColor={defaultColors.primaryBlue}
-        confirmButtonEnabledTextStyle={{
-          color: "black",
-        }}
-        confirmButtonDisabledTextStyle={{
-          color: "black",
-        }}
-        cancelButtonTextStyle={{ color: "black" }}
-        confirmButtonStyle={{
-          backgroundColor: "white",
-        }}
-        cancelButtonStyle={{
-          backgroundColor: "white",
-        }}
-        contentContainerStyle={{
-          backgroundColor: darkTheme
-            ? defaultColors.black
-            : defaultColors.white,
-        }}
-        onCancel={() => {
-          console.log("Cancelled");
-        }}
-        onValueChange={(value) => {
-          console.log("value: ", value);
-          setEmploymentValue(value);
-          pickerEmploymentRef.current?.hide();
-        }}
-      />
-      {/* <View style={{ flexDirection: "row", flex: 1 }}>
-        <View style={{ flexDirection: "row", flex: 1 }}>
-          <BottomButton
-            onPress={() => onPressScanNewButton()}
-            buttonText={"Scan new slip"}
-            showLoading={ScanNewloadingAvailable}
-            style={[styles().button]}
-          />
-        </View>
-        <View style={{ flexDirection: "row", flex: 1 }}>
-          <BottomButton
-            onPress={() => onPressLetsStartButton()}
-            // style={[styles().button]}
-            buttonText={"Confirm"}
-            showLoading={loadingAvailable}
-          />
-        </View>
-      </View> */}
       <BottomButton
         onPress={() => onPressLetsStartButton()}
         // style={[styles().button]}
@@ -1075,4 +894,4 @@ const styles = (isDarkTheme?: boolean) =>
     },
   });
 
-export default T4OcrScreen;
+export default T4EOcrScreen;

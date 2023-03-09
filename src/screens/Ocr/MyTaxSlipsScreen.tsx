@@ -268,7 +268,8 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
         Object.keys(item).some((key) => key.startsWith("T5007")) ||
         item.Type == "5" ||
         item.Type == "10" ||
-        item.Type == "4"
+        item.Type == "4"||
+        item.Type == "6"
       )
     ) {
       return;

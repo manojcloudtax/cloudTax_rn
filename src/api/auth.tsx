@@ -773,7 +773,11 @@ export const GetAvailableSlipsData = async (
       : null;
     res6 !== ""
       ? res6.data.ErrCode !== -1
-        ? reponseArray.push(res6.data)
+        ? reponseArray.push(
+          res6.data.map((obj: any) => {
+            return { ...obj, Type: "6" };
+          })
+        )
         : null
       : null;
     res7 !== ""
