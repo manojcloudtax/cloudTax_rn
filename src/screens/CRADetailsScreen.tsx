@@ -28,7 +28,7 @@ import { RootState } from "../store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import moment from "moment";
 import { useIsFocused } from "@react-navigation/native";
-import { Ionicons,MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import {
   GetAfrUrl,
   GetSlips,
@@ -366,7 +366,7 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
               {title}
             </CtText>
           </View>
-          {item.type !== "selectAll" ? (
+          {/* {item.type !== "selectAll" ? (
             <View
               style={{ alignItems: "center", marginLeft: 16, width: 40 }}
               // onPress={() => OnPressRightArrow(item, index)}
@@ -380,7 +380,7 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
                 size={20}
               />
             </View>
-          ) : null}
+          ) : null} */}
         </View>
         {/* {selectedIndex === index && iSCheckedArrow ? (
           <View
@@ -439,36 +439,34 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const onPressRefresh = async () =>{
+  const onPressRefresh = async () => {
     setisLoading(true);
     console.log("Hello onPressRefresh", getSavedLoggedInData);
-      const resGetAfrUrl = await GetAfrUrl({
-        Sin: getSavedLoggedInData.TaxPayerSocialInsuranceNumber,
-        appType: "FREE",
-        Year: 2022,
-        userToken: savedUserData?.token,
-      });
-      console.log("resGetAfrUrl checkSub:", resGetAfrUrl);
-      if (resGetAfrUrl) {
-        setisLoading(false);
-        if (resGetAfrUrl?.status == 500) {
-          Alert.alert("Error..!", resGetAfrUrl.data?.message);
-        } else if (resGetAfrUrl.ErrCode == -1) {
-          Alert.alert("Something went wrong..! Please try again..!");
-        } else {
-          navigation.navigate("WebViewScreen", {
-            url: resGetAfrUrl?.url,
-          });
-        }
-      } else {
-        setisLoading(false);
+    const resGetAfrUrl = await GetAfrUrl({
+      Sin: getSavedLoggedInData.TaxPayerSocialInsuranceNumber,
+      appType: "FREE",
+      Year: 2022,
+      userToken: savedUserData?.token,
+    });
+    console.log("resGetAfrUrl checkSub:", resGetAfrUrl);
+    if (resGetAfrUrl) {
+      setisLoading(false);
+      if (resGetAfrUrl?.status == 500) {
+        Alert.alert("Error..!", resGetAfrUrl.data?.message);
+      } else if (resGetAfrUrl.ErrCode == -1) {
         Alert.alert("Something went wrong..! Please try again..!");
-        console.log("resGetAfrUrl checkSub:");
-        // return {}
+      } else {
+        navigation.navigate("WebViewScreen", {
+          url: resGetAfrUrl?.url,
+        });
       }
-   
-  }
-
+    } else {
+      setisLoading(false);
+      Alert.alert("Something went wrong..! Please try again..!");
+      console.log("resGetAfrUrl checkSub:");
+      // return {}
+    }
+  };
 
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle} key={key}>
@@ -684,22 +682,21 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
           ) : null
         ) : null}
 
-        {!_.isUndefined(downloadedParams?.slipsFilerted) ? (downloadedParams?.slipsFilerted.length === 0) && (
-          sixthModal ? (
-            <CRADetailsPopUP
-              title={
-                "Sorry, we were unable to find any slips for your 2022 taxes using the CRA’s Auto-fill my return feature. Please try again at a later time."
-              }
-              details={""}
-              onPressCloseModal={() => onPressCloseModal(6)}
-              backgroundColor={darkTheme ? "#FFF7E8" : "#FFF7E8"}
-              borderColor={
-                darkTheme ? "#FFD88E" : "#FFD88E"
-              }
-              titleColor={"#003A5B"}
-            />
-          ) : null
-        ) : null}
+        {!_.isUndefined(downloadedParams?.slipsFilerted)
+          ? downloadedParams?.slipsFilerted.length === 0 &&
+            (sixthModal ? (
+              <CRADetailsPopUP
+                title={
+                  "Sorry, we were unable to find any slips for your 2022 taxes using the CRA’s Auto-fill my return feature. Please try again at a later time."
+                }
+                details={""}
+                onPressCloseModal={() => onPressCloseModal(6)}
+                backgroundColor={darkTheme ? "#FFF7E8" : "#FFF7E8"}
+                borderColor={darkTheme ? "#FFD88E" : "#FFD88E"}
+                titleColor={"#003A5B"}
+              />
+            ) : null)
+          : null}
 
         <View style={{ margin: 20, width: "90%" }}>
           {isDataLoading ? (
@@ -715,27 +712,38 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
             />
           )}
         </View>
-        <View style={{ margin: 20, flexDirection: 'row', flex: 1 }}>
-        <View style={{flex: 0.88,justifyContent:'center', alignItems: 'center'}}>
-        <CtText
-          style={{
-            fontSize: 14,
-            fontWeight: "400",
-            color: darkTheme
-              ? defaultColors.darkModeTextColor
-              : defaultColors.secondaryTextColor,
-            paddingTop: 4,
-            textAlign: "center",
-            // paddingLeft: 10,
-          }}
-        >
-          Last download on{" "}
-          {moment(downloadedParams?.lastDownloaded).format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          )}
-        </CtText>
-        </View>
-        <TouchableOpacity style={{flex: 0.12, justifyContent:'center', alignItems: 'center'}} onPress={() => onPressRefresh()}>
+        <View style={{ margin: 20, flex: 1 }}>
+          {/* <View style={{flex: 0.6,justifyContent:'center', alignItems: 'center'}}> */}
+          <CtText
+            style={{
+              fontSize: 14,
+              fontWeight: "400",
+              color: darkTheme
+                ? defaultColors.darkModeTextColor
+                : defaultColors.secondaryTextColor,
+              paddingTop: 4,
+              textAlign: "center",
+              // paddingLeft: 10,
+            }}
+          >
+            Last download on{" "}
+            {moment(downloadedParams?.lastDownloaded).format(
+              "dddd, MMMM Do YYYY, h:mm:ss a"
+            )}
+            <CtText
+              style={{
+                fontWeight: "400",
+                fontSize: 16,
+                marginTop: 20,
+                color: defaultColors.primaryBlue,
+              }}
+              onPress={() => onPressRefresh()}
+            >
+              {"  Try Again"}
+            </CtText>
+          </CtText>
+          {/* </View> */}
+          {/* <TouchableOpacity style={{flex: 0.12, justifyContent:'center', alignItems: 'center'}} onPress={() => onPressRefresh()}>
         <MaterialCommunityIcons
                 name={"cloud-refresh"}
                 size={26} 
@@ -743,23 +751,50 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
                   color: defaultColors.primaryBlue,
                 }}
               />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         </View>
         <CustomButton
-        showLoading={loadingAvailable}
-        buttonText="Import Data"
-        disabled={loadingAvailable}
-        onPress={() => onPressConfirm()}
-        style={{ marginBottom: 20, marginTop: 10, margin: 20 }}/>
-        <TextButton
+          showLoading={loadingAvailable}
+          buttonText="Import Data"
+          disabled={loadingAvailable}
+          onPress={() => onPressConfirm()}
+          style={{ marginBottom: 20, marginTop: 10, margin: 20 }}
+        />
+        {/* <TextButton
           description=" "
           linkText={"Goback"}
-          fontSize={15}
+          fontSize={16}
           linkTextColor={darkTheme ? defaultColors.white : defaultColors.gray}
           onPress={() => {
             onBackButtonPress();
           }}
-        />
+        /> */}
+
+        <TouchableOpacity
+          style={{
+            marginTop: 4,
+            display: "flex",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "center",
+            marginBottom: 20,
+          }}
+          onPress={() => onBackButtonPress()}
+        >
+          <CtText
+            style={{
+              // textAlign: "left",
+              fontSize: 18,
+              fontFamily: "Figtree-SemiBold",
+              fontWeight: "600",
+              color: darkTheme
+                ? defaultColors.darkModeTextColor
+                : defaultColors.gray,
+            }}
+          >
+            Goback
+          </CtText>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

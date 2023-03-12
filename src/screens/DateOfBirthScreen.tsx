@@ -18,7 +18,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import moment from "moment";
-import DatePicker from "react-native-date-picker";
+import DatePicker from '@react-native-community/datetimepicker';
 import {
   GetAfrUrl,
   GetSlips,
@@ -286,12 +286,13 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
               style={{
                 backgroundColor: "transparent",
                 width: "100%",
-                fontFamily: "Figtree-Medium",
+                fontFamily: "Figtree-SemiBold",
                 textAlign: "center",
                 fontWeight: "400",
                 color: darkTheme
                   ? defaultColors.whiteGrey
                   : defaultColors.secondaryTextColor,
+                  fontSize:18
               }}
             >
               {isDateAvailable
@@ -336,15 +337,16 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
               style={{
                 backgroundColor: "transparent",
                 width: "100%",
-                fontFamily: "Figtree-Medium",
+                fontFamily: "Figtree-SemiBold",
                 textAlign: "center",
                 fontWeight: "400",
                 color: darkTheme
                   ? defaultColors.whiteGrey
                   : defaultColors.secondaryTextColor,
+                  fontSize:18
               }}
             >
-              {isDateAvailable ? moment(date, "YYYY/MM/DD").format("M") : "MM"}
+              {isDateAvailable ? parseInt(moment(date, "YYYY/MM/DD").format("M")) < 10 ? `0${moment(date, "YYYY/MM/DD").format("M")}` : `${moment(date, "YYYY/MM/DD").format("M")}`  : "MM"}
             </CtText>
           </TouchableOpacity>
           <CtView
@@ -384,39 +386,41 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
               style={{
                 backgroundColor: "transparent",
                 width: "100%",
-                fontFamily: "Figtree-Medium",
+                fontFamily: "Figtree-SemiBold",
                 textAlign: "center",
                 fontWeight: "400",
                 color: darkTheme
                   ? defaultColors.whiteGrey
                   : defaultColors.secondaryTextColor,
+                  fontSize:18
               }}
             >
-              {isDateAvailable ? moment(date, "YYYY/MM/DD").format("D") : "DD"}
+              {isDateAvailable ? parseInt(moment(date, "YYYY/MM/DD").format("D")) < 10 ? `0${moment(date, "YYYY/MM/DD").format("D")}` : `${moment(date, "YYYY/MM/DD").format("D")}` : "DD"}
             </CtText>
           </TouchableOpacity>
         </CtView>
 
         {open ? (
           <DatePicker
-            modal
+            // modal
             //   minimumDate={new Date("2022-01-01")}
             maximumDate={new Date()}
-            mode="date"
-            open={open}
-            date={date}
+            // mode="date"
+            display="spinner"
+            // open={open}
+            value={date}
             textColor={darkTheme? "black": "black"}
-            theme={darkTheme ? 'dark':'light'}
-            onConfirm={(date) => {
+            themeVariant={darkTheme ? 'dark':'light'}
+            onChange={(event, selectedDate)  => {
               console.log("onConfirm", date);
               setOpen(false);
-              setDateValue(date);
+              setDateValue(selectedDate);
               setButtonEnable(true);
               setDateAvailability(true);
             }}
-            onCancel={() => {
-              setOpen(false);
-            }}
+            // onCancel={() => {
+            //   setOpen(false);
+            // }}
           />
         ) : null}
         <CustomButton

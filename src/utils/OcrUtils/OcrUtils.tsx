@@ -496,16 +496,18 @@ export function getSlipsDeleteUrls(item: string) {
   switch (item) {
     case "1":
       return "/DeleteT4SlipInfo";
-    case "5":
-      return "/DeleteT4APSlipInfo";
+    case "3":
+      return "/DeleteT4ASlipInfo";
     case "4":
       return "/DeleteT4AOASlipInfo";
+    case "5":
+      return "/DeleteT4APSlipInfo";
+    case "6":
+      return "/DeleteT4ESlipInfo";
     case "11":
       return "/DeleteT5007SlipInfo";
     case "10":
       return "/DeleteT5SlipInfo";
-    case "6":
-      return "/DeleteT4ESlipInfo";
     default:
       return "";
   }
@@ -513,18 +515,20 @@ export function getSlipsDeleteUrls(item: string) {
 
 export function getSlipNo(item: any, key: string) {
   switch (key) {
-    case "5":
-      return item["T4AP_no"];
     case "1":
       return item["T4_no"];
-    case "11":
-      return item["T5007_no"];
-    case "10":
-      return item["T5_no"];
+    case "3":
+      return item["T4A_no"];
     case "4":
       return "1";
+    case "5":
+      return item["T4AP_no"];
     case "6":
       return item["T4E_no"];
+    case "10":
+      return item["T5_no"];
+    case "11":
+      return item["T5007_no"];
     default:
       return "";
   }
@@ -567,6 +571,8 @@ export function getName(item: any) {
   switch (item.Type) {
     case "1":
       return "T4 " + (item.EmployersName ? item.EmployersName : "");
+      case "3":
+        return "T4A " + (item.TaxPayersName ? item.TaxPayersName : "");
     case "4":
       return "T4A(OAS)";
     case "5":
@@ -606,16 +612,18 @@ export function navigateToScreen(item: string) {
   switch (item) {
     case "1":
       return "T4OcrScreen";
-    case "11":
-      return "T5007OcrScreen";
-    case "5":
-      return "T4APOcrScreen";
-    case "10":
-      return "T5OcrScreen";
+    case "3":
+      return "T4AOcrScreen";
     case "4":
       return "T4OASScreen";
+    case "5":
+      return "T4APOcrScreen";
     case "6":
       return "T4EOcrScreen";
+    case "10":
+      return "T5OcrScreen";
+    case "11":
+      return "T5007OcrScreen";
     default:
       return null;
   }
@@ -635,6 +643,8 @@ export function navigateToScreenFromScanning(key: string) {
       return "T5OcrScreen";
     case "T4E":
       return "T4EOcrScreen";
+    case "T4A":
+      return "T4AOcrScreen";
     default:
       return null;
   }

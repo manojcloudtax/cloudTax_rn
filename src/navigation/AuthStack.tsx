@@ -29,6 +29,8 @@ import T4APOcrScreen from "../screens/Ocr/T4APOcrScreen";
 import T5OcrScreen from "../screens/Ocr/T5OcrScreen";
 import T4OASScreen from "../screens/Ocr/T4OASScreen";
 import T4EOcrScreen from "../screens/Ocr/T4EOcrScreen";
+import SplashScreenView from "../screens/SplashScreenView";
+import T4AOcrScreen from "../screens/Ocr/T4AOcrScreen";
 
 const { Navigator, Screen } = createNativeStackNavigator();
 
@@ -36,7 +38,7 @@ const AuthStack = () => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
   const setInitialRoute = () => {
     let initialScreenName;
-    initialScreenName = "LoginScreen";
+    initialScreenName = "SplashScreenView";
     return initialScreenName;
   };
 
@@ -54,6 +56,11 @@ const AuthStack = () => {
           animation: "slide_from_right",
         }}
       >
+        <Screen
+          name="SplashScreenView"
+          component={SplashScreenView}
+          options={{ title: "", headerShown: false }}
+        />
         <Screen
           name="RegisterScreen"
           component={RegisterScreen}
@@ -150,17 +157,17 @@ const AuthStack = () => {
           component={T5007OcrScreen}
           options={{ title: "", headerShown: false }}
         />
-         <Screen
+        <Screen
           name="T4APOcrScreen"
           component={T4APOcrScreen}
           options={{ title: "", headerShown: false }}
         />
-         <Screen
+        <Screen
           name="T5OcrScreen"
           component={T5OcrScreen}
           options={{ title: "", headerShown: false }}
         />
-         <Screen
+        <Screen
           name="T4OASScreen"
           component={T4OASScreen}
           options={{ title: "", headerShown: false }}
@@ -168,6 +175,11 @@ const AuthStack = () => {
         <Screen
           name="T4EOcrScreen"
           component={T4EOcrScreen}
+          options={{ title: "", headerShown: false }}
+        />
+        <Screen
+          name="T4AOcrScreen"
+          component={T4AOcrScreen}
           options={{ title: "", headerShown: false }}
         />
       </Navigator>

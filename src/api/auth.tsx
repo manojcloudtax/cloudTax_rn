@@ -756,28 +756,28 @@ export const GetAvailableSlipsData = async (
     res4 !== ""
       ? res4.data.ErrCode !== -1
         ? reponseArray.push(
-          res4.data.map((obj: any) => {
-            return { ...obj, Type: "4" };
-          })
-        )
+            res4.data.map((obj: any) => {
+              return { ...obj, Type: "4" };
+            })
+          )
         : null
       : null;
     res5 !== ""
       ? res5.data.ErrCode !== -1
         ? reponseArray.push(
-          res5.data.map((obj: any) => {
-            return { ...obj, Type: "5" };
-          })
-        )
+            res5.data.map((obj: any) => {
+              return { ...obj, Type: "5" };
+            })
+          )
         : null
       : null;
     res6 !== ""
       ? res6.data.ErrCode !== -1
         ? reponseArray.push(
-          res6.data.map((obj: any) => {
-            return { ...obj, Type: "6" };
-          })
-        )
+            res6.data.map((obj: any) => {
+              return { ...obj, Type: "6" };
+            })
+          )
         : null
       : null;
     res7 !== ""
@@ -798,19 +798,19 @@ export const GetAvailableSlipsData = async (
     res10 !== ""
       ? res10.data.ErrCode !== -1
         ? reponseArray.push(
-          res10.data.map((obj: any) => {
-            return { ...obj, Type: "10" };
-          })
-        )
+            res10.data.map((obj: any) => {
+              return { ...obj, Type: "10" };
+            })
+          )
         : null
       : null;
     res11 !== ""
       ? res11.data.ErrCode !== -1
         ? reponseArray.push(
-          res11.data.map((obj: any) => {
-            return { ...obj, Type: "11" };
-          })
-        )
+            res11.data.map((obj: any) => {
+              return { ...obj, Type: "11" };
+            })
+          )
         : null
       : null;
     res12 !== ""
@@ -865,7 +865,8 @@ export const SaveSlipData = (postData: any, userToken: string, url: string) =>
       headers: { Authorization: `Bearer ${userToken}` },
     })
     .then((res) => {
-      console.log("SaveT4SlipInfoList", res);
+      console.log("SaveT4SlipInfoList res", res);
+      console.log("SaveT4SlipInfoList postData", postData);
       return res.data;
     })
     .catch((res) => {
@@ -873,10 +874,9 @@ export const SaveSlipData = (postData: any, userToken: string, url: string) =>
       return "";
     });
 
-
-  export const GetUrlData = (postData: any, userToken: string) =>
+export const GetUrlData = (postData: any, userToken: string) =>
   shoebox
-    .post('https://app.cloudtax.ca/qa/api/2022/login-url', postData, {
+    .post("https://app.cloudtax.ca/qa/api/2022/login-url", postData, {
       headers: { Authorization: `Bearer ${userToken}` },
     })
     .then((res) => {
@@ -887,4 +887,39 @@ export const SaveSlipData = (postData: any, userToken: string, url: string) =>
       console.log("GetUrlData", res);
       return null;
     });
+
+export const GetForceUpdateStatus = (postData: any, userToken: string) =>
+  shoebox
+    .post("https://app.cloudtax.ca/qa/api/helper/check-update", postData, {
+      headers: { Authorization: `Bearer ${userToken}` },
+    })
+    .then((res) => {
+      console.log("GetForceUpdateStatus", res);
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("GetForceUpdateStatus", res);
+      return null;
+    });
+
+export const SaveMultipleSlipData = async (
+  postData: any,
+  userToken: string
+) => {
+  try {
+    const allResponses = [];
+    for (let i = 0; i < postData.length; i++) {
+      const response = await shoebox.post("SaveT4ASlipInfo", postData[i], {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      allResponses.push(response.data);
+      if (allResponses.length === postData.length) {
+        return allResponses;
+      }
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+};
 export default auth;

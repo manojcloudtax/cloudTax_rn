@@ -11,7 +11,7 @@ import {
   PermissionsAndroid,
   Alert,
 } from "react-native";
-import { CtText, CtView, Button } from "../../components/UiComponents";
+import { CtText, CtView } from "../../components/UiComponents";
 import { useDispatch } from "react-redux";
 import { defaultColors } from "../../utils/defaultColors";
 import { useSelector } from "react-redux";
@@ -20,7 +20,6 @@ import { Header } from "../../components/Header";
 import { CommonModal } from "../../components";
 import DocumentScanner from "react-native-document-scanner-plugin";
 import ImagePicker from "react-native-image-crop-picker";
-import axios from "axios";
 import { CustomButton } from "../../components/CustomButton";
 import { ImageUploadComponent } from "../../components/ImageUploadComponent";
 import { navigateToScreenFromScanning } from "../../utils/OcrUtils/OcrUtils";
@@ -90,63 +89,6 @@ const EmptySlipsScreen = ({ navigation, route }: any) => {
             path: scannedImages[0],
           });
           scanApiCall(formData);
-          // const config = {
-          //   headers: {
-          //     accept: "application/json",
-          //     "Content-Type": "multipart/form-data",
-          //     Authorization: `Bearer ${savedUserData.token}`,
-          //   },
-          // };
-          // try {
-          // axios
-          //   .post(
-          //     "https://www.app.cloudtax.ca/qa/ocr/api/slip/scan",
-          //     formData,
-          //     config
-          //   )
-          //   .then((res) => {
-          //     console.log("this is data /api/slip/scan/", res);
-          //     axios
-          //       .get(
-          //         "https://www.app.cloudtax.ca/qa/ocr/api/slip/scan/" +
-          //           res.data.ScanID,
-          //         {
-          //           headers: {
-          //             accept: "application/json",
-          //             Authorization: `Bearer ${savedUserData.token}`,
-          //           },
-          //         }
-          //       )
-          //       .then((resData) => {
-          //         setisLoading(false);
-          //         console.log("this res.data.ScanID", resData);
-          //         navigation.navigate((navigateToScreenFromScanning(resData.data.result.Type)), {
-          //           data: resData.data.result,
-          //           ScanID: res.data.ScanID,
-          //           getSelectedFormsData: getSelectedFormsData,
-          //         });
-          //       })
-          //       .catch((err) => {
-          //         setisLoading(false);
-          //         console.log(err);
-          //         Alert.alert('Something went wrong..! Please try again later..!');
-          //       });
-          //   })
-          //   .catch((err) => {
-          //     setisLoading(false);
-          //     console.log(err.response.data);
-          //     if(err.response.data){
-          //       Alert.alert(err.response.data.message);
-          //     } else {
-          //       Alert.alert('Something went wrong..! Please try again later..!');
-          //     }
-          //     console.log("CAMERA permission allow", err);
-          //   });
-          // } catch (error) {
-          //   setisLoading(false);
-          //   console.log("CAMERA permission allow", error);
-          //   Alert.alert('Something went wrong..! Please try again later..!');
-          // }
           console.log("CAMERA permission allow", scannedImages);
         } else {
           setisLoading(false);
@@ -188,56 +130,6 @@ const EmptySlipsScreen = ({ navigation, route }: any) => {
             path: image.path,
           });
           scanApiCall(formData);
-          // const config = {
-          //   headers: {
-          //     accept: "application/json",
-          //     "Content-Type": "multipart/form-data",
-          //     Authorization: `Bearer ${savedUserData.token}`,
-          //   },
-          // };
-          // axios
-          //   .post(
-          //     "https://www.app.cloudtax.ca/qa/ocr/api/slip/scan",
-          //     formData,
-          //     config
-          //   )
-          //   .then((res) => {
-          //     setisLoading(false);
-          //     console.log("this is data /api/slip/scan/", res);
-          //     axios
-          //       .get(
-          //         "https://www.app.cloudtax.ca/qa/ocr/api/slip/scan/" +
-          //           res.data.ScanID,
-          //         {
-          //           headers: {
-          //             accept: "application/json",
-          //             Authorization: `Bearer ${savedUserData.token}`,
-          //           },
-          //         }
-          //       )
-          //       .then((resData) => {
-          //         setisLoading(false);
-          //         console.log("this res.data.ScanID", resData);
-          //         // navigation.navigate("T4OcrScreen", {
-          //         //   data: resData.data.result,
-          //         //   ScanID: res.data.ScanID,
-          //         //   getSelectedFormsData: getSelectedFormsData,
-          //         // });
-          //         navigation.navigate((navigateToScreenFromScanning(resData.data.result.Type)), {
-          //           data: resData.data.result,
-          //           ScanID: res.data.ScanID,
-          //           getSelectedFormsData: getSelectedFormsData,
-          //         });
-          //       })
-          //       .catch((err) => {
-          //         setisLoading(false);
-          //         console.log(err);
-          //       });
-          //   })
-          //   .catch((err) => {
-          //     setisLoading(false);
-          //     console.log(err);
-          //   });
         })
         .catch((e) => {
           setisLoading(false);

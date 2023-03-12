@@ -260,7 +260,7 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
   };
 
   const renderSlips = (item: any) => {
-    console.log("renderSlips res", item);
+    // console.log("renderSlips res", item);
     if (
       item.ErrCode == -1 ||
       !(
@@ -269,7 +269,8 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
         item.Type == "5" ||
         item.Type == "10" ||
         item.Type == "4"||
-        item.Type == "6"
+        item.Type == "6"||
+        item.Type == "3"
       )
     ) {
       return;

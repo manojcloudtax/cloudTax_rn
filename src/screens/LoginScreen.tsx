@@ -24,7 +24,7 @@ import {
   setIsPriorYearModalSelected,
   saveGetTPAccountData,
   setProvinces,
-  saveTaxPayerMyProfileInfo,
+  saveTPMyProfileInfo,
   saveRegisteredSuccessUserData,
   resetAllStateData,
   savePartnerDetails,
@@ -127,6 +127,10 @@ const LoginScreen = ({ navigation }: any) => {
           const morphedData = { ...data, email, password };
           dispatch(login(morphedData));
           await dispatch(saveRegisteredSuccessUserData(data));
+          await AsyncStorage.setItem(
+            "savedUserData",
+            JSON.stringify(data)
+          );
           const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
             AcctID: data?.AcctID,
             TaxPayerID: data?.TaxPayerID,
@@ -146,6 +150,10 @@ const LoginScreen = ({ navigation }: any) => {
               dispatch(
                 saveLoggedInSuccessUserData(GetTaxPayerPersonalResponse)
               );
+              await AsyncStorage.setItem(
+                "getSavedLoggedInData",
+                JSON.stringify(GetTaxPayerPersonalResponse)
+              );
             }
           } else {
           }
@@ -162,7 +170,7 @@ const LoginScreen = ({ navigation }: any) => {
             // const {data} = res
             if (responseGetTPAccountInfo[0].ErrCode == -1) {
               console.log(
-                "GetTPAccountInfo: error error",
+                "GetTPAccountInfo: error error saveTPAccountData",
                 responseGetTPAccountInfo
               );
             } else {
@@ -170,6 +178,10 @@ const LoginScreen = ({ navigation }: any) => {
                 return item.TaxPayerID !== data?.TaxPayerID;
               });
               await dispatch(saveGetTPAccountData(filteredData));
+              await AsyncStorage.setItem(
+                "saveTPAccountData",
+                JSON.stringify(filteredData)
+              );
             }
           } else {
           }
@@ -186,7 +198,11 @@ const LoginScreen = ({ navigation }: any) => {
           );
 
           if (resGetTaxPayerMyProfileInfo) {
-            dispatch(saveTaxPayerMyProfileInfo(resGetTaxPayerMyProfileInfo));
+            dispatch(saveTPMyProfileInfo(resGetTaxPayerMyProfileInfo));
+            await AsyncStorage.setItem(
+              "saveTPMyProfileInfo",
+              JSON.stringify(resGetTaxPayerMyProfileInfo)
+            );
             const params = {
               MaritialStatus: getMaritalStatusValue(
                 resGetTaxPayerMyProfileInfo.TaxPayerMaritalStatus
@@ -231,7 +247,14 @@ const LoginScreen = ({ navigation }: any) => {
             }
             dispatch(savePartnerDetails(partnerDetails));
             dispatch(setOnBoardingData(params));
-
+            await AsyncStorage.setItem(
+              "partnerDetails",
+              JSON.stringify(partnerDetails)
+            );
+            await AsyncStorage.setItem(
+              "setOnBoardingData",
+              JSON.stringify(params)
+            );
             navigation.navigate("ChooseTaxYearScreen", {
               isFromRegistration: false,
             });

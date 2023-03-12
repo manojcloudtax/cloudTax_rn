@@ -355,7 +355,7 @@ const T4EOcrScreen = ({ navigation, route }: any) => {
     const updatedSlip = [...getInitialFlatlistArray];
     updatedSlip.push(item);
     setinitialFlatListArray(updatedSlip);
-    const newArray = updatedSlip.filter((obj) => obj.id !== item.id);
+    const newArray = getFilteredArray.filter((obj) => obj.id !== item.id);
     console.log("onSelectListItem", newArray);
     setSearchedArraySlips(newArray);
     setFilteredArray(newArray);

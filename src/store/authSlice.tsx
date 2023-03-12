@@ -95,8 +95,8 @@ export const authSlice = createSlice({
       console.log("saveGetTPAccountData", action.payload);
       state.saveTPAccountData = action.payload;
     },
-    saveTaxPayerMyProfileInfo: (state, action) => {
-      console.log("saveTaxPayerMyProfileInfo", action.payload);
+    saveTPMyProfileInfo: (state, action) => {
+      console.log("saveTPMyProfileInfo", action.payload);
       state.saveTPMyProfileData = action.payload;
     },
     setIsPriorYearModalSelected: (state, action) => {
@@ -155,7 +155,7 @@ export const {
   SaveTaxpayerProfileData,
   resetState,
   saveGetTPAccountData,
-  saveTaxPayerMyProfileInfo,
+  saveTPMyProfileInfo,
   setIsPriorYearModalSelected,
   saveLoggedInSuccessUserData,
   savePartnerDetails,

@@ -49,6 +49,7 @@ const OCRTextInput = ({
             ? defaultColors.white
             : defaultColors.secondaryTextColor
           }}
+          numberOfLines={1}
         >
           {title}
         </CtText>

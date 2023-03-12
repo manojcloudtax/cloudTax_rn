@@ -40,11 +40,12 @@ import {
 import {
   imageUpload,
   saveRegisteredSuccessUserData,
-  saveTaxPayerMyProfileInfo,
+  saveTPMyProfileInfo,
   setIsPriorYearModalSelected,
   saveLoggedInSuccessUserData,
   resetAllStateData,
   savePartnerDetails,
+  saveGetTPAccountData
 } from "../store/authSlice";
 import { RootState } from "../store";
 import axios from "axios";
@@ -54,6 +55,7 @@ import {
 } from "../store/onBoardingSlice";
 import { CustomButton } from "../components/CustomButton";
 import { CustomInput } from "../components/CustomInput";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const RegisterScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -136,9 +138,17 @@ const RegisterScreen = ({ navigation, route }: any) => {
               dispatch(
                 saveLoggedInSuccessUserData(GetTaxPayerPersonalResponse)
               );
+              await AsyncStorage.setItem(
+                "getSavedLoggedInData",
+                JSON.stringify(GetTaxPayerPersonalResponse)
+              );
+              await AsyncStorage.setItem("setOnBoardingData", "");
+              dispatch(setOnBoardingData({}));
+              dispatch(saveGetTPAccountData([]));
             }
           } else {
           }
+          await AsyncStorage.setItem("savedUserData", JSON.stringify(data));
           await dispatch(saveRegisteredSuccessUserData(data));
           setSteps(2);
         }
@@ -219,15 +229,23 @@ const RegisterScreen = ({ navigation, route }: any) => {
           } else {
             setisLoading(false);
             console.log("resGetTPAccountInfo success", resGetTPAccountInfo);
-            dispatch(saveTaxPayerMyProfileInfo(resGetTPAccountInfo));
+            dispatch(saveTPMyProfileInfo(resGetTPAccountInfo));
+            await AsyncStorage.setItem(
+              "saveTPMyProfileInfo",
+              JSON.stringify(resGetTPAccountInfo)
+            );
             let partnerDetails = {
-              PartnerID : resGetTPAccountInfo?.PartnerID,
-              PartnerName : resGetTPAccountInfo?.PartnerName,
+              PartnerID: resGetTPAccountInfo?.PartnerID,
+              PartnerName: resGetTPAccountInfo?.PartnerName,
               TypedPartnerName: null,
               SelectedPartnerID: null,
               SelectedPartnerName: null,
-            }
+            };
             dispatch(savePartnerDetails(partnerDetails));
+            await AsyncStorage.setItem(
+              "partnerDetails",
+              JSON.stringify(partnerDetails)
+            );
             navigation.navigate("ChooseTaxYearScreen", {
               isFromRegistration: true,
             });
@@ -303,12 +321,11 @@ const RegisterScreen = ({ navigation, route }: any) => {
           const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.CAMERA,
             {
-              title: 'CloudTax App Camera Permission',
-              message:
-                'Allow CloudTax to take pictures.',
-                buttonNeutral: "Ask Me Later",
-                buttonNegative: "Cancel",
-                buttonPositive: "OK"
+              title: "CloudTax App Camera Permission",
+              message: "Allow CloudTax to take pictures.",
+              buttonNeutral: "Ask Me Later",
+              buttonNegative: "Cancel",
+              buttonPositive: "OK",
             }
           );
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {

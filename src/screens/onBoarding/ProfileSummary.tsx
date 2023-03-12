@@ -625,12 +625,12 @@ setShowModal(true);
         // console.log("GetTaxPayerMyProfile postData:", postData);
         const GetTaxPayerMyProfile = await SaveTaxPayerMyProfileInfo({
           AcctID: savedUserData.AcctID,
-          ClaimCreditsFromSpouse: savedUserData.ClaimCreditsFromSpouse,
+          ClaimCreditsFromSpouse: route.params.ClaimCreditsFromSpouse,
           DependentStatus: getAnswersOfQuestions(selectedQuestions[2].answer),
           MaritalStatusChanged: getAnswersOfQuestions(
             selectedQuestions[1].answer
           ),
-          MaritalStatusChangedDate: savedUserData?.MaritalStatusChangedDate,
+          MaritalStatusChangedDate: route.params.MaritalStatusChangedDate,
           PartnerID: getPartnerDetails?.PartnerID !== null ? getPartnerDetails?.PartnerID : getPartnerDetails?.SelectedPartnerID,
           PartnerName: getPartnerDetails.PartnerID !== null? getPartnerDetails.PartnerName : getPartnerDetails.SelectedPartnerID !== null ? getPartnerDetails.SelectedPartnerName : getPartnerDetails.TypedPartnerName,
           Province: selectedProvince.ProvinceCode,
@@ -638,7 +638,7 @@ setShowModal(true);
           TaxPayerID: savedUserData?.TaxPayerID,
           TaxPayerMaritalStatus: getMaritalStatus(selectedMaritalStatus),
           TaxPayerPreviousMaritalStatus: getTaxPayerPreviousMaritalStatus(
-            savedUserData?.TaxPayerPreviousMaritalStatus
+            route.params.TaxPayerPreviousMaritalStatus
           ),
           Year: 2022,
           _PartnerStatus: getAnswersOfQuestions(selectedQuestions[0].answer),

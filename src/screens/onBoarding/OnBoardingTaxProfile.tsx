@@ -26,7 +26,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { setOnBoardingData } from "../../store/onBoardingSlice";
 import _ from "lodash";
 import ReactNativePickerModule, { PickerRef } from "react-native-picker-module";
-import DatePicker from "react-native-date-picker";
+import DatePicker from '@react-native-community/datetimepicker';
 import moment from "moment";
 import { Header } from "../../components/Header";
 import { BottomButton } from "../../components/BottomButton";
@@ -132,9 +132,11 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
         setSelectedMaritalStatus(onBoardingData.MaritialStatus);
         setSelectedProvince(onBoardingData.Province);
         if (
-          onBoardingData?.MaritalStatusChangedDate !== "" ||
+          onBoardingData?.MaritalStatusChangedDate !== "" &&
           onBoardingData?.MaritalStatusChangedDate !== null
         ) {
+
+        console.log("init OnBoardingTaxProfile MaritalStatusChangedDate", onBoardingData);
           setDateValue(new Date(onBoardingData?.MaritalStatusChangedDate));
           setDropdownVisibility(true);
         }
@@ -697,18 +699,18 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
           partnerName: partnerName,
           selectedYear: selectedYear,
           answersOfQuestions: _.map(getQuestions, "answer"),
-          MaritalStatusChangedDate: isShowDropDown
+          MaritalStatusChangedDate: getQuestions[2].answer === "Yes" ? isShowDropDown
             ? moment(date).format("YYYY-MM-DD").toString()
-            : "",
+            : "": "",
           TaxPayerPreviousMaritalStatus:
-            date && isShowDropDown ? dropdownValue : "",
+          getQuestions[2].answer === "Yes" ? date && isShowDropDown ? dropdownValue : "": "",
           partnerFromList: partnerFromList,
           ClaimCreditsFromSpouse:
-            date && dropdownValue == "Married, Living common-law"
+          getQuestions[2].answer === "Yes" ? date && dropdownValue == "Married, Living common-law"
               ? isYesSelected
                 ? "Y"
                 : "N"
-              : "",
+              : "": "",
         };
         const paramsds = {
           MaritialStatus: selectedMaritalStatus,
@@ -801,7 +803,7 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
   const setDate = () => {
     setOpen(true);
   };
-
+  console.log("onConfirm date", date);
   return (
     <SafeAreaView style={styles(darkTheme).view} key={key}>
       <CommonModal
@@ -973,7 +975,7 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
                             }}
                           >
                             {isShowDropDown
-                              ? moment(date, "YYYY/MM/DD").format("M")
+                              ? parseInt(moment(date, "YYYY/MM/DD").format("M")) < 10 ? `0${moment(date, "YYYY/MM/DD").format("M")}` : `${moment(date, "YYYY/MM/DD").format("M")}` 
                               : "MM"}
                           </CtText>
                         </TouchableOpacity>
@@ -1019,7 +1021,7 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
                             }}
                           >
                             {isShowDropDown
-                              ? moment(date, "YYYY/MM/DD").format("D")
+                              ? parseInt(moment(date, "YYYY/MM/DD").format("D")) < 10 ? `0${moment(date, "YYYY/MM/DD").format("D")}` : `${moment(date, "YYYY/MM/DD").format("D")}` 
                               : "DD"}
                           </CtText>
                         </TouchableOpacity>
@@ -1027,24 +1029,25 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
 
                       {open ? (
                         <DatePicker
-                          modal
+                          // modal
                           minimumDate={new Date("2022-01-01")}
                           maximumDate={new Date("2022-12-31")}
-                          mode="date"
-                          open={open}
-                          date={date}
+                          // mode="date"
+                          display="spinner"
+                          // open={open}
+                          value={date}
                           timeZoneOffsetInMinutes={0}
                           textColor={darkTheme? "black": "black"}
-                          theme={darkTheme ? 'dark':'light'}
-                          onConfirm={(date) => {
-                            console.log("onConfirm", date);
+                          themeVariant={darkTheme ? 'dark':'light'}
+                          onChange={(event, selectedDate) => {
+                            console.log("onConfirm selectedDate", selectedDate);
                             setOpen(false);
-                            setDateValue(date);
+                            setDateValue(selectedDate);
                             setDropdownVisibility(true);
                           }}
-                          onCancel={() => {
-                            setOpen(false);
-                          }}
+                          // onCancel={() => {
+                          //   setOpen(false);
+                          // }}
                         />
                       ) : null}
                       <CtView style={{ marginTop: 20 }}>

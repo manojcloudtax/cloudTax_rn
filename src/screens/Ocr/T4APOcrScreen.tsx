@@ -133,25 +133,6 @@ const T4APOcrScreen = ({ navigation, route }: any) => {
     },
   ];
 
-  let restData = [
-    {
-      id: 21,
-      boxNo: 21,
-      name: "Disability (Number of months)",
-      box: "Box21",
-      mask: "M0",
-      prefix: "",
-    },
-    {
-      id: 23,
-      boxNo: 23,
-      name: "Retirement (Number of months)",
-      box: "Box23",
-      mask: "M0",
-      prefix: "",
-    },
-  ];
-
   useEffect(() => {
     try {
       if (route.params !== undefined) {
