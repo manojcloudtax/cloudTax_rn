@@ -223,7 +223,7 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
                 TaxID: getSavedLoggedInData?.TaxID,
               },
               savedUserData?.token,
-              resGetSelectedData.IncomeSlipForms.split(",")
+              resGetSelectedData.IncomeSlipForms !== null ? resGetSelectedData.IncomeSlipForms.split(","): ''
             );
 
             if (resAvailableSlipsData) {
@@ -432,6 +432,7 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
           console.log("CAMERA permission allow");
           const { scannedImages } = await DocumentScanner.scanDocument({
             maxNumDocuments: 1,
+            croppedImageQuality: 50
           });
 
           let formData = new FormData();

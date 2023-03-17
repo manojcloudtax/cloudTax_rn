@@ -19,7 +19,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cloudtax",
+      "bundleIdentifier": "cloudtax.org.com.ctweb",
       "userInterfaceStyle": "automatic"
     },
     "android": {
@@ -27,7 +27,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.cloudtax",
+      "package": "cloudtax.org.com.ctweb",
       "userInterfaceStyle": "automatic"
     },
     "web": {

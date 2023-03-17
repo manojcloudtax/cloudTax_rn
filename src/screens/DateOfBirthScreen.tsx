@@ -75,6 +75,8 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
     } catch (error) {}
   }, [isFocused]);
   const onPressConfirm = async () => {
+    console.log("DateOfBirthScreen onPressConfirm", date);
+    console.log("DateOfBirthScreen onPressConfirm moment", moment(date).format("YYYY-MM-DD").toString());
     if (!isDateAvailable) {
       Alert.alert("Please select valid date..!");
       return;
@@ -94,6 +96,7 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
         // return;
       }
       const resSaveTaxPayerPersonal = await SaveTaxPayerPersonalInfo({
+        TaxPayerBirthDate: moment(date).format("YYYY-MM-DD").toString(),
         TaxPayerID: resGetTaxPayerMyProfileInfo?.TaxPayerID,
         Year: 2022,
         TaxID: resGetTaxPayerMyProfileInfo?.TaxID,
@@ -101,7 +104,6 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
         TaxPayerMiddleName: resGetTaxPayerMyProfileInfo?.TaxPayerMiddleName,
         TaxPayerLastName: resGetTaxPayerMyProfileInfo?.TaxPayerLastName,
         TaxPayerSIN: resGetTaxPayerMyProfileInfo?.TaxPayerSocialInsuranceNumber,
-        TaxPayerBirthDate: moment(date).format("YYYY-MM-DD").toString(),
         DefaultBirthDate: 'N',
         NameChangedStatus: resGetTaxPayerMyProfileInfo?.NameChangedStatus,
         DisabledStatus: resGetTaxPayerMyProfileInfo?.DisabledStatus,
@@ -133,12 +135,32 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
           setisLoading(false);
           // Alert.alert("Something went wrong..! Please try again..!");
           // return;
+        } else {
+          const resGetTaxPayerMyProfileInfo2 = await GetTaxPayerPersonalInfo({
+            AcctID: savedUserData?.AcctID,
+            TaxPayerID: savedUserData?.TaxPayerID,
+            Year: 2022,
+            userToken: savedUserData?.token,
+          });
+          console.log("resGetTaxPayerMyProfileInfo res", resGetTaxPayerMyProfileInfo2);
+          if (resGetTaxPayerMyProfileInfo2) {
+            if (resGetTaxPayerMyProfileInfo2.ErrCode == -1) {
+              // setisLoading(false);
+              Alert.alert("Something went wrong..! Please try again..!");
+              // return;
+            } else {
+              dispatch(saveLoggedInSuccessUserData(resGetTaxPayerMyProfileInfo2));
+              console.log("resGetAfrUrl getSavedLoggedInData", getSavedLoggedInData);
+              console.log("resGetAfrUrl resGetTaxPayerMyProfileInfo2", resGetTaxPayerMyProfileInfo2);
+              navigation.navigate("SummaryScreen");
+            }
+          } else{
+            Alert.alert("Something went wrong, please try again.");
+          }
+        
         }
 
-        dispatch(saveLoggedInSuccessUserData(resGetTaxPayerMyProfileInfo));
-        // console.log("resGetAfrUrl start", SelectedSin, savedUserData);
-        console.log("resGetAfrUrl getSavedLoggedInData", getSavedLoggedInData);
-        navigation.navigate("SummaryScreen");
+       
         // const GetSlipsfileRes = await GetSlips(
         //   {
         //     TaxID: resGetTaxPayerMyProfileInfo?.TaxID,

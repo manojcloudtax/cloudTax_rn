@@ -1,50 +1,28 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
-  Image,
   Alert,
   ScrollView,
-  TouchableOpacity,
   Platform,
   KeyboardAvoidingView,
   Dimensions,
 } from "react-native";
-import {
-  CtText,
-  CtView,
-  CtTextInput,
-  Button,
-  TextButton,
-} from "../components/UiComponents";
-import { Spinner, ErrorMessage } from "../components";
+import { CtText, CtView, Button, TextButton } from "../components/UiComponents";
 import { useDispatch } from "react-redux";
-import { login } from "../store/authSlice";
 import { defaultColors } from "../utils/defaultColors";
-import { ForgotPassword, loginUser } from "../api/auth";
+import { ForgotPassword} from "../api/auth";
 import { useQuery } from "react-query";
-import { FontAwesome5 } from "@expo/vector-icons";
 import { validateEmail } from "../utils/email";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import { Ionicons, Feather } from "@expo/vector-icons";
-
-import DeviceCrypto from "react-native-device-crypto";
-import { decryptAccounts } from "../utils/crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SocialIcon } from "react-native-elements";
-import CheckBox from "@react-native-community/checkbox";
 import { CustomInput } from "../components/CustomInput";
 import { CustomButton } from "../components/CustomButton";
 
 const ForgotPasswordScreen = ({ navigation }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [biometricsSupported, setBiometricsSupported] = useState(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [isKeepMeSignInChecked, setKeepMeSignedIn] = useState<boolean>(false);
 
   const dispatch = useDispatch();
 
@@ -54,15 +32,21 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
       ForgotPassword({
         AcctEmail: email,
         Year: 2022,
+        host: "https://www.app.cloudtax.ca/2022/auth/reset-password",
       }),
     {
       onSuccess: async (data) => {
         console.log("REGISTERED", data);
-        if (data.ErrCode == -1) {
+        if(data){
+          if (!data.success) {
+            Alert.alert("Something went wrong,,! Please enter a valid email..!");
+          } else {
+            // navigation.navigate("VerificationCodeScreen");
+            console.log("ERROR", data);
+            Alert.alert("Success", "We've sent an email to your mail with password reset instructions.");
+          }
+        }else {
           Alert.alert("Something went wrong, please try again.");
-        } else {
-          navigation.navigate("VerificationCodeScreen");
-          console.log("ERROR", data);
         }
       },
       onError: (data) => {
@@ -83,35 +67,6 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
     }
   };
 
-  const renderButton = () => {
-    const buttonDisabled = !email || emailError;
-    if (isLoading) {
-      return (
-        <Spinner
-          style={{
-            flex: 0,
-          }}
-        />
-      );
-    } else {
-      return (
-        <Button
-          activeOpacity={1}
-          disabled={!!buttonDisabled}
-          style={[
-            styles().button,
-            {
-              opacity: buttonDisabled ? 0.8 : 1,
-              marginBottom: 24,
-              marginTop: 42,
-            },
-          ]}
-          buttonText="Submit"
-          onPress={() => refetch()}
-        />
-      );
-    }
-  };
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle}>
       <ScrollView
@@ -140,27 +95,6 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
             </CtView>
             <CtView style={styles(darkTheme).BottomViewContainer}>
               <CtView style={{ marginTop: 30 }}>
-                {/* <CtView style={styles(darkTheme).textInputContainer}>
-                  <CtView style={styles(darkTheme).inputIcon2}>
-                    <TouchableOpacity>
-                      <Ionicons
-                        name={"mail-outline"}
-                        style={styles().iconStyle}
-                      />
-                    </TouchableOpacity>
-                  </CtView>
-                  <CtTextInput
-                    editable={true}
-                    placeholder={"Your email address"}
-                    placeholderTextColor={defaultColors.gray}
-                    style={styles().inputAlt}
-                    onChangeText={(email: string) => setEmail(email)}
-                    onBlur={onEmailSubmit}
-                    keyboardType={"email-address"}
-                    autoCapitalize="none"
-                  />
-                </CtView> */}
-
                 <CustomInput
                   editable={true}
                   placeholder={"Your email address"}
@@ -170,26 +104,16 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
                   keyboardType={"email-address"}
                   autoCapitalize="none"
                   validationError={emailError}
-                  customImage={darkTheme ? require("../../assets/msgIconDark.png") : require("../../assets/msgIcon.png")}
+                  customImage={
+                    darkTheme
+                      ? require("../../assets/msgIconDark.png")
+                      : require("../../assets/msgIcon.png")
+                  }
                 />
-                {/* <ErrorMessage text={emailError} /> */}
-
-                {/* <Button
-                activeOpacity={1}
-                style={[
-                  styles().button,
-                ]}
-                buttonText="Submit"
-                onPress={() => {
-                  //   setSteps(2);
-                  authenticate
-                }}
-              /> */}
-                {/* {renderButton()} */}
                 <CustomButton
                   showLoading={isLoading}
                   buttonText="Submit"
-                  disabled={(!email || emailError)}
+                  disabled={!email || emailError}
                   onPress={() => refetch()}
                   style={{ marginBottom: 20, marginTop: 10 }}
                 />

@@ -59,6 +59,7 @@ export const defaultColors = {
     manageOnlineEmailLighBorder: '#B5E5BB',
     manageOnlineEmailLightitle: '#76B45A',
     ocrBoxColor: 'rgba(0, 0, 0, 0.6)',
+    plusbgColor: '#D7EAFD',
 
 
 

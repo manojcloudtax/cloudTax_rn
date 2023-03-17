@@ -70,8 +70,9 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
   const [isYesSelected, setAnswer] = useState(false);
 
   const [partnerName, setPartnerName] = useState("");
-  const [date, setDateValue] = useState(new Date());
+  const [date, setDateValue] = useState(new Date("2022-12-31"));
   const [open, setOpen] = useState(false);
+  const [isDateSet, setIsDateSet] = useState(false);
 
   const [partnerFromList, setPartnerFromList] = useState('');
   const [partnerDetailsList, setPartnerDetails] = useState({
@@ -139,6 +140,7 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
         console.log("init OnBoardingTaxProfile MaritalStatusChangedDate", onBoardingData);
           setDateValue(new Date(onBoardingData?.MaritalStatusChangedDate));
           setDropdownVisibility(true);
+          setIsDateSet(true)
         }
         //have to write proper machnism
         questions[0].answer = onBoardingData.answersOfQuestions[0];
@@ -639,6 +641,10 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
       } else {
         getQuestions[index].answer = item;
         setQuestions([...getQuestions]);
+        if(index === 2 && item === 'No'){
+          setIsDateSet(false)
+          setDropdownVisibility(false);
+        }
       }
       setKeyToRerender(key + 1);
     } else if (selectedScreenNo == 3) {
@@ -683,7 +689,7 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
             setSelectedScreen(selectedScreenNo + 1);
           }
         }
-      } else if (selectedScreenNo == 3 && selectedProvince.ProvinceCode !== '') {
+      } else if (selectedScreenNo == 3 && selectedProvince.ProvinceCode !== ''&& selectedProvince.ProvinceCode !== null) {
         let province = {
           ProvinceCode: selectedProvince.ProvinceCode,
           ProvinceName:  AllProvinces.find(
@@ -928,7 +934,7 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
                               color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
                             }}
                           >
-                            {isShowDropDown
+                            {(isShowDropDown && isDateSet)
                               ? moment(date, "YYYY/MM/DD").format("YYYY")
                               : "YYYY"}
                           </CtText>
@@ -974,7 +980,7 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
                               color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
                             }}
                           >
-                            {isShowDropDown
+                            {(isShowDropDown && isDateSet)
                               ? parseInt(moment(date, "YYYY/MM/DD").format("M")) < 10 ? `0${moment(date, "YYYY/MM/DD").format("M")}` : `${moment(date, "YYYY/MM/DD").format("M")}` 
                               : "MM"}
                           </CtText>
@@ -1020,7 +1026,7 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
                               color: darkTheme? defaultColors.whiteGrey: defaultColors.secondaryTextColor,
                             }}
                           >
-                            {isShowDropDown
+                            {(isShowDropDown && isDateSet)
                               ? parseInt(moment(date, "YYYY/MM/DD").format("D")) < 10 ? `0${moment(date, "YYYY/MM/DD").format("D")}` : `${moment(date, "YYYY/MM/DD").format("D")}` 
                               : "DD"}
                           </CtText>
@@ -1042,8 +1048,11 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
                           onChange={(event, selectedDate) => {
                             console.log("onConfirm selectedDate", selectedDate);
                             setOpen(false);
-                            setDateValue(selectedDate);
-                            setDropdownVisibility(true);
+                            if(event.type == "set"){
+                              setIsDateSet(true)
+                              setDateValue(selectedDate);
+                              setDropdownVisibility(true);
+                            }
                           }}
                           // onCancel={() => {
                           //   setOpen(false);

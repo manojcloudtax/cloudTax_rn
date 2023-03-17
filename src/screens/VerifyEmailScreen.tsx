@@ -1,56 +1,21 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
-  Image,
-  Alert,
   ScrollView,
-  TouchableOpacity,
   Platform,
-  KeyboardAvoidingView,
-  Dimensions,
   View,
 } from "react-native";
 import {
   CtText,
-  CtView,
-  CtTextInput,
-  Button,
-  TextButton,
-  Divider,
 } from "../components/UiComponents";
-import { Spinner, ErrorMessage } from "../components";
 import { useDispatch } from "react-redux";
-import { login } from "../store/authSlice";
 import { defaultColors } from "../utils/defaultColors";
-import auth, { loginUser } from "../api/auth";
-import { useQuery } from "react-query";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { validateEmail } from "../utils/email";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import { Ionicons, Feather } from "@expo/vector-icons";
-
-import DeviceCrypto from "react-native-device-crypto";
-import { decryptAccounts } from "../utils/crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SocialIcon } from "react-native-elements";
-import CheckBox from "@react-native-community/checkbox";
 
 const VerifyEmailScreen = ({ navigation }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [biometricsSupported, setBiometricsSupported] = useState(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [isKeepMeSignInChecked, setKeepMeSignedIn] = useState<boolean>(false);
-
-  // biometrics related states
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [accounts, setAccounts] = useState(new Set([]));
-  const [selectedAccount, setSelectedAccount] = useState<null | any>(null);
-
   const dispatch = useDispatch();
   return (
     <SafeAreaView style={styles().scrollStyle}>

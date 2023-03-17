@@ -31,6 +31,9 @@ import T4OASScreen from "../screens/Ocr/T4OASScreen";
 import T4EOcrScreen from "../screens/Ocr/T4EOcrScreen";
 import SplashScreenView from "../screens/SplashScreenView";
 import T4AOcrScreen from "../screens/Ocr/T4AOcrScreen";
+import UpgradeToPlusScreen from "../screens/UpgradeToPlusScreen";
+import BioMetricScreen from "../screens/BioMetricScreen";
+import UserNameScreen from "../screens/UserNameScreen";
 
 const { Navigator, Screen } = createNativeStackNavigator();
 
@@ -180,6 +183,21 @@ const AuthStack = () => {
         <Screen
           name="T4AOcrScreen"
           component={T4AOcrScreen}
+          options={{ title: "", headerShown: false }}
+        />
+         <Screen
+          name="UpgradeToPlusScreen"
+          component={UpgradeToPlusScreen}
+          options={{ title: "", headerShown: false }}
+        />
+        <Screen
+          name="BioMetricScreen"
+          component={BioMetricScreen}
+          options={{ title: "", headerShown: false }}
+        />
+        <Screen
+          name="UserNameScreen"
+          component={UserNameScreen}
           options={{ title: "", headerShown: false }}
         />
       </Navigator>

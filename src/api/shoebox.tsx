@@ -1,7 +1,8 @@
 import axios from "axios";
+import { Constants } from "../utils/Constants";
 
 const instance = axios.create({
-    baseURL: "https://app.cloudtax.ca/qa/api/2022"
+    baseURL: Constants.baseURL
 });
 
 instance.interceptors.request.use(

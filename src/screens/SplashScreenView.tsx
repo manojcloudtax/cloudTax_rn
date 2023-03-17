@@ -25,6 +25,7 @@ import {
   View,
   Alert,
   SafeAreaView,
+  Linking,
 } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -37,15 +38,14 @@ import {
   savePartnerDetails,
   saveGetTPAccountData,
 } from "../store/authSlice";
-import {
-  setOnBoardingData,
-} from "../store/onBoardingSlice";
+import { setOnBoardingData } from "../store/onBoardingSlice";
 import { GetForceUpdateStatus } from "../api/auth";
 import { CommonModal } from "../components";
 import { RootState } from "../store";
 import { defaultColors } from "../utils/defaultColors";
 import { CtText, CtView } from "../components/UiComponents";
 import { BottomButton } from "../components/BottomButton";
+import { Constants } from "../utils/Constants";
 // import WelcomeComponent from './WelcomeComponent';
 SplashScreen.preventAutoHideAsync();
 const SplashScreenView = ({ navigation }: any) => {
@@ -74,32 +74,37 @@ const SplashScreenView = ({ navigation }: any) => {
         if (savedUserData !== null) {
           console.log(JSON.parse(savedUserData));
           let getFormattedSavedUserData = JSON.parse(savedUserData);
-          await dispatch(saveRegisteredSuccessUserData(getFormattedSavedUserData));
-          console.log("getSavedUserData: getFormattedSavedUserData", getFormattedSavedUserData);
-            dispatch(saveRegisteredSuccessUserData(getFormattedSavedUserData));
-            let postData = {
-              app: "ca",
-              version: "1.0.0",
-            };
-  
-            const GetStatus = await GetForceUpdateStatus(
-              postData,
-              getFormattedSavedUserData.token
-            );
-  
-            if (GetStatus.forceUpdate) {
-              console.log("getUrl", GetStatus);
-              setShowModal(true);
-            } else {
-              console.log("getUrl 2", GetStatus);
-              await SplashScreen.hideAsync();
-              navigation.navigate("LoginScreen");
-            }
-        }else {
+          await dispatch(
+            saveRegisteredSuccessUserData(getFormattedSavedUserData)
+          );
+          console.log(
+            "getSavedUserData: getFormattedSavedUserData",
+            getFormattedSavedUserData
+          );
+          dispatch(saveRegisteredSuccessUserData(getFormattedSavedUserData));
+          let postData = {
+            app: "ca",
+            version: Constants.AppVersion,
+            platform: "android",
+          };
+
+          const GetStatus = await GetForceUpdateStatus(
+            postData,
+            getFormattedSavedUserData.token
+          );
+
+          if (GetStatus.forceUpdate) {
+            console.log("getUrl", GetStatus);
+            setShowModal(true);
+          } else {
+            console.log("getUrl 2", GetStatus);
+            await SplashScreen.hideAsync();
+            navigation.navigate("LoginScreen");
+          }
+        } else {
           await SplashScreen.hideAsync();
           navigation.navigate("LoginScreen");
         }
-       
 
         // const getSavedUserData = await AsyncStorage.getItem(
         //   "getSavedLoggedInData"
@@ -108,7 +113,6 @@ const SplashScreenView = ({ navigation }: any) => {
         //   console.log(JSON.parse(getSavedUserData));
         //   await dispatch(saveLoggedInSuccessUserData(JSON.parse(getSavedUserData)));
         // }
-
 
         // const getTPMyProfileInfo = await AsyncStorage.getItem(
         //   "saveTPMyProfileInfo"
@@ -175,10 +179,19 @@ const SplashScreenView = ({ navigation }: any) => {
   //   return null;
   // }
 
-  const onPressOkay =async () => {
+  const onPressOkay = async () => {
     setShowModal(false);
     await SplashScreen.hideAsync();
-    navigation.navigate("LoginScreen");
+    let url = "https://play.google.com/store/apps/details?id=cloudtax.org.com.ctweb&pli=1";
+    Linking.canOpenURL(url)
+    .then(supported => {
+      if (!supported) {
+        return Linking.openURL(url);
+      } else {
+        return Linking.openURL(url);
+      }
+    })
+    .catch(err => {return Linking.openURL(url);});
   };
   const ErrorModal = () => {
     return (
@@ -186,7 +199,7 @@ const SplashScreenView = ({ navigation }: any) => {
         style={{
           height: "auto",
           width: "100%",
-          backgroundColor: darkTheme ? defaultColors.matBlack : "#F8F8F8",
+          backgroundColor: darkTheme ? defaultColors.black : "#F8F8F8",
           borderTopLeftRadius: 10,
           borderTopRightRadius: 10,
           alignItems: "center",
@@ -214,7 +227,7 @@ const SplashScreenView = ({ navigation }: any) => {
                 fontFamily: "Figtree-SemiBold",
               }}
             >
-              {"We have a update for you..! Please update the app"}
+              {"We have an update for you..! Please update the app"}
             </CtText>
           </View>
         </View>
@@ -256,7 +269,7 @@ const SplashScreenView = ({ navigation }: any) => {
         // onLayout={onLayoutRootView}
         source={require("../../assets/splash.png")}
         resizeMode={"contain"}
-        style={{ flex: 1, backgroundColor: defaultColors.white,}}
+        style={{ flex: 1, backgroundColor: defaultColors.white }}
       />
     </SafeAreaView>
   );

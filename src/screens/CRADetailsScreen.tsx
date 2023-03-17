@@ -161,7 +161,7 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
       name: "",
       selected: false,
       slip: {},
-      slipName: "",
+      slipName: "Select All",
       type: "selectAll",
     };
     var newservicesTypeData = await [selectAllData, ...data.slipsFilerted];
@@ -291,7 +291,9 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
     setData(updateItems);
   };
   const renderData = (item: any, index: any) => {
-    const title = item.key + " " + (item?.name == undefined ? " " : item?.name);
+    // const title = item.key + " " + (item?.name == undefined ? " " : item?.name);
+    const title = item.slipName + " " + (item?.name == undefined ? " " : item?.name);
+    // const title = item.slipName;
     // console.log(
     //   "onPressConfirm data const name = item.key + ' '+ item?.name == undefined ? ' ' : name",
     //   item
@@ -583,10 +585,11 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
           downloadedParams?.summary?.UnfiledReturn?.TaxYear && secondModal ? (
             <CRADetailsPopUP
               title={
-                "Unfilled prior-year returns: The following prior-year returns have not been filed.\n\n" +
-                downloadedParams?.summary?.UnfiledReturn?.TaxYear.map(
+                "Unfilled prior-year returns: The following prior-year returns have not been filed.\n\n" 
+                +
+                (Array.isArray(downloadedParams?.summary?.UnfiledReturn?.TaxYear) ? downloadedParams?.summary?.UnfiledReturn?.TaxYear.map(
                   (d: { _text: any }) => d._text
-                ).join("\n")
+                ).join("\n") : downloadedParams?.summary?.UnfiledReturn?.TaxYear["_text"])
               }
               details={""}
               onPressCloseModal={() => onPressCloseModal(2)}

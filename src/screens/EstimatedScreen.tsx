@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, ScrollView, View, Text, Alert } from "react-native";
 import { CtText } from "../components/UiComponents";
 import { useDispatch } from "react-redux";
@@ -8,30 +8,31 @@ import { RootState } from "../store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "../components/Header";
 import { BottomButton } from "../components/BottomButton";
-import { GetUrlData } from "../api/auth";
+import { GetProUserFlagInfo, GetUrlData } from "../api/auth";
 
 const EstimatedScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
-  const { savedUserData } = useSelector(
+  const { savedUserData, getSavedLoggedInData } = useSelector(
     (state: RootState) => state.authReducer
   );
   const [DataToRender, setData] = useState([] as any);
-
+  const [isDataLoading, setisDataLoading] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
+    setisDataLoading(false);
     try {
       if (route.params !== undefined) {
         const { data } = route.params;
         setData(data);
         // setData(data.slipsFilerted);
-        console.log("onPressConfirm data");
+        // console.log("onPressConfirm data");
       }
     } catch (error) {}
   }, []);
 
   const getAmountFormatter = (amount: Number) => {
-    console.log("getAmountFormatter data", amount);
+    // console.log("getAmountFormatter data", amount);
 
     if (amount !== undefined) {
       return amount.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
@@ -44,23 +45,47 @@ const EstimatedScreen = ({ navigation, route }: any) => {
   };
 
   const onPressContinue = async () => {
-    let postData = {
+    setisDataLoading(true);
+    const getProUser = await GetProUserFlagInfo({
       Year: 2022,
       TaxPayerID: savedUserData?.TaxPayerID,
-    };
-    const getUrl = await GetUrlData(postData, savedUserData?.token);
+      AcctID:savedUserData?.AcctID,
+      TaxID:getSavedLoggedInData?.TaxID,
+      loader: false
+    }, savedUserData?.token);
 
-    if (getUrl) {
-      console.log("getUrl", getUrl);
-      navigation.navigate("WebViewWithoutPopUp", {
-      url: getUrl.url,
-    });
+    if (getProUser) {
+      setisDataLoading(false);
+      console.log("GetProUserFlagInfo", getProUser);
+    if (getProUser.ErrCode == -1) {
+      console.log("GetSlipsfileRes else");
     } else {
+     if(getProUser.IsPro === 'Y'){
+      let postData = {
+          Year: 2022,
+          TaxPayerID: savedUserData?.TaxPayerID,
+        };
+        const getUrl = await GetUrlData(postData, savedUserData?.token);
+    
+        if (getUrl) {
+          console.log("getUrl", getUrl);
+          navigation.navigate("WebViewWithoutPopUp", {
+          url: getUrl.url,
+        });
+        } else {
+          Alert.alert("Something went wrong. Please try again...!")
+        }
+     } else {
+      navigation.navigate("UpgradeToPlusScreen");
+     }
+    }
+    } else {
+      setisDataLoading(false);
       Alert.alert("Something went wrong. Please try again...!")
     }
   };
 
-  console.log("datatorender data", DataToRender);
+  // console.log("datatorender data", DataToRender);
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle}>
       <Header onPressbackButton={() => onBackButtonPress()} />
@@ -265,6 +290,7 @@ const EstimatedScreen = ({ navigation, route }: any) => {
         onPress={() => onPressContinue()}
         // style={[styles().button]}
         buttonText={"Continue"}
+        showLoading={isDataLoading}
       />
     </SafeAreaView>
   );

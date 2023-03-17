@@ -11,7 +11,7 @@ const TextButton = ({ description, linkTextColor, linkText, onPress }: any) => {
     return (
         <CtView style={[styles().container, { justifyContent: description ? "center" : "flex-end" }]}>
 
-            <CtText style={styles(darkTheme).linkDescription}>{description}
+            <CtText onPress={onPress} style={styles(darkTheme).linkDescription}>{description}
                 <CtText onPress={onPress} style={[styles(darkTheme).linkTextStyle, { fontSize: description ? 14 : 16, color: linkTextColor }]}> {linkText}</CtText>
             </CtText>
         </CtView>

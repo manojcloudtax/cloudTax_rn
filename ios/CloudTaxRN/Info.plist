@@ -25,7 +25,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.cloudtax</string>
+				<string>cloudtax.org.com.ctweb</string>
 			</array>
 		</dict>
 	</array>

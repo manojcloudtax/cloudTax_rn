@@ -1,4 +1,4 @@
-package com.cloudtax.newarchitecture;
+package cloudtax.org.com.ctweb.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -20,9 +20,9 @@ import com.facebook.react.fabric.EmptyReactNativeConfig;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.fabric.ReactNativeConfig;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.cloudtax.BuildConfig;
-import com.cloudtax.newarchitecture.components.MainComponentsRegistry;
-import com.cloudtax.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import cloudtax.org.com.ctweb.BuildConfig;
+import cloudtax.org.com.ctweb.newarchitecture.components.MainComponentsRegistry;
+import cloudtax.org.com.ctweb.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 

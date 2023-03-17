@@ -52,7 +52,8 @@ const WebViewScreen = ({ navigation, route }: any) => {
 
     if (
       !_.isEmpty(params) &&
-      webViewState.url.startsWith("https://app.cloudtax.ca/ct_2022/")
+      // webViewState.url.startsWith("https://app.cloudtax.ca/ct_2022/")
+      webViewState.url.startsWith("https://app.cloudtax.ca/2022/")
     ) {
       // console.log(
       //   "Hello GetTDDNetfileRes",
@@ -122,11 +123,11 @@ const WebViewScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const jsCode = 'window.ReactNativeWebView.postMessage(document.documentElement.innerHTML)'
+  // const jsCode = 'window.ReactNativeWebView.postMessage(document.documentElement.innerHTML)'
 
-  const onMessage = (event : any) => {
-    console.log('Received: ', event.nativeEvent.data)
-  }
+  // const onMessage = (event : any) => {
+  //   console.log('Received: ', event.nativeEvent.data)
+  // }
   const onBackButtonPress = () => {
     navigation.goBack();
   };

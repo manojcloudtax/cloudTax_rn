@@ -269,7 +269,7 @@ const T4APOcrScreen = ({ navigation, route }: any) => {
               TaxID: getSavedLoggedInData?.TaxID,
             },
             savedUserData?.token,
-            resGetSelectedData.IncomeSlipForms.split(",")
+            resGetSelectedData.IncomeSlipForms !== null ? resGetSelectedData.IncomeSlipForms.split(",") : ''
           );
 
           if (resAvailableSlipsData) {
@@ -399,7 +399,7 @@ const T4APOcrScreen = ({ navigation, route }: any) => {
       let setIncomeSlipForms = "";
 
       if (getFormsData !== undefined) {
-        let splitttedArray = getFormsData.IncomeSlipForms.split(",");
+        let splitttedArray = getFormsData.IncomeSlipForms !== null ? getFormsData.IncomeSlipForms.split(","): [];
         if (!splitttedArray.includes("5")) {
           splitttedArray.unshift("5");
         }
@@ -466,7 +466,7 @@ const T4APOcrScreen = ({ navigation, route }: any) => {
                     TaxID: getSavedLoggedInData?.TaxID,
                   },
                   savedUserData?.token,
-                  resGetSelectedData.IncomeSlipForms.split(",")
+                  resGetSelectedData.IncomeSlipForms !== null ? resGetSelectedData.IncomeSlipForms.split(",") : ''
                 );
 
                 if (resAvailableSlipsData) {

@@ -76,6 +76,7 @@ const EmptySlipsScreen = ({ navigation, route }: any) => {
           setisLoading(true);
           const { scannedImages } = await DocumentScanner.scanDocument({
             maxNumDocuments: 1,
+            croppedImageQuality: 50
           });
 
           let formData = new FormData();

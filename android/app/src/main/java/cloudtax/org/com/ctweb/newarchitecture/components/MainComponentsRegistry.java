@@ -1,4 +1,4 @@
-package com.cloudtax.newarchitecture.components;
+package cloudtax.org.com.ctweb.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;

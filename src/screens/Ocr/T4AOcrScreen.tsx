@@ -540,7 +540,7 @@ const T4AOcrScreen = ({ navigation, route }: any) => {
               TaxID: getSavedLoggedInData?.TaxID,
             },
             savedUserData?.token,
-            resGetSelectedData.IncomeSlipForms.split(",")
+            resGetSelectedData.IncomeSlipForms !== null ? resGetSelectedData.IncomeSlipForms.split(",") : ''
           );
 
           if (resAvailableSlipsData) {
@@ -713,7 +713,7 @@ const T4AOcrScreen = ({ navigation, route }: any) => {
       let setIncomeSlipForms = "";
 
       if (getFormsData !== undefined) {
-        let splitttedArray = getFormsData.IncomeSlipForms.split(",");
+        let splitttedArray = getFormsData.IncomeSlipForms !== null ? getFormsData.IncomeSlipForms.split(","): [];
         if (!splitttedArray.includes("3")) {
           splitttedArray.unshift("3");
         }
@@ -780,7 +780,7 @@ const T4AOcrScreen = ({ navigation, route }: any) => {
                     TaxID: getSavedLoggedInData?.TaxID,
                   },
                   savedUserData?.token,
-                  resGetSelectedData.IncomeSlipForms.split(",")
+                  resGetSelectedData.IncomeSlipForms !== null ? resGetSelectedData.IncomeSlipForms.split(",") : ''
                 );
 
                 if (resAvailableSlipsData) {
@@ -882,7 +882,7 @@ const T4AOcrScreen = ({ navigation, route }: any) => {
               >
                 {Object.keys(getInitialDataFromOCR).length === 0
                   ? ""
-                  : getInitialDataFromOCR.Type +
+                  : 'T4A' +
                     " - " +
                     (getInitialDataFromOCR.TaxPayersName
                       ? getInitialDataFromOCR.TaxPayersName

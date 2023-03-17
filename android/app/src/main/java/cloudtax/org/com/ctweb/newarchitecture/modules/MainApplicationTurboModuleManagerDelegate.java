@@ -1,4 +1,4 @@
-package com.cloudtax.newarchitecture.modules;
+package cloudtax.org.com.ctweb.newarchitecture.modules;
 
 import com.facebook.jni.HybridData;
 import com.facebook.react.ReactPackage;

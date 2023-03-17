@@ -6,19 +6,24 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  View,
+  Alert,
+  StatusBar,
 } from "react-native";
-import {
-  CtText,
-  CtView,
-} from "../../components/UiComponents";
+import { CtText, CtView, Divider } from "../../components/UiComponents";
 import { useDispatch } from "react-redux";
 import { defaultColors } from "../../utils/defaultColors";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { Ionicons } from "@expo/vector-icons";
-import { Header } from "../../components/Header";
 import { Spinner } from "../../components/Spinner";
-import { GetAvailableSlipsData, getSelectedSlipData } from "../../api/auth";
+import {
+  GetAvailableSlipsData,
+  GetProUserFlagInfo,
+  getSelectedSlipData,
+  GetUrlData,
+} from "../../api/auth";
+import Lottie from "lottie-react-native";
 
 const SummaryScreen = ({ navigation }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -51,60 +56,135 @@ const SummaryScreen = ({ navigation }: any) => {
       if (resGetSelectedData.ErrCode == -1) {
         console.log("resGetSelectedData else");
         setisLoading(false);
-        navigation.navigate("EmptySlipsScreen",{
-          data : [],
+        navigation.navigate("EmptySlipsScreen", {
+          data: [],
         });
       } else {
         setisLoading(false);
-        if(resGetSelectedData.IncomeSlipForms == ""){
-          navigation.navigate("EmptySlipsScreen",{
-            data : resGetSelectedData,
+        if (resGetSelectedData.IncomeSlipForms == "") {
+          navigation.navigate("EmptySlipsScreen", {
+            data: resGetSelectedData,
             getSelectedData: resGetSelectedData,
           });
-      } else {
-        const resAvailableSlipsData = await GetAvailableSlipsData(
-          {
-            TaxPayerID: savedUserData?.TaxPayerID,
-            AcctID: savedUserData?.AcctID,
-            Year: 2022,
-            TaxID: getSavedLoggedInData?.TaxID,
-          },
-          savedUserData?.token,
-          resGetSelectedData.IncomeSlipForms.split(",")
-        );
-    
-        if (resAvailableSlipsData) {
-          console.log("resAvailableSlipsData", resAvailableSlipsData);
-          setisLoading(false);
-          navigation.navigate("MyTaxSlipsScreen",{
-                data : resAvailableSlipsData,
-                getSelectedData: resGetSelectedData
-              });
-      } else {
-        setisLoading(false);
-        navigation.navigate("MyTaxSlipsScreen",{
-          data : resGetSelectedData,
-          getSelectedData: resGetSelectedData,
-        });
-      }
-      }
-    }} else {
+        } else {
+          const resAvailableSlipsData = await GetAvailableSlipsData(
+            {
+              TaxPayerID: savedUserData?.TaxPayerID,
+              AcctID: savedUserData?.AcctID,
+              Year: 2022,
+              TaxID: getSavedLoggedInData?.TaxID,
+            },
+            savedUserData?.token,
+            resGetSelectedData.IncomeSlipForms !== null ? resGetSelectedData.IncomeSlipForms.split(","): ''
+          );
 
+          if (resAvailableSlipsData) {
+            console.log("resAvailableSlipsData", resAvailableSlipsData);
+            setisLoading(false);
+            navigation.navigate("MyTaxSlipsScreen", {
+              data: resAvailableSlipsData,
+              getSelectedData: resGetSelectedData,
+            });
+          } else {
+            setisLoading(false);
+            navigation.navigate("MyTaxSlipsScreen", {
+              data: resGetSelectedData,
+              getSelectedData: resGetSelectedData,
+            });
+          }
+        }
+      }
+    } else {
       setisLoading(false);
       console.log("resGetSelectedData else");
     }
   };
 
-  const onBackButtonPress = () => {
-    navigation.goBack();
+  const onPressEnterThemManually = async () => {
+    const getProUser = await GetProUserFlagInfo(
+      {
+        Year: 2022,
+        TaxPayerID: savedUserData?.TaxPayerID,
+        AcctID: savedUserData?.AcctID,
+        TaxID: getSavedLoggedInData?.TaxID,
+        loader: false,
+      },
+      savedUserData?.token
+    );
+
+    if (getProUser) {
+      console.log("GetProUserFlagInfo", getProUser);
+      if (getProUser.ErrCode == -1) {
+        console.log("GetSlipsfileRes else");
+      } else {
+        if (getProUser.IsPro === "Y") {
+          let postData = {
+            Year: 2022,
+            TaxPayerID: savedUserData?.TaxPayerID,
+          };
+          const getUrl = await GetUrlData(postData, savedUserData?.token);
+
+          if (getUrl) {
+            console.log("getUrl", getUrl);
+            navigation.navigate("WebViewWithoutPopUp", {
+              url: getUrl.url,
+            });
+          } else {
+            Alert.alert("Something went wrong. Please try again...!");
+          }
+        } else {
+          navigation.navigate("UpgradeToPlusScreen", { isManualUpdate: true });
+        }
+      }
+    } else {
+      Alert.alert("Something went wrong. Please try again...!");
+    }
   };
 
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle}>
-      <Header onPressbackButton={() => onBackButtonPress()} />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-      >
+      {/* <Header onPressbackButton={() => onBackButtonPress()} navigation.replace("ChooseTaxYearScreen", {
+                    isFromRegistration: false,
+                  });/> */}
+      <StatusBar
+        // animated={true}
+        backgroundColor={defaultColors.primaryBlue}
+        // barStyle={statusBarStyle}
+        // showHideTransition={statusBarTransition}
+        // hidden={hidden}
+      />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <TouchableOpacity
+          style={{
+            // flex: 0.25,
+            paddingRight: 20,
+            // marginLeft:67,
+            // marginBottom: 30,
+            paddingTop: 20,
+            display: "flex",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "flex-end",
+            backgroundColor: defaultColors.primaryBlue,
+          }}
+          onPress={() =>
+            navigation.replace("ChooseTaxYearScreen", {
+              isFromRegistration: false,
+            })
+          }
+        >
+          <CtText
+            style={{
+              // textAlign: "left",
+              fontSize: 18,
+              fontFamily: "Figtree-SemiBold",
+              fontWeight: "600",
+              color: darkTheme ? defaultColors.white : defaultColors.white,
+            }}
+          >
+            Edit info
+          </CtText>
+        </TouchableOpacity>
         <CtView
           style={{
             flex: 1,
@@ -113,17 +193,19 @@ const SummaryScreen = ({ navigation }: any) => {
           <CtView
             style={{
               flex: 1,
+              backgroundColor: defaultColors.primaryBlue,
             }}
           >
             <CtView
               style={{
-                flex: 0.7,
+                flex: 0.6,
                 justifyContent: "center",
                 alignSelf: "center",
+                backgroundColor: defaultColors.primaryBlue,
                 // marginTop: 40,
               }}
             >
-              <Image
+              {/* <Image
                 style={{
                   height: 300,
                   width: Dimensions.get("window").width * 0.9,
@@ -131,17 +213,29 @@ const SummaryScreen = ({ navigation }: any) => {
                 }}
                 resizeMode={"contain"}
                 source={require("../../../assets/summary.png")}
+              /> */}
+              <Lottie
+                style={{
+                  height: 300,
+                  width: Dimensions.get("window").width * 0.9,
+                  backgroundColor: defaultColors.primaryBlue,
+                }}
+                source={require("../../../assets/gif.json")}
+                autoPlay
+                loop
               />
             </CtView>
             <CtView
               style={{
-                flex: 0.3,
+                flex: 0.4,
                 marginRight: 20,
                 marginLeft: 20,
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
                 marginTop: 10,
+                marginBottom: 40,
+                backgroundColor: defaultColors.primaryBlue,
               }}
             >
               <CtText
@@ -150,9 +244,7 @@ const SummaryScreen = ({ navigation }: any) => {
                   fontSize: 25,
                   fontFamily: "Figtree-SemiBold",
                   fontWeight: "600",
-                  color: darkTheme
-                    ? defaultColors.white
-                    : defaultColors.secondaryText,
+                  color: darkTheme ? defaultColors.white : defaultColors.white,
                 }}
               >
                 Lets start with your slips
@@ -165,7 +257,7 @@ const SummaryScreen = ({ navigation }: any) => {
                   fontWeight: "400",
                   color: darkTheme
                     ? defaultColors.darkModeTextColor
-                    : defaultColors.secondaryTextColor,
+                    : defaultColors.darkModeTextColor,
                   marginTop: 5,
                 }}
               >
@@ -179,7 +271,10 @@ const SummaryScreen = ({ navigation }: any) => {
             style={{
               flex: 1,
               justifyContent: "center",
-              marginTop: 20,
+              marginTop: -20,
+              // backgroundColor: defaultColors.green,
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
             }}
           >
             <TouchableOpacity
@@ -193,7 +288,7 @@ const SummaryScreen = ({ navigation }: any) => {
                   ? defaultColors.darkModeTextColor
                   : defaultColors.borderColor,
                 borderRadius: 10,
-                marginTop: 20,
+                marginTop: 40,
               }}
               disabled={loadingAvailable}
               onPress={() => onPressCRAAutoFill()}
@@ -258,14 +353,24 @@ const SummaryScreen = ({ navigation }: any) => {
                 </CtView>
               </CtView>
             </TouchableOpacity>
-
+            <View
+              style={{
+                flex: 0,
+                height: 40,
+                marginRight: 20,
+                marginLeft: 20,
+                backgroundColor: defaultColors.transparent,
+              }}
+            >
+              <Divider />
+            </View>
             <TouchableOpacity
               style={{
                 height: 72,
                 flexDirection: "row",
                 marginRight: 20,
                 marginLeft: 20,
-                marginTop: 16,
+                // marginTop: 16,
                 borderWidth: 1,
                 borderColor: darkTheme
                   ? defaultColors.darkModeTextColor
@@ -352,18 +457,19 @@ const SummaryScreen = ({ navigation }: any) => {
               )}
             </TouchableOpacity>
 
-            <CtView
+            <TouchableOpacity
               style={{
                 // flex: 0.25,
                 // marginRight:67,
                 // marginLeft:67,
-                // marginBottom: 30,
+                paddingBottom: 60,
                 marginTop: 20,
                 display: "flex",
                 justifyContent: "center",
                 alignContent: "center",
                 alignItems: "center",
               }}
+              onPress={() => onPressEnterThemManually()}
             >
               <CtText
                 style={{
@@ -378,7 +484,7 @@ const SummaryScreen = ({ navigation }: any) => {
               >
                 No, I will enter them manually
               </CtText>
-            </CtView>
+            </TouchableOpacity>
           </CtView>
         </CtView>
       </ScrollView>

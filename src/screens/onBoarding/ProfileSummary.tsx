@@ -604,9 +604,9 @@ setShowModal(true);
         // let postData = {
         //   AcctID: savedUserData.AcctID,
         //   ClaimCreditsFromSpouse: savedUserData.ClaimCreditsFromSpouse,
-        //   DependentStatus: getAnswersOfQuestions(selectedQuestions[2].answer),
+        //   DependentStatus: getAnswersOfQuestions(selectedQuestions[1].answer),
         //   MaritalStatusChanged: getAnswersOfQuestions(
-        //     selectedQuestions[1].answer
+        //     selectedQuestions[2].answer
         //   ),
         //   MaritalStatusChangedDate: savedUserData?.MaritalStatusChangedDate,
         //   PartnerID: getPartnerDetails?.PartnerID !== null ? getPartnerDetails?.PartnerID : getPartnerDetails?.SelectedPartnerID,
@@ -626,9 +626,9 @@ setShowModal(true);
         const GetTaxPayerMyProfile = await SaveTaxPayerMyProfileInfo({
           AcctID: savedUserData.AcctID,
           ClaimCreditsFromSpouse: route.params.ClaimCreditsFromSpouse,
-          DependentStatus: getAnswersOfQuestions(selectedQuestions[2].answer),
+          DependentStatus: getAnswersOfQuestions(selectedQuestions[1].answer),
           MaritalStatusChanged: getAnswersOfQuestions(
-            selectedQuestions[1].answer
+            selectedQuestions[2].answer
           ),
           MaritalStatusChangedDate: route.params.MaritalStatusChangedDate,
           PartnerID: getPartnerDetails?.PartnerID !== null ? getPartnerDetails?.PartnerID : getPartnerDetails?.SelectedPartnerID,

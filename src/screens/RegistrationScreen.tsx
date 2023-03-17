@@ -56,6 +56,7 @@ import {
 import { CustomButton } from "../components/CustomButton";
 import { CustomInput } from "../components/CustomInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Constants } from "../utils/Constants";
 
 const RegisterScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -143,6 +144,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
                 JSON.stringify(GetTaxPayerPersonalResponse)
               );
               await AsyncStorage.setItem("setOnBoardingData", "");
+              await AsyncStorage.setItem(
+                "isSetBioMetric", ""
+              );
               dispatch(setOnBoardingData({}));
               dispatch(saveGetTPAccountData([]));
             }
@@ -204,7 +208,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
           };
           axios
             .post(
-              "https://app.cloudtax.ca/qa/api/2022/user/profile-img",
+              Constants.baseURL+"/user/profile-img",
               formData,
               config
             )
@@ -249,6 +253,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
             navigation.navigate("ChooseTaxYearScreen", {
               isFromRegistration: true,
             });
+            await AsyncStorage.setItem(
+              "isSetBioMetric", ""
+            );
           }
         } else {
           setisLoading(false);
@@ -617,7 +624,8 @@ const RegisterScreen = ({ navigation, route }: any) => {
   }, [password, setPassword, passwordError]);
 
   const onPressText = (url: String) => {
-    navigation.navigate("WebViewWithoutPopUp", { url: url });
+    navigation.navigate("WebViewWithoutPopUp", { url: url,
+      isFromEstimated: false });
   };
 
   const onBackdropPress = () => {
@@ -655,7 +663,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
           // automaticallyAdjustKeyboardInsets={true}
         >
           <View style={{ alignItems: "center" }}>
-            <CtText
+            {/* <CtText
               style={{
                 fontWeight: "400",
                 fontSize: 14,
@@ -671,7 +679,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
               progress={steps === 1 ? 0.5 : 1}
               style={{ borderColor: "#FFF", marginVertical: 12 }}
               borderRadius={8}
-            />
+            /> */}
             <CtText
               style={{
                 fontWeight: "700",

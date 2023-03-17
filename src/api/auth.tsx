@@ -1,9 +1,10 @@
 import axios from "axios";
-import { getSlipsDeleteUrls, getSlipsUrls } from "../utils/OcrUtils/OcrUtils";
+import { Constants } from "../utils/Constants";
+import { getSlipsUrls } from "../utils/OcrUtils/OcrUtils";
 import shoebox from "./shoebox";
 
 const auth = axios.create({
-  baseURL: "https://app.cloudtax.ca/qa/api/2022",
+  baseURL: Constants.baseURL,
 });
 
 export const registerUser = (postData: {
@@ -27,11 +28,11 @@ export const loginUser = (postData: {
   auth
     .post("/UserLogin", postData)
     .then((res) => {
-      console.log("loginUser", res);
+      console.log("loginUser", res, postData);
       return res.data;
     })
     .catch((res) => {
-      console.log("catch", res);
+      console.log("catch", res, postData);
       return null;
     });
 
@@ -284,7 +285,7 @@ export const SaveMultiTaxYearIndicatorInfo = (postData: {
       return null;
     });
 
-export const ForgotPassword = (postData: { AcctEmail: string; Year: 2022 }) =>
+export const ForgotPassword = (postData: { AcctEmail: string; Year: 2022, host: string }) =>
   shoebox
     .post("/user/forgot-password", postData)
     .then((res) => {
@@ -429,8 +430,8 @@ export const SaveT4SlipInfoList = (postData: any, userToken: string) =>
     });
 
 export const getScannedSlip = (ScanID: string, token: string) =>
-  shoebox
-    .get("https://www.app.cloudtax.ca/qa/ocr/api/slip/scan/" + ScanID, {
+  axios
+    .get(Constants.ocrURL + `/${ScanID}`, {
       headers: {
         accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -447,7 +448,7 @@ export const getScannedSlip = (ScanID: string, token: string) =>
 
 export const scanSlip = (formData: FormData, token: string) =>
   axios
-    .post("https://www.app.cloudtax.ca/qa/ocr/api/slip/scan", formData, {
+    .post(Constants.ocrURL, formData, {
       headers: {
         accept: "application/json",
         "Content-Type": "multipart/form-data",
@@ -876,7 +877,7 @@ export const SaveSlipData = (postData: any, userToken: string, url: string) =>
 
 export const GetUrlData = (postData: any, userToken: string) =>
   shoebox
-    .post("https://app.cloudtax.ca/qa/api/2022/login-url", postData, {
+    .post("/login-url", postData, {
       headers: { Authorization: `Bearer ${userToken}` },
     })
     .then((res) => {
@@ -889,9 +890,8 @@ export const GetUrlData = (postData: any, userToken: string) =>
     });
 
 export const GetForceUpdateStatus = (postData: any, userToken: string) =>
-  shoebox
-    .post("https://app.cloudtax.ca/qa/api/helper/check-update", postData, {
-      headers: { Authorization: `Bearer ${userToken}` },
+  axios.post("https://app.cloudtax.ca/qa/api/helper/check-update", postData, {
+      headers: { Authorization: `Bearer ${userToken}`},
     })
     .then((res) => {
       console.log("GetForceUpdateStatus", res);
@@ -922,4 +922,73 @@ export const SaveMultipleSlipData = async (
     return null;
   }
 };
+
+export const GetProUserFlagInfo = (
+  postData: {
+    TaxPayerID: string;
+    AcctID: string;
+    Year: 2022;
+    TaxID: string;
+    loader: boolean;
+  },
+  userToken: string
+) =>
+  shoebox
+    .post("/GetProUserFlagInfo", postData, {
+      headers: { Authorization: `Bearer ${userToken}` },
+    })
+    .then((res) => {
+      console.log("GetProUserFlagInfo", res);
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("GetProUserFlagInfo", res);
+      return "";
+    });
+
+export const upgradePlus = (
+  postData: {
+    TaxPayerID: string;
+    AcctID: string;
+    Year: 2022;
+    TaxID: string;
+    token: string;
+  },
+  userToken: string
+) =>
+  shoebox
+    .post("/user/upgrade/plus", postData, {
+      headers: { Authorization: `Bearer ${userToken}` },
+    })
+    .then((res) => {
+      console.log("upgradePlus", res);
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("upgradePlus", res);
+      return "";
+    });
+
+export const NewSaveTPAccountInfo = (postData: {
+  AcctID: string;
+  Year: 2022;
+  FirstName: string;
+  TaxPayerName: string;
+  userToken: string;
+  isAddNew: boolean;
+}) =>
+  shoebox
+    .post("/SaveTPAccountInfo", postData, {
+      headers: { Authorization: `Bearer ${postData.userToken}` },
+    })
+    .then((res) => {
+      console.log("NewSaveTPAccountInfo", res);
+      console.log("NewSaveTPAccountInfo postData", postData);
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("catch", res);
+      return null;
+    });
+
 export default auth;

@@ -307,7 +307,7 @@ const T5OcrScreen = ({ navigation, route }: any) => {
               TaxID: getSavedLoggedInData?.TaxID,
             },
             savedUserData?.token,
-            resGetSelectedData.IncomeSlipForms.split(",")
+            resGetSelectedData.IncomeSlipForms !== null ? resGetSelectedData.IncomeSlipForms.split(",") : ''
           );
 
           if (resAvailableSlipsData) {
@@ -428,7 +428,7 @@ const T5OcrScreen = ({ navigation, route }: any) => {
       let setIncomeSlipForms = "";
 
       if (getFormsData !== undefined) {
-        let splitttedArray = getFormsData.IncomeSlipForms.split(",");
+        let splitttedArray = getFormsData.IncomeSlipForms !== null ? getFormsData.IncomeSlipForms.split(","): [];
         if (!splitttedArray.includes("10")) {
           splitttedArray.unshift("10");
         }
@@ -495,7 +495,7 @@ const T5OcrScreen = ({ navigation, route }: any) => {
                     TaxID: getSavedLoggedInData?.TaxID,
                   },
                   savedUserData?.token,
-                  resGetSelectedData.IncomeSlipForms.split(",")
+                  resGetSelectedData.IncomeSlipForms !== null ? resGetSelectedData.IncomeSlipForms.split(",") : ''
                 );
 
                 if (resAvailableSlipsData) {
@@ -597,7 +597,7 @@ const T5OcrScreen = ({ navigation, route }: any) => {
               >
                 {Object.keys(getInitialDataFromOCR).length === 0
                   ? ""
-                  : getInitialDataFromOCR.Type +
+                  : 'T5' +
                     " - " +
                     (getInitialDataFromOCR.Description
                       ? getInitialDataFromOCR.Description

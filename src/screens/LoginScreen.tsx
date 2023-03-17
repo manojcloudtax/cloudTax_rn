@@ -8,6 +8,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   View,
+  Keyboard,
 } from "react-native";
 import {
   CtText,
@@ -41,7 +42,7 @@ import { useQuery } from "react-query";
 import { validateEmail } from "../utils/email";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import DeviceCrypto from "react-native-device-crypto";
+import DeviceCrypto, { KeyTypes } from "react-native-device-crypto";
 import { decryptAccounts } from "../utils/crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -67,12 +68,11 @@ const LoginScreen = ({ navigation }: any) => {
   const [biometricsSupported, setBiometricsSupported] = useState(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isKeepMeSignInChecked, setKeepMeSignedIn] = useState<boolean>(false);
-
+  const [isLoading, setisDataLoading] = useState(false);
   // biometrics related states
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [accounts, setAccounts] = useState(new Set([]));
-  const [selectedAccount, setSelectedAccount] = useState<null | any>(null);
-
+  const [alias, setAlias] = React.useState<string>("test");
   const dispatch = useDispatch();
   // this will check the device security is enabled and the level if it has a biometrics
   useEffect(() => {
@@ -80,199 +80,282 @@ const LoginScreen = ({ navigation }: any) => {
     dispatch(setIsPriorYearModalSelected(false));
     dispatch(resetAllStateData());
     dispatch(resetOnBoardingData());
-    const checkSecurity = async () => {
-      const securityLevel = await DeviceCrypto.deviceSecurityLevel();
-      if (securityLevel === "BIOMETRY") {
-        const biometricType = await DeviceCrypto.getBiometryType();
-        if (biometricType !== "NONE") {
-          setBiometricsSupported(true);
-        }
-      }
-    };
     checkSecurity();
     GetAllProvinceData();
   }, []);
 
+  const checkSecurity = async () => {
+    const securityLevel = await DeviceCrypto.deviceSecurityLevel();
+    console.log("checkSecurity securityLevel", securityLevel);
+    if (securityLevel === "BIOMETRY") {
+      const biometricType = await DeviceCrypto.getBiometryType();
+      console.log("checkSecurity biometricType", biometricType);
+      if (biometricType !== "NONE") {
+        setBiometricsSupported(true);
+      }
+    }
+    console.log("checkSecurity isBiometryEnrolled", biometricsSupported);
+  };
+
   const GetAllProvinceData = async () => {
     const allProvinceData = await getAllProvince();
-    console.log("else case on checkSub:", allProvinceData);
+    // console.log("else case on checkSub:", allProvinceData);
     if (allProvinceData) {
       // const {data} = res
       if (allProvinceData.ErrCode == -1) {
-        console.log("else case on checkSub:", allProvinceData);
+        // console.log("else case on checkSub:", allProvinceData);
         getArray();
       } else {
         dispatch(setProvinces(allProvinceData));
-        console.log("else case on checkSub:", JSON.stringify(allProvinceData));
+        // console.log("else case on checkSub:", JSON.stringify(allProvinceData));
         await AsyncStorage.setItem(
           "allProvinceData",
           JSON.stringify(allProvinceData)
         );
       }
     } else {
-      console.log("else case on checkSub:", allProvinceData);
+      // console.log("else case on checkSub:", allProvinceData);
       getArray();
       // return {}
     }
   };
 
-  const { isLoading, refetch } = useQuery(
-    "login",
-    () => loginUser({ AcctEmail: email, password: password, plain: true }),
-    {
-      onSuccess: async (data) => {
-        if (data.ErrCode == -1) {
-          Alert.alert("Error", "Invalid email or password!");
-        } else {
-          const morphedData = { ...data, email, password };
-          dispatch(login(morphedData));
-          await dispatch(saveRegisteredSuccessUserData(data));
-          await AsyncStorage.setItem(
-            "savedUserData",
-            JSON.stringify(data)
-          );
-          const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
-            AcctID: data?.AcctID,
-            TaxPayerID: data?.TaxPayerID,
-            Year: 2022,
-            userToken: data?.token,
-          });
+  // const { isLoading, refetch } = useQuery(
+  //   "login",
+  //   () => loginUser({ AcctEmail: email, password: password, plain: true }),
+  //   {
+  //     onSuccess: async (data) => {
+  const refetch = async (AcctEmail: string, pass: string) => {
+    setisDataLoading(true);
+    Keyboard.dismiss();
+    console.log("refetch email", email);
+    console.log("refetch password", password);
 
-          console.log(
-            "GetTaxPayerPersonalResponse res",
-            GetTaxPayerPersonalResponse
-          );
+    const data = await loginUser({
+      AcctEmail: AcctEmail,
+      password: pass,
+      plain: true,
+    });
 
-          if (GetTaxPayerPersonalResponse) {
-            if (data.ErrCode == -1) {
-              Alert.alert("Error", "Invalid email or password!");
-            } else {
-              dispatch(
-                saveLoggedInSuccessUserData(GetTaxPayerPersonalResponse)
-              );
-              await AsyncStorage.setItem(
-                "getSavedLoggedInData",
-                JSON.stringify(GetTaxPayerPersonalResponse)
-              );
-            }
+    console.log("loginUser login", data);
+
+    if (data) {
+      if (data.ErrCode == -1) {
+        setisDataLoading(false);
+        Alert.alert("Error", "Invalid email or password!");
+      } else {
+        const morphedData = { ...data, AcctEmail, pass };
+        dispatch(login(morphedData));
+        await dispatch(saveRegisteredSuccessUserData(data));
+        await AsyncStorage.setItem("savedUserData", JSON.stringify(data));
+
+        await AsyncStorage.setItem("AcctEmail", AcctEmail);
+        await AsyncStorage.setItem("password", pass);
+        const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
+          AcctID: data?.AcctID,
+          TaxPayerID: data?.TaxPayerID,
+          Year: 2022,
+          userToken: data?.token,
+        });
+
+        console.log(
+          "GetTaxPayerPersonalResponse res",
+          GetTaxPayerPersonalResponse
+        );
+
+        if (GetTaxPayerPersonalResponse) {
+          if (data.ErrCode == -1) {
+            Alert.alert("Error", "Invalid email or password!");
           } else {
+            dispatch(saveLoggedInSuccessUserData(GetTaxPayerPersonalResponse));
+            await AsyncStorage.setItem(
+              "getSavedLoggedInData",
+              JSON.stringify(GetTaxPayerPersonalResponse)
+            );
           }
+        } else {
+        }
 
-          const responseGetTPAccountInfo = await GetTPAccountInfo({
-            AcctID: data?.AcctID,
-            TaxPayerID: data?.TaxPayerID,
-            Year: 2022,
-            userToken: data?.token,
-          });
+        const responseGetTPAccountInfo = await GetTPAccountInfo({
+          AcctID: data?.AcctID,
+          TaxPayerID: data?.TaxPayerID,
+          Year: 2022,
+          userToken: data?.token,
+        });
 
-          console.log("GetTPAccountInfo: Success", responseGetTPAccountInfo);
-          if (responseGetTPAccountInfo) {
-            // const {data} = res
-            if (responseGetTPAccountInfo[0].ErrCode == -1) {
-              console.log(
-                "GetTPAccountInfo: error error saveTPAccountData",
-                responseGetTPAccountInfo
-              );
-            } else {
-              let filteredData = responseGetTPAccountInfo.filter((item: { TaxPayerID: any; }) => {
+        console.log("GetTPAccountInfo: Success", responseGetTPAccountInfo);
+        if (responseGetTPAccountInfo) {
+          // const {data} = res
+          if (responseGetTPAccountInfo[0].ErrCode == -1) {
+            console.log(
+              "GetTPAccountInfo: error error saveTPAccountData",
+              responseGetTPAccountInfo
+            );
+          } else {
+            let filteredData = responseGetTPAccountInfo.filter(
+              (item: { TaxPayerID: any }) => {
                 return item.TaxPayerID !== data?.TaxPayerID;
-              });
-              await dispatch(saveGetTPAccountData(filteredData));
-              await AsyncStorage.setItem(
-                "saveTPAccountData",
-                JSON.stringify(filteredData)
-              );
-            }
-          } else {
+              }
+            );
+            await dispatch(saveGetTPAccountData(filteredData));
+            await AsyncStorage.setItem(
+              "saveTPAccountData",
+              JSON.stringify(filteredData)
+            );
           }
-          const resGetTaxPayerMyProfileInfo = await GetTaxPayerMyProfileInfo({
-            AcctID: data?.AcctID,
-            TaxPayerID: data?.TaxPayerID,
-            Year: 2022,
-            userToken: data?.token,
-          });
-
-          console.log(
-            "resGetTaxPayerMyProfileInfo res",
-            resGetTaxPayerMyProfileInfo
-          );
-
-          if (resGetTaxPayerMyProfileInfo) {
-            dispatch(saveTPMyProfileInfo(resGetTaxPayerMyProfileInfo));
-            await AsyncStorage.setItem(
-              "saveTPMyProfileInfo",
-              JSON.stringify(resGetTaxPayerMyProfileInfo)
-            );
-            const params = {
-              MaritialStatus: getMaritalStatusValue(
-                resGetTaxPayerMyProfileInfo.TaxPayerMaritalStatus
-              ),
-              Province: {
-                ProvinceCode: resGetTaxPayerMyProfileInfo.Province,
-                ProvinceName:
-                  resGetTaxPayerMyProfileInfo?.Province == !null
-                    ? AllProvinces.find(
-                        (x: { ProvinceCode: any }) =>
-                          x.ProvinceCode ===
-                          resGetTaxPayerMyProfileInfo?.Province
-                      ).ProvinceName
-                    : "",
-              },
-              partnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
-              selectedYear: 2022,
-              answersOfQuestions: [
-                resGetTaxPayerMyProfileInfo.PartnerID === null ? "No" : "Yes",
-                getRealYNValue(resGetTaxPayerMyProfileInfo.DependentStatus),
-                getRealYNValue(
-                  resGetTaxPayerMyProfileInfo.MaritalStatusChanged
-                ),
-              ],
-              MaritalStatusChangedDate:
-                resGetTaxPayerMyProfileInfo?.MaritalStatusChangedDate,
-              TaxPayerPreviousMaritalStatus:
-                getTaxPayerPreviousMaritalStatusValue(
-                  resGetTaxPayerMyProfileInfo?.TaxPayerPreviousMaritalStatus
-                ),
-              partnerFromList: "",
-              ClaimCreditsFromSpouse:
-                resGetTaxPayerMyProfileInfo?.ClaimCreditsFromSpouse,
-              partnerDetailsList: responseGetTPAccountInfo,
-            };
-            let partnerDetails = {
-              PartnerID : resGetTaxPayerMyProfileInfo?.PartnerID,
-              PartnerName : resGetTaxPayerMyProfileInfo?.PartnerName,
-              TypedPartnerName: null,
-              SelectedPartnerID: null,
-              SelectedPartnerName: null,
-            }
-            dispatch(savePartnerDetails(partnerDetails));
-            dispatch(setOnBoardingData(params));
-            await AsyncStorage.setItem(
-              "partnerDetails",
-              JSON.stringify(partnerDetails)
-            );
-            await AsyncStorage.setItem(
-              "setOnBoardingData",
-              JSON.stringify(params)
-            );
-            navigation.navigate("ChooseTaxYearScreen", {
-              isFromRegistration: false,
-            });
-          } else {
-          }
-        }
-      },
-      onError: (error: any) => {
-        if (error.message == "Request failed with status code 401") {
-          Alert.alert("Error", "Invalid email or password!");
         } else {
-          Alert.alert("Error", "Something went wrong! Please try again.");
         }
-      },
-      retry: false,
-      enabled: false,
+        const resGetTaxPayerMyProfileInfo = await GetTaxPayerMyProfileInfo({
+          AcctID: data?.AcctID,
+          TaxPayerID: data?.TaxPayerID,
+          Year: 2022,
+          userToken: data?.token,
+        });
+
+        console.log(
+          "resGetTaxPayerMyProfileInfo res",
+          resGetTaxPayerMyProfileInfo
+        );
+
+        if (resGetTaxPayerMyProfileInfo) {
+          dispatch(saveTPMyProfileInfo(resGetTaxPayerMyProfileInfo));
+          await AsyncStorage.setItem(
+            "saveTPMyProfileInfo",
+            JSON.stringify(resGetTaxPayerMyProfileInfo)
+          );
+          const params = {
+            MaritialStatus: getMaritalStatusValue(
+              resGetTaxPayerMyProfileInfo.TaxPayerMaritalStatus
+            ),
+            Province: {
+              ProvinceCode: resGetTaxPayerMyProfileInfo.Province,
+              ProvinceName:
+                resGetTaxPayerMyProfileInfo?.Province == !null
+                  ? AllProvinces.find(
+                      (x: { ProvinceCode: any }) =>
+                        x.ProvinceCode === resGetTaxPayerMyProfileInfo?.Province
+                    ).ProvinceName
+                  : "",
+            },
+            partnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
+            selectedYear: 2022,
+            answersOfQuestions: [
+              resGetTaxPayerMyProfileInfo.PartnerID === null ? "No" : "Yes",
+              getRealYNValue(resGetTaxPayerMyProfileInfo.DependentStatus),
+              getRealYNValue(resGetTaxPayerMyProfileInfo.MaritalStatusChanged),
+            ],
+            MaritalStatusChangedDate:
+              resGetTaxPayerMyProfileInfo?.MaritalStatusChangedDate,
+            TaxPayerPreviousMaritalStatus:
+              getTaxPayerPreviousMaritalStatusValue(
+                resGetTaxPayerMyProfileInfo?.TaxPayerPreviousMaritalStatus
+              ),
+            partnerFromList: "",
+            ClaimCreditsFromSpouse:
+              resGetTaxPayerMyProfileInfo?.ClaimCreditsFromSpouse,
+            partnerDetailsList: responseGetTPAccountInfo,
+          };
+          let partnerDetails = {
+            PartnerID: resGetTaxPayerMyProfileInfo?.PartnerID,
+            PartnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
+            TypedPartnerName: null,
+            SelectedPartnerID: null,
+            SelectedPartnerName: null,
+          };
+          dispatch(savePartnerDetails(partnerDetails));
+          dispatch(setOnBoardingData(params));
+          await AsyncStorage.setItem(
+            "partnerDetails",
+            JSON.stringify(partnerDetails)
+          );
+          await AsyncStorage.setItem(
+            "setOnBoardingData",
+            JSON.stringify(params)
+          );
+          let isSetBioMetric = await AsyncStorage.getItem("isSetBioMetric");
+          console.log("RMK authenticate isSetBioMetric", isSetBioMetric);
+          if (isSetBioMetric !== null && isSetBioMetric == "true") {
+            if (GetTaxPayerPersonalResponse) {
+              if (GetTaxPayerPersonalResponse.ErrCode == -1) {
+                Alert.alert("Error", "Something went wrong! Please try again.");
+              } else {
+                if (GetTaxPayerPersonalResponse?.TaxID !== null) {
+                  navigation.replace("SummaryScreen");
+                } else {
+                  navigation.replace("ChooseTaxYearScreen", {
+                    isFromRegistration: false,
+                  });
+                }
+              }
+            } else {
+              navigation.replace("ChooseTaxYearScreen", {
+                isFromRegistration: false,
+              });
+            }
+          } else {
+            // if (GetTaxPayerPersonalResponse) {
+            //   if (data.ErrCode == -1) {
+            //   } else {
+            //     if (GetTaxPayerPersonalResponse?.TaxID !== null) {
+            //       navigation.replace("SummaryScreen");
+            //     } else {
+            //       navigation.replace("ChooseTaxYearScreen", {
+            //         isFromRegistration: false,
+            //       });
+            //     }
+            //   }
+            // } else {
+            //   navigation.replace("ChooseTaxYearScreen", {
+            //     isFromRegistration: false,
+            //   });
+            // }console.log("RMK authenticate email", biometricsSupported);
+            console.log("RMK authenticate email", biometricsSupported);
+            if(biometricsSupported){
+              navigation.replace("BioMetricScreen", {
+                TaxID: GetTaxPayerPersonalResponse?.TaxID,
+              });
+            }else {    
+              if (GetTaxPayerPersonalResponse) {
+              if (GetTaxPayerPersonalResponse.ErrCode == -1) {
+                Alert.alert("Error", "Something went wrong! Please try again.");
+              } else {
+                if (GetTaxPayerPersonalResponse?.TaxID !== null) {
+                  navigation.replace("SummaryScreen");
+                } else {
+                  navigation.replace("ChooseTaxYearScreen", {
+                    isFromRegistration: false,
+                  });
+                }
+              }
+            } else {
+              navigation.replace("ChooseTaxYearScreen", {
+                isFromRegistration: false,
+              });
+            }}
+           
+          }
+
+          setisDataLoading(false);
+        } else {
+          setisDataLoading(false);
+        }
+      }
+    } else {
+      setisDataLoading(false);
     }
-  );
+  };
+  //     },
+  //     onError: (error: any) => {
+  //       if (error.message == "Request failed with status code 401") {
+  //         Alert.alert("Error", "Invalid email or password!");
+  //       } else {
+  //         Alert.alert("Error", "Something went wrong! Please try again.");
+  //       }
+  //     },
+  //     retry: false,
+  //     enabled: false,
+  //   }
+  // );
 
   const getArray = async () => {
     try {
@@ -353,22 +436,33 @@ const LoginScreen = ({ navigation }: any) => {
   };
 
   const authenticate = async () => {
-    await simpleAuthentication().then(async (res) => {
-      if (res === true) {
-        await DeviceCrypto.getOrCreateSymmetricKey("credentials", {
-          accessLevel: 0,
-          invalidateOnNewBiometry: false,
-        }).then(async (isAuthenticated) => {
-          if (isAuthenticated === true) {
-            setEmail(selectedAccount.value.email);
-            setPassword(selectedAccount.value.password);
-            refetch();
+    let isSetBioMetric = await AsyncStorage.getItem("isSetBioMetric");
+    if (isSetBioMetric !== null && isSetBioMetric == "true") {
+      let AcctEmail = await AsyncStorage.getItem("AcctEmail");
+      let depassword = await AsyncStorage.getItem("password");
+
+      console.log("authenticate email", AcctEmail);
+      console.log("authenticate password", depassword);
+      if (AcctEmail !== null && depassword !== null) {
+        setPassword(depassword);
+        setEmail(AcctEmail);
+        await simpleAuthentication().then(async (res) => {
+          if (res === true) {
+            await DeviceCrypto.getOrCreateSymmetricKey("credentials", {
+              accessLevel: 0,
+              invalidateOnNewBiometry: false,
+            }).then(async (isAuthenticated) => {
+              if (isAuthenticated === true) {
+                refetch(AcctEmail, depassword);
+              }
+            });
+          } else {
+            console.log("Sorry...! Validation failed...!");
+            Alert.alert("Sorry...! Validation failed...!");
           }
         });
-      } else {
-        console.log("try again, validation failed");
       }
-    });
+    }
   };
 
   const onEmailSubmit = () => {
@@ -386,17 +480,18 @@ const LoginScreen = ({ navigation }: any) => {
   };
 
   const onPressText = (url: String) => {
-    navigation.navigate("WebViewWithoutPopUp", { url: url });
+    navigation.navigate("WebViewWithoutPopUp", {
+      url: url,
+      isFromEstimated: false,
+    });
   };
   useEffect(() => {
     decrypt();
   }, []);
 
   useEffect(() => {
-    if (selectedAccount !== null) {
-      authenticate();
-    }
-  }, [selectedAccount]);
+    authenticate();
+  }, []);
 
   return (
     <SafeAreaView
@@ -406,21 +501,20 @@ const LoginScreen = ({ navigation }: any) => {
         backgroundColor: darkTheme ? defaultColors.black : defaultColors.white,
       }}
     >
-        <KeyboardAvoidingView
-          keyboardVerticalOffset={Platform.OS === "android" ? 20 : 0}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{
-            flex: 1,
-            margin: 20,
-            backgroundColor: darkTheme ? defaultColors.black : "white",
-          }}
-        >
-
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles(darkTheme).scrollStyle}
+      <KeyboardAvoidingView
+        keyboardVerticalOffset={Platform.OS === "android" ? 20 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{
+          flex: 1,
+          margin: 20,
+          backgroundColor: darkTheme ? defaultColors.black : "white",
+        }}
       >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles(darkTheme).scrollStyle}
+        >
           <CtView
             style={{
               marginTop: 30,
@@ -575,7 +669,7 @@ const LoginScreen = ({ navigation }: any) => {
               disabled={!email || !password}
               onPress={async () => {
                 if (email && password) {
-                  await refetch();
+                  await refetch(email, password);
                 } else if (email && !password) {
                   await authenticate();
                 }
@@ -636,8 +730,8 @@ const LoginScreen = ({ navigation }: any) => {
           </CtView>
           {/* </CtView> */}
           {/* </View> */}
-      </ScrollView>
-        </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
