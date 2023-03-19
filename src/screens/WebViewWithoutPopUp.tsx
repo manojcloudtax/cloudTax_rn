@@ -7,13 +7,18 @@ import {
   Platform,
 } from "react-native";
 import { WebView } from "react-native-webview";
+import { useSelector } from "react-redux";
 import { Header } from "../components/Header";
+import { RootState } from "../store";
 
 const WebViewWithoutPopUp = ({ navigation, route }: any) => {
   const [url, setUrl] = useState("");
   const webviewRef = useRef(null);
   const [isFromEstimatedScreen, setEstimatedScreen] = useState(false);
   const [isManualUpdate, setisManualUpdate] = useState(false);
+  const { savedUserData } = useSelector(
+    (state: RootState) => state.authReducer
+  );
   useEffect(() => {
     try {
       if (route.params !== undefined) {
@@ -35,18 +40,16 @@ const WebViewWithoutPopUp = ({ navigation, route }: any) => {
     }
   };
 
-
   const onMessageReceive = (eventDataString: any) => {
     try {
-      let eventData = JSON.parse(eventDataString.nativeEvent.data)
+      let eventData = JSON.parse(eventDataString.nativeEvent.data);
       if (eventData.action === "add-new-account") {
-          navigation.navigate("UserNameScreen");
-        }
+        navigation.navigate("UserNameScreen", { savedUser: savedUserData });
+      }
     } catch (error) {
       console.log(error);
     }
-   
-}
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -66,9 +69,14 @@ const WebViewWithoutPopUp = ({ navigation, route }: any) => {
             style={{ flex: 1 }}
             source={{ uri: url }}
             onMessage={(event) => {
-              onMessageReceive(event)
-              // console.log('Received message from web page:', event);
+              onMessageReceive(event);
+              console.log("Received message from web page:", event);
             }}
+            injectedJavaScript={`
+        window.addEventListener('message', (event) => {
+          window.ReactNativeWebView.postMessage(event.data);
+        });
+      `}
           />
         </View>
       </KeyboardAvoidingView>

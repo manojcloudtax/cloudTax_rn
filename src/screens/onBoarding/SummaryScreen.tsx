@@ -75,7 +75,9 @@ const SummaryScreen = ({ navigation }: any) => {
               TaxID: getSavedLoggedInData?.TaxID,
             },
             savedUserData?.token,
-            resGetSelectedData.IncomeSlipForms !== null ? resGetSelectedData.IncomeSlipForms.split(","): ''
+            resGetSelectedData.IncomeSlipForms !== null
+              ? resGetSelectedData.IncomeSlipForms.split(",")
+              : ""
           );
 
           if (resAvailableSlipsData) {
@@ -121,6 +123,8 @@ const SummaryScreen = ({ navigation }: any) => {
           let postData = {
             Year: 2022,
             TaxPayerID: savedUserData?.TaxPayerID,
+            AcctID: savedUserData?.AcctID,
+            TaxID: getSavedLoggedInData?.TaxID,
           };
           const getUrl = await GetUrlData(postData, savedUserData?.token);
 

@@ -552,7 +552,7 @@ const UserNameScreen = ({ navigation, route }: any) => {
               </CtText>
               <CustomInput
                 editable={true}
-                placeholder={"Ex. John"}
+                placeholder={"Eg. John"}
                 placeholderTextColor={defaultColors.gray}
                 onChangeText={(name: string) => setName(name)}
                 onBlur={onNameSubmit}

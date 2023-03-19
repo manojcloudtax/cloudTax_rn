@@ -411,10 +411,6 @@ export const GetT1TaxReturnInfo = (postData: {
       return "";
     });
 
-// /GetT1TaxReturnInfo
-export const requestRefreshToken = (refresh: string) =>
-  auth.post("/refresh-token", { refresh });
-
 export const SaveT4SlipInfoList = (postData: any, userToken: string) =>
   shoebox
     .post("/SaveT4SlipInfoList", postData, {
@@ -555,19 +551,6 @@ export const deleteSlipData = (
       console.log("DeleteT4SlipInfo", res);
       return null;
     });
-export const getData = async () => {
-  try {
-    const response1 = axios.get("https://api.example.com/data1");
-    const response2 = axios.get("https://api.example.com/data2");
-    const [res1, res2] = await Promise.all([response1, response2]);
-
-    // Do something with the responses
-    console.log(res1.data);
-    console.log(res2.data);
-  } catch (error) {
-    console.error(error);
-  }
-};
 
 export const GetAvailableSlipsData = async (
   data: {
@@ -890,7 +873,7 @@ export const GetUrlData = (postData: any, userToken: string) =>
     });
 
 export const GetForceUpdateStatus = (postData: any, userToken: string) =>
-  axios.post("https://app.cloudtax.ca/qa/api/helper/check-update", postData, {
+  axios.post("https://app.cloudtax.ca/api/helper/check-update", postData, {
       headers: { Authorization: `Bearer ${userToken}`},
     })
     .then((res) => {
