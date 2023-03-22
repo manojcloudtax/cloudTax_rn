@@ -138,7 +138,13 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
         ) {
 
         console.log("init OnBoardingTaxProfile MaritalStatusChangedDate", onBoardingData);
-          setDateValue(new Date(onBoardingData?.MaritalStatusChangedDate));
+        var dateArray = onBoardingData?.MaritalStatusChangedDate.split("-");;
+        var year = dateArray[0];
+        var month = parseInt(dateArray[1], 10) - 1;
+        var dates = dateArray[2];
+        var _entryDate = new Date(year, month, dates);
+        console.log("init _entryDate _entryDate", _entryDate);
+          setDateValue(_entryDate);
           setDropdownVisibility(true);
           setIsDateSet(true)
         }

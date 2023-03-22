@@ -38,6 +38,7 @@ const BioMetricScreen = ({ navigation, route }: any) => {
   const [bType, setBType] = useState('');
   const [isTaxID, setTaxtId] = useState(null);
   const dispatch = useDispatch();
+  const [accountListInfo, setAccountListInfo] = useState('');
 
 
   useEffect(() => {
@@ -64,8 +65,9 @@ const BioMetricScreen = ({ navigation, route }: any) => {
   useEffect(() => {
     try {
       if (route.params !== undefined) {
-        const { TaxID } = route.params;
+        const { TaxID, accountListInfo } = route.params;
         setTaxtId(TaxID);
+        setAccountListInfo(accountListInfo);
       }
     } catch (error) {}
   }, []);
@@ -73,6 +75,7 @@ const BioMetricScreen = ({ navigation, route }: any) => {
     await simpleAuthentication()
     .then(async(res) => {
         console.log('simpleAuthentication success', res)
+        console.log('simpleAuthentication isTaxID', isTaxID)
        if (res === true) {
             if (isKeyExists === true) {
                 await deleteKey()
@@ -83,13 +86,17 @@ const BioMetricScreen = ({ navigation, route }: any) => {
             await AsyncStorage.setItem(
               "isSetBioMetric", "true"
             );
-            if(isTaxID !== null){
-              navigation.replace("SummaryScreen");
-            } else {
-              navigation.navigate("ChooseTaxYearScreen", {
-                isFromRegistration: false,
-              });
-            }
+            // if(isTaxID !== null && isTaxID !== undefined){
+            //   navigation.replace("SummaryScreen");
+            // } else {
+            //   navigation.navigate("ChooseTaxYearScreen", {
+            //     isFromRegistration: false,
+            //   });
+            // }
+            navigation.replace("ChooseAAccountScreen", {
+              isFromRegistration: false,
+              accountList: accountListInfo
+            }); 
            
         } else {
             console.log('Sorry...! Validation failed...!')
@@ -224,9 +231,13 @@ const decrypt = async () => {
                     darkTheme ? defaultColors.white : defaultColors.gray
                   }
                   onPress={() => {
-                    navigation.navigate("ChooseTaxYearScreen", {
+                    // navigation.navigate("ChooseTaxYearScreen", {
+                    //   isFromRegistration: false,
+                    // });
+                    navigation.replace("ChooseAAccountScreen", {
                       isFromRegistration: false,
-                    });
+                      accountList: accountListInfo
+                    }); 
                   }}
                 />
               </CtView>

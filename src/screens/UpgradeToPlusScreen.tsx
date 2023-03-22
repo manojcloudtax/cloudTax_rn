@@ -35,6 +35,7 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
   const [didConnected, setConnected] = useState(false);
   const [isDataLoading, setisDataLoading] = useState(false);
   const [isFromManualUpdate, SetisFromManualUpdate] = useState(false);
+  const [fromAddNewaccount, SetisfromAddNewaccount] = useState(false);
 
   const availableFeatures = [
     "Unlock 20 returns per account",
@@ -76,8 +77,9 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
   useEffect(() => {
     try {
       if (route.params !== undefined) {
-        const { isManualUpdate } = route.params;
+        const { isManualUpdate, isfromAddNewaccount } = route.params;
         SetisFromManualUpdate(isManualUpdate);
+        SetisfromAddNewaccount(isfromAddNewaccount);
       }
     } catch (error) {}
   }, []);
@@ -261,26 +263,36 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
   };
 
   const onPressClose = () => {
-    onSuccessCall();
+    if(fromAddNewaccount){
+   navigation.goBack()
+    }else{
+      onSuccessCall();
+    }
   };
 
   const onSuccessCall = async () => {
-    let postData = {
-      Year: 2022,
-      TaxPayerID: savedUserData?.TaxPayerID,
-    };
-    const getUrl = await GetUrlData(postData, savedUserData?.token);
-    setisDataLoading(false);
-    if (getUrl) {
-      console.log("getUrl", getUrl);
-      navigation.navigate("WebViewWithoutPopUp", {
-        url: getUrl.url,
-        isFromEstimated: isFromManualUpdate ? false : true,
-        isFromManualUpdate: isFromManualUpdate,
-      });
+    if(fromAddNewaccount){
+      navigation.navigate("UserNameScreen", { savedUser: savedUserData });
     } else {
-      Alert.alert("Something went wrong. Please try again...!");
+      let postData = {
+        Year: 2022,
+        TaxPayerID: savedUserData?.TaxPayerID,
+      };
+      const getUrl = await GetUrlData(postData, savedUserData?.token);
+      setisDataLoading(false);
+      if (getUrl) {
+        console.log("getUrl", getUrl);
+        navigation.navigate("WebViewWithoutPopUp", {
+          url: getUrl.url,
+          isFromEstimated: isFromManualUpdate ? false : true,
+          isFromManualUpdate: isFromManualUpdate,
+          isShowBackButton: false
+        });
+      } else {
+        Alert.alert("Something went wrong. Please try again...!");
+      }
     }
+
   };
 
   return (

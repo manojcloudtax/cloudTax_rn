@@ -34,6 +34,7 @@ import T4AOcrScreen from "../screens/Ocr/T4AOcrScreen";
 import UpgradeToPlusScreen from "../screens/UpgradeToPlusScreen";
 import BioMetricScreen from "../screens/BioMetricScreen";
 import UserNameScreen from "../screens/UserNameScreen";
+import ChooseAAccount from "../screens/onBoarding/ChooseAAccount";
 
 const { Navigator, Screen } = createNativeStackNavigator();
 
@@ -185,7 +186,7 @@ const AuthStack = () => {
           component={T4AOcrScreen}
           options={{ title: "", headerShown: false }}
         />
-         <Screen
+        <Screen
           name="UpgradeToPlusScreen"
           component={UpgradeToPlusScreen}
           options={{ title: "", headerShown: false }}
@@ -198,6 +199,11 @@ const AuthStack = () => {
         <Screen
           name="UserNameScreen"
           component={UserNameScreen}
+          options={{ title: "", headerShown: false }}
+        />
+        <Screen
+          name="ChooseAAccountScreen"
+          component={ChooseAAccount}
           options={{ title: "", headerShown: false }}
         />
       </Navigator>

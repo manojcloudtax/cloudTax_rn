@@ -29,6 +29,7 @@ import {
   saveRegisteredSuccessUserData,
   resetAllStateData,
   savePartnerDetails,
+  saveGetTPConnectedAccountData,
 } from "../store/authSlice";
 import { defaultColors } from "../utils/defaultColors";
 import {
@@ -37,6 +38,8 @@ import {
   loginUser,
   GetTPAccountInfo,
   getAllProvince,
+  GetTaxPayerList,
+  SaveAccountCarryForwardInfo,
 } from "../api/auth";
 import { useQuery } from "react-query";
 import { validateEmail } from "../utils/email";
@@ -151,211 +154,33 @@ const LoginScreen = ({ navigation }: any) => {
 
         await AsyncStorage.setItem("AcctEmail", AcctEmail);
         await AsyncStorage.setItem("password", pass);
-        const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
-          AcctID: data?.AcctID,
-          TaxPayerID: data?.TaxPayerID,
-          Year: 2022,
-          userToken: data?.token,
-        });
 
-        console.log(
-          "GetTaxPayerPersonalResponse res",
-          GetTaxPayerPersonalResponse
-        );
+        if (data.CarryFwdState == "Y") {
+          const resSaveAccountCarryForwardInfo =
+            await SaveAccountCarryForwardInfo({
+              AcctID: data?.AcctID,
+              Year: 2022,
+              userToken: data?.token,
+              TaxPayerID: data?.TaxPayerID,
+            });
+          console.log(
+            "resSaveAccountCarryForwardInfo resSaveAccountCarryForwardInfo",
+            resSaveAccountCarryForwardInfo
+          );
 
-        if (GetTaxPayerPersonalResponse) {
-          if (data.ErrCode == -1) {
-            Alert.alert("Error", "Invalid email or password!");
-          } else {
-            dispatch(saveLoggedInSuccessUserData(GetTaxPayerPersonalResponse));
-            await AsyncStorage.setItem(
-              "getSavedLoggedInData",
-              JSON.stringify(GetTaxPayerPersonalResponse)
-            );
+          if (resSaveAccountCarryForwardInfo) {
+            onSuccessCallBack(data);
+          }else {
+            onSuccessCallBack(data);
           }
         } else {
-        }
-
-        const responseGetTPAccountInfo = await GetTPAccountInfo({
-          AcctID: data?.AcctID,
-          TaxPayerID: data?.TaxPayerID,
-          Year: 2022,
-          userToken: data?.token,
-        });
-
-        console.log("GetTPAccountInfo: Success", responseGetTPAccountInfo);
-        if (responseGetTPAccountInfo) {
-          // const {data} = res
-          if (responseGetTPAccountInfo[0].ErrCode == -1) {
-            console.log(
-              "GetTPAccountInfo: error error saveTPAccountData",
-              responseGetTPAccountInfo
-            );
-          } else {
-            let filteredData = responseGetTPAccountInfo.filter(
-              (item: { TaxPayerID: any }) => {
-                return item.TaxPayerID !== data?.TaxPayerID;
-              }
-            );
-            await dispatch(saveGetTPAccountData(filteredData));
-            await AsyncStorage.setItem(
-              "saveTPAccountData",
-              JSON.stringify(filteredData)
-            );
-          }
-        } else {
-        }
-        const resGetTaxPayerMyProfileInfo = await GetTaxPayerMyProfileInfo({
-          AcctID: data?.AcctID,
-          TaxPayerID: data?.TaxPayerID,
-          Year: 2022,
-          userToken: data?.token,
-        });
-
-        console.log(
-          "resGetTaxPayerMyProfileInfo res",
-          resGetTaxPayerMyProfileInfo
-        );
-
-        if (resGetTaxPayerMyProfileInfo) {
-          dispatch(saveTPMyProfileInfo(resGetTaxPayerMyProfileInfo));
-          await AsyncStorage.setItem(
-            "saveTPMyProfileInfo",
-            JSON.stringify(resGetTaxPayerMyProfileInfo)
-          );
-          const params = {
-            MaritialStatus: getMaritalStatusValue(
-              resGetTaxPayerMyProfileInfo.TaxPayerMaritalStatus
-            ),
-            Province: {
-              ProvinceCode: resGetTaxPayerMyProfileInfo.Province,
-              ProvinceName:
-                resGetTaxPayerMyProfileInfo?.Province == !null
-                  ? AllProvinces.find(
-                      (x: { ProvinceCode: any }) =>
-                        x.ProvinceCode === resGetTaxPayerMyProfileInfo?.Province
-                    ).ProvinceName
-                  : "",
-            },
-            partnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
-            selectedYear: 2022,
-            answersOfQuestions: [
-              resGetTaxPayerMyProfileInfo.PartnerID === null ? "No" : "Yes",
-              getRealYNValue(resGetTaxPayerMyProfileInfo.DependentStatus),
-              getRealYNValue(resGetTaxPayerMyProfileInfo.MaritalStatusChanged),
-            ],
-            MaritalStatusChangedDate:
-              resGetTaxPayerMyProfileInfo?.MaritalStatusChangedDate,
-            TaxPayerPreviousMaritalStatus:
-              getTaxPayerPreviousMaritalStatusValue(
-                resGetTaxPayerMyProfileInfo?.TaxPayerPreviousMaritalStatus
-              ),
-            partnerFromList: "",
-            ClaimCreditsFromSpouse:
-              resGetTaxPayerMyProfileInfo?.ClaimCreditsFromSpouse,
-            partnerDetailsList: responseGetTPAccountInfo,
-          };
-          let partnerDetails = {
-            PartnerID: resGetTaxPayerMyProfileInfo?.PartnerID,
-            PartnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
-            TypedPartnerName: null,
-            SelectedPartnerID: null,
-            SelectedPartnerName: null,
-          };
-          dispatch(savePartnerDetails(partnerDetails));
-          dispatch(setOnBoardingData(params));
-          await AsyncStorage.setItem(
-            "partnerDetails",
-            JSON.stringify(partnerDetails)
-          );
-          await AsyncStorage.setItem(
-            "setOnBoardingData",
-            JSON.stringify(params)
-          );
-          let isSetBioMetric = await AsyncStorage.getItem("isSetBioMetric");
-          console.log("RMK authenticate isSetBioMetric", isSetBioMetric);
-          if (isSetBioMetric !== null && isSetBioMetric == "true") {
-            if (GetTaxPayerPersonalResponse) {
-              if (GetTaxPayerPersonalResponse.ErrCode == -1) {
-                Alert.alert("Error", "Something went wrong! Please try again.");
-              } else {
-                if (GetTaxPayerPersonalResponse?.TaxID !== null) {
-                  navigation.replace("SummaryScreen");
-                } else {
-                  navigation.replace("ChooseTaxYearScreen", {
-                    isFromRegistration: false,
-                  });
-                }
-              }
-            } else {
-              navigation.replace("ChooseTaxYearScreen", {
-                isFromRegistration: false,
-              });
-            }
-          } else {
-            // if (GetTaxPayerPersonalResponse) {
-            //   if (data.ErrCode == -1) {
-            //   } else {
-            //     if (GetTaxPayerPersonalResponse?.TaxID !== null) {
-            //       navigation.replace("SummaryScreen");
-            //     } else {
-            //       navigation.replace("ChooseTaxYearScreen", {
-            //         isFromRegistration: false,
-            //       });
-            //     }
-            //   }
-            // } else {
-            //   navigation.replace("ChooseTaxYearScreen", {
-            //     isFromRegistration: false,
-            //   });
-            // }console.log("RMK authenticate email", biometricsSupported);
-            console.log("RMK authenticate email", biometricsSupported);
-            if(biometricsSupported){
-              navigation.replace("BioMetricScreen", {
-                TaxID: GetTaxPayerPersonalResponse?.TaxID,
-              });
-            }else {    
-              if (GetTaxPayerPersonalResponse) {
-              if (GetTaxPayerPersonalResponse.ErrCode == -1) {
-                Alert.alert("Error", "Something went wrong! Please try again.");
-              } else {
-                if (GetTaxPayerPersonalResponse?.TaxID !== null) {
-                  navigation.replace("SummaryScreen");
-                } else {
-                  navigation.replace("ChooseTaxYearScreen", {
-                    isFromRegistration: false,
-                  });
-                }
-              }
-            } else {
-              navigation.replace("ChooseTaxYearScreen", {
-                isFromRegistration: false,
-              });
-            }}
-           
-          }
-
-          setisDataLoading(false);
-        } else {
-          setisDataLoading(false);
+          onSuccessCallBack(data);
         }
       }
     } else {
       setisDataLoading(false);
     }
   };
-  //     },
-  //     onError: (error: any) => {
-  //       if (error.message == "Request failed with status code 401") {
-  //         Alert.alert("Error", "Invalid email or password!");
-  //       } else {
-  //         Alert.alert("Error", "Something went wrong! Please try again.");
-  //       }
-  //     },
-  //     retry: false,
-  //     enabled: false,
-  //   }
-  // );
 
   const getArray = async () => {
     try {
@@ -421,6 +246,243 @@ const LoginScreen = ({ navigation }: any) => {
     }
   };
 
+  const onSuccessCallBack = async (data: any) => {
+    const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
+      AcctID: data?.AcctID,
+      TaxPayerID: data?.TaxPayerID,
+      Year: 2022,
+      userToken: data?.token,
+    });
+
+    console.log("GetTaxPayerPersonalResponse res", GetTaxPayerPersonalResponse);
+
+    if (GetTaxPayerPersonalResponse) {
+      if (data.ErrCode == -1) {
+        Alert.alert("Error", "Invalid email or password!");
+      } else {
+        let savedDataSet = GetTaxPayerPersonalResponse;
+        savedDataSet["token"] = data?.token;
+
+        console.log("RMKR savedDataSet", savedDataSet);
+        dispatch(saveRegisteredSuccessUserData(savedDataSet));
+        dispatch(saveLoggedInSuccessUserData(GetTaxPayerPersonalResponse));
+        await AsyncStorage.setItem(
+          "getSavedLoggedInData",
+          JSON.stringify(GetTaxPayerPersonalResponse)
+        );
+      }
+    } else {
+    }
+    const responseGetTPAccountInfo = await GetTPAccountInfo({
+      AcctID: data?.AcctID,
+      TaxPayerID: data?.TaxPayerID,
+      Year: 2022,
+      userToken: data?.token,
+    });
+
+    console.log("GetTPAccountInfo: Success", responseGetTPAccountInfo);
+    if (responseGetTPAccountInfo) {
+      // const {data} = res
+      if (responseGetTPAccountInfo[0].ErrCode == -1) {
+        console.log(
+          "GetTPAccountInfo: error error saveTPAccountData",
+          responseGetTPAccountInfo
+        );
+        let datatSet = {
+          AcctID: '',
+          TaxPayerID: "RMKcreate",
+          TaxPayerName: "Create a new profile"
+        }
+        await dispatch(saveGetTPConnectedAccountData([datatSet]));
+      } else {
+        let filteredData = responseGetTPAccountInfo.filter(
+          (item: { TaxPayerID: any }) => {
+            return item.TaxPayerID !== data?.TaxPayerID;
+          }
+        );
+        await dispatch(saveGetTPAccountData(filteredData));
+        let datatSet = {
+          AcctID: '',
+          TaxPayerID: "RMKcreate",
+          TaxPayerName: "Create a new profile"
+        }
+
+        var updatedTPConnected = await [...responseGetTPAccountInfo, datatSet];
+
+        console.log(
+          "RMK RMK updatedTPConnected",
+          updatedTPConnected
+        );
+        await dispatch(saveGetTPConnectedAccountData(updatedTPConnected));
+        await AsyncStorage.setItem(
+          "saveTPAccountData",
+          JSON.stringify(filteredData)
+        );
+      }
+
+      // const resGetTaxPayerMyProfileInfo = await GetTaxPayerMyProfileInfo({
+      //   AcctID: data?.AcctID,
+      //   TaxPayerID: data?.TaxPayerID,
+      //   Year: 2022,
+      //   userToken: data?.token,
+      // });
+
+      // console.log(
+      //   "resGetTaxPayerMyProfileInfo res",
+      //   resGetTaxPayerMyProfileInfo
+      // );
+
+      // if (resGetTaxPayerMyProfileInfo) {
+      //   dispatch(saveTPMyProfileInfo(resGetTaxPayerMyProfileInfo));
+      //   await AsyncStorage.setItem(
+      //     "saveTPMyProfileInfo",
+      //     JSON.stringify(resGetTaxPayerMyProfileInfo)
+      //   );
+      //   const params = {
+      //     MaritialStatus: getMaritalStatusValue(
+      //       resGetTaxPayerMyProfileInfo.TaxPayerMaritalStatus
+      //     ),
+      //     Province: {
+      //       ProvinceCode: resGetTaxPayerMyProfileInfo.Province,
+      //       ProvinceName:
+      //         resGetTaxPayerMyProfileInfo?.Province == !null
+      //           ? AllProvinces.find(
+      //               (x: { ProvinceCode: any }) =>
+      //                 x.ProvinceCode === resGetTaxPayerMyProfileInfo?.Province
+      //             ).ProvinceName
+      //           : "",
+      //     },
+      //     partnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
+      //     selectedYear: 2022,
+      //     answersOfQuestions: [
+      //       resGetTaxPayerMyProfileInfo.PartnerID === null ? "No" : "Yes",
+      //       getRealYNValue(resGetTaxPayerMyProfileInfo.DependentStatus),
+      //       getRealYNValue(resGetTaxPayerMyProfileInfo.MaritalStatusChanged),
+      //     ],
+      //     MaritalStatusChangedDate:
+      //       resGetTaxPayerMyProfileInfo?.MaritalStatusChangedDate,
+      //     TaxPayerPreviousMaritalStatus:
+      //       getTaxPayerPreviousMaritalStatusValue(
+      //         resGetTaxPayerMyProfileInfo?.TaxPayerPreviousMaritalStatus
+      //       ),
+      //     partnerFromList: "",
+      //     ClaimCreditsFromSpouse:
+      //       resGetTaxPayerMyProfileInfo?.ClaimCreditsFromSpouse,
+      //     partnerDetailsList: responseGetTPAccountInfo,
+      //   };
+      //   let partnerDetails = {
+      //     PartnerID: resGetTaxPayerMyProfileInfo?.PartnerID,
+      //     PartnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
+      //     TypedPartnerName: null,
+      //     SelectedPartnerID: null,
+      //     SelectedPartnerName: null,
+      //   };
+      //   dispatch(savePartnerDetails(partnerDetails));
+      //   dispatch(setOnBoardingData(params));
+      //   await AsyncStorage.setItem(
+      //     "partnerDetails",
+      //     JSON.stringify(partnerDetails)
+      //   );
+      //   await AsyncStorage.setItem(
+      //     "setOnBoardingData",
+      //     JSON.stringify(params)
+      //   );
+      //   let isSetBioMetric = await AsyncStorage.getItem("isSetBioMetric");
+      //   console.log("RMK authenticate isSetBioMetric", isSetBioMetric);
+      //   if (isSetBioMetric !== null && isSetBioMetric == "true") {
+      //     if (GetTaxPayerPersonalResponse) {
+      //       if (GetTaxPayerPersonalResponse.ErrCode == -1) {
+      //         // Alert.alert("Error", "Something went wrong! Please try again.");
+      //         navigation.replace("ChooseAAccountScreen", {
+      //           isFromRegistration: false,
+      //           accountList: responseGetTPAccountInfo
+      //         });
+      //       } else {
+      //         console.log("RMK authenticate GetTaxPayerPersonalResponse", GetTaxPayerPersonalResponse);
+      //         if (GetTaxPayerPersonalResponse?.TaxID !== null) {
+      //           navigation.replace("SummaryScreen");
+      //         } else {
+      //           navigation.replace("ChooseAAccountScreen", {
+      //             isFromRegistration: false,
+      //             accountList: responseGetTPAccountInfo
+      //           });
+      //         }
+      //       }
+      //     } else {
+      //       navigation.replace("ChooseAAccountScreen", {
+      //         isFromRegistration: false,
+      //         accountList: responseGetTPAccountInfo
+      //       });
+      //     }
+      //   } else {
+
+      //     console.log("RMK authenticate email", biometricsSupported);
+      //     if(biometricsSupported){
+      //       navigation.replace("BioMetricScreen", {
+      //         TaxID: GetTaxPayerPersonalResponse?.TaxID,
+      //       });
+      //     }else {
+      //       if (GetTaxPayerPersonalResponse) {
+      //       if (GetTaxPayerPersonalResponse.ErrCode == -1) {
+      //         // Alert.alert("Error", "Something went wrong! Please try again.");
+      //         navigation.replace("ChooseAAccountScreen", {
+      //           isFromRegistration: false,
+      //           accountList: responseGetTPAccountInfo
+      //         });
+      //       } else {
+      //         console.log("RMK authenticate GetTaxPayerPersonalResponse 2", GetTaxPayerPersonalResponse);
+      //         if (GetTaxPayerPersonalResponse?.TaxID !== null) {
+      //           navigation.replace("SummaryScreen");
+      //         } else {
+      //           navigation.replace("ChooseAAccountScreen", {
+      //             isFromRegistration: false,
+      //             accountList: responseGetTPAccountInfo
+      //           });
+      //         }
+      //       }
+      //     } else {
+      //       navigation.replace("ChooseAAccountScreen", {
+      //         isFromRegistration: false,
+      //         accountList: responseGetTPAccountInfo
+      //       });
+      //     }}
+
+      //   }
+
+      //   setisDataLoading(false);
+      // } else {
+      //   setisDataLoading(false);
+      // }
+
+      let isSetBioMetric = await AsyncStorage.getItem("isSetBioMetric");
+      console.log("RMK authenticate isSetBioMetric", isSetBioMetric);
+      if (isSetBioMetric !== null && isSetBioMetric == "true") {
+        if (responseGetTPAccountInfo) {
+          setisDataLoading(false);
+          navigation.replace("ChooseAAccountScreen", {
+            isFromRegistration: false,
+            accountList: responseGetTPAccountInfo,
+          });
+        }
+      } else {
+        setisDataLoading(false);
+        console.log("RMK authenticate email", biometricsSupported);
+        if (biometricsSupported) {
+          navigation.replace("BioMetricScreen", {
+            accountList: responseGetTPAccountInfo,
+            isFromRegistration: false,
+          });
+        } else {
+          navigation.replace("ChooseAAccountScreen", {
+            isFromRegistration: false,
+            accountList: responseGetTPAccountInfo,
+          });
+        }
+      }
+    } else {
+    }
+  };
+
   const simpleAuthentication = async () => {
     try {
       const res = await DeviceCrypto.authenticateWithBiometry({
@@ -483,6 +545,7 @@ const LoginScreen = ({ navigation }: any) => {
     navigation.navigate("WebViewWithoutPopUp", {
       url: url,
       isFromEstimated: false,
+      isShowBackButton: true,
     });
   };
   useEffect(() => {

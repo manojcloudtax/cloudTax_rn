@@ -1,4 +1,4 @@
-import React, { useEffect,useState} from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Alert,
@@ -6,11 +6,7 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import {
-  CtText,
-  CtView,
-  Button,
-} from "../components/UiComponents";
+import { CtText, CtView, Button } from "../components/UiComponents";
 import { Spinner } from "../components";
 import { useDispatch } from "react-redux";
 import { defaultColors } from "../utils/defaultColors";
@@ -18,7 +14,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import moment from "moment";
-import DatePicker from '@react-native-community/datetimepicker';
+import DatePicker from "@react-native-community/datetimepicker";
 import {
   GetAfrUrl,
   GetSlips,
@@ -59,7 +55,12 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
       console.log("onPressConfirm res", getSavedLoggedInData);
       if (getSavedLoggedInData?.TaxPayerBirthDate != undefined) {
         if (getSavedLoggedInData?.DefaultBirthDate == "N") {
-          setDateValue(new Date(getSavedLoggedInData?.TaxPayerBirthDate));
+          var dateArray = getSavedLoggedInData?.TaxPayerBirthDate.split("-");
+          var year = dateArray[0];
+          var month = parseInt(dateArray[1], 10) - 1;
+          var dates = dateArray[2];
+          var _entryDate = new Date(year, month, dates);
+          setDateValue(_entryDate);
           setDateAvailability(true);
         }
         setButtonEnable(true);
@@ -76,7 +77,10 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
   }, [isFocused]);
   const onPressConfirm = async () => {
     console.log("DateOfBirthScreen onPressConfirm", date);
-    console.log("DateOfBirthScreen onPressConfirm moment", moment(date).format("YYYY-MM-DD").toString());
+    console.log(
+      "DateOfBirthScreen onPressConfirm moment",
+      moment(date).format("YYYY-MM-DD").toString()
+    );
     if (!isDateAvailable) {
       Alert.alert("Please select valid date..!");
       return;
@@ -104,7 +108,7 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
         TaxPayerMiddleName: resGetTaxPayerMyProfileInfo?.TaxPayerMiddleName,
         TaxPayerLastName: resGetTaxPayerMyProfileInfo?.TaxPayerLastName,
         TaxPayerSIN: resGetTaxPayerMyProfileInfo?.TaxPayerSocialInsuranceNumber,
-        DefaultBirthDate: 'N',
+        DefaultBirthDate: "N",
         NameChangedStatus: resGetTaxPayerMyProfileInfo?.NameChangedStatus,
         DisabledStatus: resGetTaxPayerMyProfileInfo?.DisabledStatus,
         FirstYearClaimingStatus:
@@ -142,25 +146,34 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
             Year: 2022,
             userToken: savedUserData?.token,
           });
-          console.log("resGetTaxPayerMyProfileInfo res", resGetTaxPayerMyProfileInfo2);
+          console.log(
+            "resGetTaxPayerMyProfileInfo res",
+            resGetTaxPayerMyProfileInfo2
+          );
           if (resGetTaxPayerMyProfileInfo2) {
             if (resGetTaxPayerMyProfileInfo2.ErrCode == -1) {
               // setisLoading(false);
               Alert.alert("Something went wrong..! Please try again..!");
               // return;
             } else {
-              dispatch(saveLoggedInSuccessUserData(resGetTaxPayerMyProfileInfo2));
-              console.log("resGetAfrUrl getSavedLoggedInData", getSavedLoggedInData);
-              console.log("resGetAfrUrl resGetTaxPayerMyProfileInfo2", resGetTaxPayerMyProfileInfo2);
+              dispatch(
+                saveLoggedInSuccessUserData(resGetTaxPayerMyProfileInfo2)
+              );
+              console.log(
+                "resGetAfrUrl getSavedLoggedInData",
+                getSavedLoggedInData
+              );
+              console.log(
+                "resGetAfrUrl resGetTaxPayerMyProfileInfo2",
+                resGetTaxPayerMyProfileInfo2
+              );
               navigation.navigate("SummaryScreen");
             }
-          } else{
+          } else {
             Alert.alert("Something went wrong, please try again.");
           }
-        
         }
 
-       
         // const GetSlipsfileRes = await GetSlips(
         //   {
         //     TaxID: resGetTaxPayerMyProfileInfo?.TaxID,
@@ -223,11 +236,11 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
   const setDate = () => {
     setOpen(true);
   };
-
+  console.log("onPressConfirm date", date);
   return (
     <SafeAreaView style={styles(darkTheme).scrollStyle} key={key}>
       <Header onPressbackButton={() => onBackButtonPress()} />
-     
+
       <ScrollView
         // contentContainerStyle={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
@@ -314,7 +327,7 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
                 color: darkTheme
                   ? defaultColors.whiteGrey
                   : defaultColors.secondaryTextColor,
-                  fontSize:18
+                fontSize: 18,
               }}
             >
               {isDateAvailable
@@ -365,10 +378,14 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
                 color: darkTheme
                   ? defaultColors.whiteGrey
                   : defaultColors.secondaryTextColor,
-                  fontSize:18
+                fontSize: 18,
               }}
             >
-              {isDateAvailable ? parseInt(moment(date, "YYYY/MM/DD").format("M")) < 10 ? `0${moment(date, "YYYY/MM/DD").format("M")}` : `${moment(date, "YYYY/MM/DD").format("M")}`  : "MM"}
+              {isDateAvailable
+                ? parseInt(moment(date, "YYYY/MM/DD").format("M")) < 10
+                  ? `0${moment(date, "YYYY/MM/DD").format("M")}`
+                  : `${moment(date, "YYYY/MM/DD").format("M")}`
+                : "MM"}
             </CtText>
           </TouchableOpacity>
           <CtView
@@ -414,10 +431,14 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
                 color: darkTheme
                   ? defaultColors.whiteGrey
                   : defaultColors.secondaryTextColor,
-                  fontSize:18
+                fontSize: 18,
               }}
             >
-              {isDateAvailable ? parseInt(moment(date, "YYYY/MM/DD").format("D")) < 10 ? `0${moment(date, "YYYY/MM/DD").format("D")}` : `${moment(date, "YYYY/MM/DD").format("D")}` : "DD"}
+              {isDateAvailable
+                ? parseInt(moment(date, "YYYY/MM/DD").format("D")) < 10
+                  ? `0${moment(date, "YYYY/MM/DD").format("D")}`
+                  : `${moment(date, "YYYY/MM/DD").format("D")}`
+                : "DD"}
             </CtText>
           </TouchableOpacity>
         </CtView>
@@ -431,9 +452,9 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
             display="spinner"
             // open={open}
             value={date}
-            textColor={darkTheme? "black": "black"}
-            themeVariant={darkTheme ? 'dark':'light'}
-            onChange={(event, selectedDate)  => {
+            textColor={darkTheme ? "black" : "black"}
+            themeVariant={darkTheme ? "dark" : "light"}
+            onChange={(event, selectedDate) => {
               console.log("onConfirm", date);
               setOpen(false);
               setDateValue(selectedDate);

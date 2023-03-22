@@ -16,13 +16,23 @@ import { defaultColors } from "../../utils/defaultColors";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { CommonModal } from "../../components";
-import { getAllProvince, SaveMultiTaxYearIndicatorInfo } from "../../api/auth";
+import { getAllProvince, GetTaxPayerMyProfileInfo, SaveMultiTaxYearIndicatorInfo,
+  GetTaxPayerPersonalInfo,
+  GetTPAccountInfo, } from "../../api/auth";
 import {
+  saveTPMyProfileInfo,
   setIsPriorYearModalSelected,
   setProvinces,
+  savePartnerDetails,
+  saveLoggedInSuccessUserData,
+  saveRegisteredSuccessUserData,
 } from "../../store/authSlice";
 import { useQuery } from "react-query";
 import { BottomButton } from "../../components/BottomButton";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getMaritalStatusValue, getRealYNValue, getTaxPayerPreviousMaritalStatusValue } from "../../utils/common";
+import { setOnBoardingData } from "../../store/onBoardingSlice";
+import { Header } from "../../components/Header";
 const ChooseTaxYear = ({ navigation, route }: any) => {
   const dispatch = useDispatch();
   useEffect(() => {
@@ -32,19 +42,28 @@ const ChooseTaxYear = ({ navigation, route }: any) => {
     );
     return () => backHandler.remove();
   }, []);
-  const { savedUserData, getPriorYearSelected } = useSelector(
+  const { savedUserData, getPriorYearSelected, AllProvinces, getTPConnectedAccountData } = useSelector(
     (state: RootState) => state.authReducer
   );
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
 
   const [taxYear, setTaxYear] = useState("2022");
   const [isShowModal, setShowModal] = useState(false);
+  const [isDaataLoading, setisDataLoading] = useState(false);
   const [isFromRegistrationValue, setisFromRegistrationValue] = useState(false);
 
   useEffect(() => {
     refetch();
   }, []);
 
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => true
+    );
+    return () => backHandler.remove();
+  }, []);
   useEffect(() => {
     try {
       console.log("init OnBoardingTaxProfile", route.params);
@@ -252,10 +271,7 @@ If you intend to file more than one of these returns today or within the next tw
     if (SaveMultiTaxYearIndicatorRes) {
       dispatch(setIsPriorYearModalSelected(true));
       console.log("OnBoardingTaxProfile");
-      navigation.navigate("OnBoardingTaxProfile", {
-        selectedScreen: 1,
-        selectedYear: "2022",
-      });
+      onPressContinueButton();
     } else {
       console.log("SaveMultiTaxYearIndicatorRes checkSub:");
       // return {}
@@ -263,13 +279,127 @@ If you intend to file more than one of these returns today or within the next tw
     // SaveMultiTaxYearIndicatorInfo
   };
 
-  const onPressContinueButton = () => {
+  const onPressContinueButton = async () => {
     setShowModal(false);
+    setisDataLoading(true);
     dispatch(setIsPriorYearModalSelected(true));
-    navigation.navigate("OnBoardingTaxProfile", {
-      selectedScreen: 1,
-      selectedYear: "2022",
+    // navigation.navigate("OnBoardingTaxProfile", {
+    //   selectedScreen: 1,
+    //   selectedYear: "2022",
+    // });
+    const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
+      AcctID: savedUserData?.AcctID,
+      TaxPayerID: savedUserData?.TaxPayerID,
+      Year: 2022,
+      userToken: savedUserData?.token,
     });
+
+    console.log(
+      "GetTaxPayerPersonalResponse res",
+      GetTaxPayerPersonalResponse
+    );
+
+    if (GetTaxPayerPersonalResponse) {
+      let savedDataSet = GetTaxPayerPersonalResponse
+      savedDataSet['token']= savedUserData?.token;
+
+      dispatch(saveRegisteredSuccessUserData(savedDataSet));
+      dispatch(saveLoggedInSuccessUserData(GetTaxPayerPersonalResponse));
+      await AsyncStorage.setItem(
+        "getSavedLoggedInData",
+        JSON.stringify(GetTaxPayerPersonalResponse)
+      );
+    } else {
+    }
+
+      const resGetTaxPayerMyProfileInfo = await GetTaxPayerMyProfileInfo({
+        AcctID: savedUserData?.AcctID,
+        TaxPayerID: savedUserData?.TaxPayerID,
+        Year: 2022,
+        userToken: savedUserData?.token,
+      });
+
+      console.log(
+        "resGetTaxPayerMyProfileInfo res",
+        resGetTaxPayerMyProfileInfo
+      );
+
+      if (resGetTaxPayerMyProfileInfo) {
+        dispatch(saveTPMyProfileInfo(resGetTaxPayerMyProfileInfo));
+        await AsyncStorage.setItem(
+          "saveTPMyProfileInfo",
+          JSON.stringify(resGetTaxPayerMyProfileInfo)
+        );
+        const params = {
+          MaritialStatus: getMaritalStatusValue(
+            resGetTaxPayerMyProfileInfo.TaxPayerMaritalStatus
+          ),
+          Province: {
+            ProvinceCode: resGetTaxPayerMyProfileInfo.Province,
+            ProvinceName:
+              resGetTaxPayerMyProfileInfo?.Province == !null
+                ? AllProvinces.find(
+                    (x: { ProvinceCode: any }) =>
+                      x.ProvinceCode === resGetTaxPayerMyProfileInfo?.Province
+                  ).ProvinceName
+                : "",
+          },
+          partnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
+          selectedYear: 2022,
+          answersOfQuestions: [
+            resGetTaxPayerMyProfileInfo.PartnerID === null ? "No" : "Yes",
+            getRealYNValue(resGetTaxPayerMyProfileInfo.DependentStatus),
+            getRealYNValue(resGetTaxPayerMyProfileInfo.MaritalStatusChanged),
+          ],
+          MaritalStatusChangedDate:
+            resGetTaxPayerMyProfileInfo?.MaritalStatusChangedDate,
+          TaxPayerPreviousMaritalStatus:
+            getTaxPayerPreviousMaritalStatusValue(
+              resGetTaxPayerMyProfileInfo?.TaxPayerPreviousMaritalStatus
+            ),
+          partnerFromList: "",
+          ClaimCreditsFromSpouse:
+            resGetTaxPayerMyProfileInfo?.ClaimCreditsFromSpouse,
+          partnerDetailsList: getTPConnectedAccountData,
+        };
+        let partnerDetails = {
+          PartnerID: resGetTaxPayerMyProfileInfo?.PartnerID,
+          PartnerName: resGetTaxPayerMyProfileInfo?.PartnerName,
+          TypedPartnerName: null,
+          SelectedPartnerID: null,
+          SelectedPartnerName: null,
+        };
+        dispatch(savePartnerDetails(partnerDetails));
+        dispatch(setOnBoardingData(params));
+        await AsyncStorage.setItem(
+          "partnerDetails",
+          JSON.stringify(partnerDetails)
+        );
+        await AsyncStorage.setItem(
+          "setOnBoardingData",
+          JSON.stringify(params)
+        );
+          if (GetTaxPayerPersonalResponse) {
+            if (GetTaxPayerPersonalResponse?.TaxID !== null) {
+                        navigation.replace("SummaryScreen");
+                      } else {
+                        navigation.navigate("OnBoardingTaxProfile", {
+                          selectedScreen: 1,
+                          selectedYear: "2022",
+                        })
+
+                      }
+          } else {
+            navigation.navigate("OnBoardingTaxProfile", {
+              selectedScreen: 1,
+              selectedYear: "2022",
+            })
+          }
+
+        setisDataLoading(false);
+      } else {
+        setisDataLoading(false);
+      }
   };
 
   const onPressLetsStartButton = () => {
@@ -277,28 +407,25 @@ If you intend to file more than one of these returns today or within the next tw
       if (!getPriorYearSelected) {
         setShowModal(true);
       } else {
-        navigation.navigate("OnBoardingTaxProfile", {
-          selectedScreen: 1,
-          selectedYear: "2022",
-        });
+        onPressContinueButton();
       }
     } else {
-      navigation.navigate("OnBoardingTaxProfile", {
-        selectedScreen: 1,
-        selectedYear: "2022",
-      });
+      onPressContinueButton();
     }
   };
   const onBackdropPress = () => {
+    navigation.goBack();
     return;
   };
 
   return (
     <SafeAreaView style={styles(darkTheme).view}>
+
+<Header onPressbackButton={() => onBackdropPress()} />
       <CommonModal
         isShowModal={isShowModal}
         ChildView={confirmationModal()}
-        onBackdropPress={() => onBackdropPress()}
+        onBackdropPress={() => {return;}}
       />
       <CtView
         style={{
@@ -389,6 +516,7 @@ If you intend to file more than one of these returns today or within the next tw
         onPress={() => onPressLetsStartButton()}
         // style={[styles().button]}
         buttonText={"Let’s Start"}
+        showLoading={isDaataLoading}
       />
       {/* </CtView> */}
     </SafeAreaView>

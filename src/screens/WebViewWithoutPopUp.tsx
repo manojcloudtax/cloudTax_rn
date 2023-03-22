@@ -16,16 +16,18 @@ const WebViewWithoutPopUp = ({ navigation, route }: any) => {
   const webviewRef = useRef(null);
   const [isFromEstimatedScreen, setEstimatedScreen] = useState(false);
   const [isManualUpdate, setisManualUpdate] = useState(false);
+  const [isBackButtonAvailable, setisBackButtonAvailable] = useState(false);
   const { savedUserData } = useSelector(
     (state: RootState) => state.authReducer
   );
   useEffect(() => {
     try {
       if (route.params !== undefined) {
-        const { url, isFromEstimated, isFromManualUpdate } = route.params;
+        const { url, isFromEstimated, isFromManualUpdate, isShowBackButton } = route.params;
         setUrl(url);
         setEstimatedScreen(isFromEstimated);
         setisManualUpdate(isFromManualUpdate);
+        setisBackButtonAvailable(isShowBackButton);
       }
     } catch (error) {}
   }, []);
@@ -53,7 +55,11 @@ const WebViewWithoutPopUp = ({ navigation, route }: any) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      {isBackButtonAvailable ? 
       <Header onPressbackButton={() => onBackButtonPress()} />
+      :
+      null
+    }
       <KeyboardAvoidingView
         keyboardVerticalOffset={Platform.OS === "android" ? 20 : 0}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

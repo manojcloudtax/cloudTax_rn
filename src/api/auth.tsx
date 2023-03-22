@@ -285,7 +285,11 @@ export const SaveMultiTaxYearIndicatorInfo = (postData: {
       return null;
     });
 
-export const ForgotPassword = (postData: { AcctEmail: string; Year: 2022, host: string }) =>
+export const ForgotPassword = (postData: {
+  AcctEmail: string;
+  Year: 2022;
+  host: string;
+}) =>
   shoebox
     .post("/user/forgot-password", postData)
     .then((res) => {
@@ -873,8 +877,9 @@ export const GetUrlData = (postData: any, userToken: string) =>
     });
 
 export const GetForceUpdateStatus = (postData: any, userToken: string) =>
-  axios.post("https://app.cloudtax.ca/api/helper/check-update", postData, {
-      headers: { Authorization: `Bearer ${userToken}`},
+  axios
+    .post("https://app.cloudtax.ca/api/helper/check-update", postData, {
+      headers: { Authorization: `Bearer ${userToken}` },
     })
     .then((res) => {
       console.log("GetForceUpdateStatus", res);
@@ -971,6 +976,48 @@ export const NewSaveTPAccountInfo = (postData: {
     })
     .catch((res) => {
       console.log("catch", res);
+      return null;
+    });
+
+export const GetTaxPayerList = (postData: {
+  AcctID: string;
+  Year: 2022;
+  userToken: string;
+}) =>
+  shoebox
+    .post("/getTaxPayerList", postData, {
+      headers: { Authorization: `Bearer ${postData.userToken}` },
+    })
+    .then((res) => {
+      console.log("GetTaxPayerList", res);
+      console.log("GetTaxPayerList GetTaxPayerList", postData);
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("catch", res);
+      return null;
+    });
+
+export const SaveAccountCarryForwardInfo = (postData: {
+  AcctID: string;
+  Year: 2022;
+  userToken: string;
+  TaxPayerID: string;
+}) =>
+  shoebox
+    .post("/SaveAccountCarryForwardInfo", postData, {
+      headers: { Authorization: `Bearer ${postData.userToken}` },
+    })
+    .then((res) => {
+      console.log("SaveAccountCarryForwardInfo", res);
+      console.log(
+        "SaveAccountCarryForwardInfo SaveAccountCarryForwardInfo",
+        postData
+      );
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("SaveAccountCarryForwardInfo catch", res);
       return null;
     });
 

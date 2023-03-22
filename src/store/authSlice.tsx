@@ -21,6 +21,7 @@ const initialState = {
   saveTaxpayerProfileData: {},
   AllProvinces: null,
   saveTPAccountData: [],
+  getTPConnectedAccountData:[],
   saveTPMyProfileData: {},
   getPriorYearSelected: false,
   getSavedLoggedInData: {},
@@ -95,6 +96,10 @@ export const authSlice = createSlice({
       console.log("saveGetTPAccountData", action.payload);
       state.saveTPAccountData = action.payload;
     },
+    saveGetTPConnectedAccountData: (state, action) => {
+      console.log("saveGetTPConnectedAccountData", action.payload);
+      state.getTPConnectedAccountData = action.payload;
+    },
     saveTPMyProfileInfo: (state, action) => {
       console.log("saveTPMyProfileInfo", action.payload);
       state.saveTPMyProfileData = action.payload;
@@ -130,6 +135,7 @@ export const authSlice = createSlice({
         (state.savedUserData = {}),
         (state.saveTaxpayerProfileData = {}),
         (state.saveTPAccountData = []),
+        (state.getTPConnectedAccountData = []),
         (state.saveTPMyProfileData = {}),
         (state.getPriorYearSelected = false),
         (state.getSavedLoggedInData = {});
@@ -155,6 +161,7 @@ export const {
   SaveTaxpayerProfileData,
   resetState,
   saveGetTPAccountData,
+  saveGetTPConnectedAccountData,
   saveTPMyProfileInfo,
   setIsPriorYearModalSelected,
   saveLoggedInSuccessUserData,

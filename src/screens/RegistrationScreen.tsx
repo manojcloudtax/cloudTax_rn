@@ -625,7 +625,8 @@ const RegisterScreen = ({ navigation, route }: any) => {
 
   const onPressText = (url: String) => {
     navigation.navigate("WebViewWithoutPopUp", { url: url,
-      isFromEstimated: false });
+      isFromEstimated: false,
+      isShowBackButton: true });
   };
 
   const onBackdropPress = () => {

@@ -71,6 +71,7 @@ const EstimatedScreen = ({ navigation, route }: any) => {
           console.log("getUrl", getUrl);
           navigation.navigate("WebViewWithoutPopUp", {
           url: getUrl.url,
+          isShowBackButton: false
         });
         } else {
           Alert.alert("Something went wrong. Please try again...!")

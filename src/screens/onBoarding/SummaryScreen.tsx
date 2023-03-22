@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Image,
@@ -9,6 +9,7 @@ import {
   View,
   Alert,
   StatusBar,
+  BackHandler,
 } from "react-native";
 import { CtText, CtView, Divider } from "../../components/UiComponents";
 import { useDispatch } from "react-redux";
@@ -17,25 +18,95 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { Ionicons } from "@expo/vector-icons";
 import { Spinner } from "../../components/Spinner";
+import { useIsFocused } from "@react-navigation/native";
 import {
   GetAvailableSlipsData,
   GetProUserFlagInfo,
   getSelectedSlipData,
+  GetT1TaxReturnInfo,
   GetUrlData,
 } from "../../api/auth";
 import Lottie from "lottie-react-native";
 
 const SummaryScreen = ({ navigation }: any) => {
+  const isFocused = useIsFocused();
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
   const [loadingAvailable, setisLoading] = useState<boolean>(false);
-  const { savedUserData, getSavedLoggedInData } = useSelector(
-    (state: RootState) => state.authReducer
-  );
+
+  const [isLoading, setLoadingAvailable] = useState<boolean>(false);
+  const { savedUserData, getSavedLoggedInData, getTPConnectedAccountData } =
+    useSelector((state: RootState) => state.authReducer);
+
+  const [incomevalue, setIncomeValue] = useState<boolean>(false);
   const dispatch = useDispatch();
   console.log("resGetSelectedData savedUserData", savedUserData);
   console.log("resGetSelectedData getSavedLoggedInData", getSavedLoggedInData);
   const onPressCRAAutoFill = () => {
     navigation.navigate("CRAAutoFillScreen");
+  };
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => true
+    );
+    return () => backHandler.remove();
+  }, []);
+  useEffect(() => {
+    getTaxPriceInfo();
+  }, [isFocused]);
+
+  const getTaxPriceInfo = async () => {
+    setLoadingAvailable(true);
+    const GetGetT1TaxReturnInfo = await GetT1TaxReturnInfo({
+      TaxID: getSavedLoggedInData?.TaxID,
+      AcctID: savedUserData?.AcctID,
+      TaxPayerID: savedUserData?.TaxPayerID,
+      Year: 2022,
+      userToken: savedUserData?.token,
+      RuleSP: "Y",
+    });
+
+    if (GetGetT1TaxReturnInfo) {
+      // setisLoading(false);
+      setLoadingAvailable(false);
+      if (GetGetT1TaxReturnInfo.ErrCode == -1) {
+        console.log("GetGetT1TaxReturnInfo else");
+        // Alert.alert("Something went wrong..! Please try again..!");
+      } else {
+        // setIncomeValue(GetGetT1TaxReturnInfo.incomevalue)
+        console.log("At least GetGetT1TaxReturnInfo", GetGetT1TaxReturnInfo);
+        console.log("At least GetGetT1TaxReturnInfo", GetGetT1TaxReturnInfo.TaxableIncome);
+        // let hasValue = ( (Object.values(GetGetT1TaxReturnInfo).every(value => value !== 0) && GetGetT1TaxReturnInfo.ErrMsg === "Success"))
+
+        // if (hasValue) {
+        //   console.log("At least one property has a value");
+        //   setIncomeValue(true);
+        // } else {
+        //   console.log("None of the properties have a value");
+        //   setIncomeValue(false);
+        // }
+
+        if (GetGetT1TaxReturnInfo.Balance !== 0 ||
+          GetGetT1TaxReturnInfo.TotalPayable !== 0 ||
+          GetGetT1TaxReturnInfo.TotalIncome !== 0 ||
+          GetGetT1TaxReturnInfo.TotalCredits !== 0 ||
+          GetGetT1TaxReturnInfo.TaxableIncome !== 0 ||
+          GetGetT1TaxReturnInfo.Refund !== 0 ||
+          GetGetT1TaxReturnInfo.NetIncome !== 0 ) {
+          // Code to be executed if all properties have non-zero values and ErrMsg equals "Success"
+          console.log("At least one property has a value");
+          setIncomeValue(true);
+        } else {
+          // Code to be executed if any property has a value of 0 or ErrMsg is not equal to "Success"
+          console.log("None of the properties have a value");
+          setIncomeValue(false);
+        }
+      }
+    } else {
+      // setisLoading(false);
+      setLoadingAvailable(false);
+    }
   };
 
   const onPressScanYourBill = async () => {
@@ -132,6 +203,7 @@ const SummaryScreen = ({ navigation }: any) => {
             console.log("getUrl", getUrl);
             navigation.navigate("WebViewWithoutPopUp", {
               url: getUrl.url,
+              isShowBackButton: false,
             });
           } else {
             Alert.alert("Something went wrong. Please try again...!");
@@ -157,38 +229,43 @@ const SummaryScreen = ({ navigation }: any) => {
         // showHideTransition={statusBarTransition}
         // hidden={hidden}
       />
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <TouchableOpacity
+      <TouchableOpacity
+        style={{
+          // flex: 0.25,
+          paddingRight: 20,
+          // marginLeft:67,
+          // marginBottom: 30,
+          paddingTop: 20,
+          display: "flex",
+          justifyContent: "center",
+          alignContent: "center",
+          alignItems: "flex-end",
+          backgroundColor: defaultColors.primaryBlue,
+        }}
+        onPress={() =>
+          // navigation.replace("ChooseAAccountScreen", {
+          //   isFromRegistration: false,
+          //   accountList: getTPConnectedAccountData
+          // })
+          navigation.navigate("OnBoardingTaxProfile", {
+            selectedScreen: 1,
+            selectedYear: "2022",
+          })
+        }
+      >
+        <CtText
           style={{
-            // flex: 0.25,
-            paddingRight: 20,
-            // marginLeft:67,
-            // marginBottom: 30,
-            paddingTop: 20,
-            display: "flex",
-            justifyContent: "center",
-            alignContent: "center",
-            alignItems: "flex-end",
-            backgroundColor: defaultColors.primaryBlue,
+            // textAlign: "left",
+            fontSize: 18,
+            fontFamily: "Figtree-SemiBold",
+            fontWeight: "600",
+            color: darkTheme ? defaultColors.white : defaultColors.white,
           }}
-          onPress={() =>
-            navigation.replace("ChooseTaxYearScreen", {
-              isFromRegistration: false,
-            })
-          }
         >
-          <CtText
-            style={{
-              // textAlign: "left",
-              fontSize: 18,
-              fontFamily: "Figtree-SemiBold",
-              fontWeight: "600",
-              color: darkTheme ? defaultColors.white : defaultColors.white,
-            }}
-          >
-            Edit info
-          </CtText>
-        </TouchableOpacity>
+          Edit info
+        </CtText>
+      </TouchableOpacity>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <CtView
           style={{
             flex: 1,
@@ -208,6 +285,25 @@ const SummaryScreen = ({ navigation }: any) => {
                 backgroundColor: defaultColors.primaryBlue,
                 // marginTop: 40,
               }}
+            ><CtText
+                style={{
+                  // textAlign: "left",
+                  fontSize: 18,
+                  fontFamily: "Figtree-SemiBold",
+                  fontWeight: "600",
+                  color: darkTheme ? defaultColors.white : defaultColors.white,
+                }}
+              >
+                {`Hi ${savedUserData.TaxPayerName}`}
+              </CtText>
+            </CtView>
+            <CtView
+              style={{
+                justifyContent: "center",
+                alignSelf: "center",
+                backgroundColor: defaultColors.primaryBlue,
+                // marginTop: 40,
+              }}
             >
               {/* <Image
                 style={{
@@ -220,7 +316,7 @@ const SummaryScreen = ({ navigation }: any) => {
               /> */}
               <Lottie
                 style={{
-                  height: 300,
+                  height: 250,
                   width: Dimensions.get("window").width * 0.9,
                   backgroundColor: defaultColors.primaryBlue,
                 }}
@@ -475,6 +571,15 @@ const SummaryScreen = ({ navigation }: any) => {
               }}
               onPress={() => onPressEnterThemManually()}
             >
+              {isLoading ? (
+                <Spinner
+                  style={{
+                    flex: 0,
+                    backgroundColor: "transparent",
+                    alignSelf: "center",
+                  }}
+                />
+              ) : (
               <CtText
                 style={{
                   // textAlign: "left",
@@ -486,8 +591,9 @@ const SummaryScreen = ({ navigation }: any) => {
                     : defaultColors.secondaryTextColor,
                 }}
               >
-                No, I will enter them manually
+                {incomevalue ? "Goto Dashboard" :  "No I will enter them manually"}
               </CtText>
+              )}
             </TouchableOpacity>
           </CtView>
         </CtView>

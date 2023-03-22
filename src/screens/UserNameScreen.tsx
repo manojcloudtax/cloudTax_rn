@@ -153,6 +153,7 @@ const UserNameScreen = ({ navigation, route }: any) => {
                 AcctID: getSavedUser.AcctID,
                 TaxPayerID: resSaveTaxpayer.TaxPayerID,
                 token: getSavedUser.token,
+                TaxPayerName: resSaveTaxpayer.TaxPayerName,
             }
 
             await dispatch(saveRegisteredSuccessUserData(RegisteredData));
