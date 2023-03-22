@@ -61,6 +61,25 @@ const SplashScreenView = ({ navigation }: any) => {
       console.log(
         "Trigger the Splash Screen visible till this try block resolves the promise"
       );
+
+      let postData = {
+        app: "ca",
+        version: Constants.AppVersion,
+        platform: "android",
+      };
+
+      const GetStatus = await GetForceUpdateStatus(
+        postData
+      );
+
+      if (GetStatus.forceUpdate) {
+        console.log("GetForceUpdateStatus", GetStatus);
+        setShowModal(true);
+      } else {
+        console.log("GetForceUpdateStatus 2", GetStatus);
+        await SplashScreen.hideAsync();
+        navigation.navigate("LoginScreen");
+      }
       // await SplashScreen.preventAutoHideAsync();
       try {
         const allProvinceDataArray = await AsyncStorage.getItem(
@@ -82,25 +101,7 @@ const SplashScreenView = ({ navigation }: any) => {
             getFormattedSavedUserData
           );
           dispatch(saveRegisteredSuccessUserData(getFormattedSavedUserData));
-          let postData = {
-            app: "ca",
-            version: Constants.AppVersion,
-            platform: "android",
-          };
 
-          const GetStatus = await GetForceUpdateStatus(
-            postData,
-            getFormattedSavedUserData.token
-          );
-
-          if (GetStatus.forceUpdate) {
-            console.log("getUrl", GetStatus);
-            setShowModal(true);
-          } else {
-            console.log("getUrl 2", GetStatus);
-            await SplashScreen.hideAsync();
-            navigation.navigate("LoginScreen");
-          }
         } else {
           await SplashScreen.hideAsync();
           navigation.navigate("LoginScreen");

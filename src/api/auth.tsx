@@ -876,11 +876,9 @@ export const GetUrlData = (postData: any, userToken: string) =>
       return null;
     });
 
-export const GetForceUpdateStatus = (postData: any, userToken: string) =>
+export const GetForceUpdateStatus = (postData: any) =>
   axios
-    .post("https://app.cloudtax.ca/api/helper/check-update", postData, {
-      headers: { Authorization: `Bearer ${userToken}` },
-    })
+    .post("https://app.cloudtax.ca/api/helper/check-update", postData)
     .then((res) => {
       console.log("GetForceUpdateStatus", res);
       return res.data;
