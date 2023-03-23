@@ -76,7 +76,10 @@ const SummaryScreen = ({ navigation }: any) => {
       } else {
         // setIncomeValue(GetGetT1TaxReturnInfo.incomevalue)
         console.log("At least GetGetT1TaxReturnInfo", GetGetT1TaxReturnInfo);
-        console.log("At least GetGetT1TaxReturnInfo", GetGetT1TaxReturnInfo.TaxableIncome);
+        console.log(
+          "At least GetGetT1TaxReturnInfo",
+          GetGetT1TaxReturnInfo.TaxableIncome
+        );
         // let hasValue = ( (Object.values(GetGetT1TaxReturnInfo).every(value => value !== 0) && GetGetT1TaxReturnInfo.ErrMsg === "Success"))
 
         // if (hasValue) {
@@ -87,13 +90,15 @@ const SummaryScreen = ({ navigation }: any) => {
         //   setIncomeValue(false);
         // }
 
-        if (GetGetT1TaxReturnInfo.Balance !== 0 ||
+        if (
+          GetGetT1TaxReturnInfo.Balance !== 0 ||
           GetGetT1TaxReturnInfo.TotalPayable !== 0 ||
           GetGetT1TaxReturnInfo.TotalIncome !== 0 ||
           GetGetT1TaxReturnInfo.TotalCredits !== 0 ||
           GetGetT1TaxReturnInfo.TaxableIncome !== 0 ||
           GetGetT1TaxReturnInfo.Refund !== 0 ||
-          GetGetT1TaxReturnInfo.NetIncome !== 0 ) {
+          GetGetT1TaxReturnInfo.NetIncome !== 0
+        ) {
           // Code to be executed if all properties have non-zero values and ErrMsg equals "Success"
           console.log("At least one property has a value");
           setIncomeValue(true);
@@ -229,29 +234,17 @@ const SummaryScreen = ({ navigation }: any) => {
         // showHideTransition={statusBarTransition}
         // hidden={hidden}
       />
-      <TouchableOpacity
+      <View
         style={{
-          // flex: 0.25,
-          paddingRight: 20,
-          // marginLeft:67,
-          // marginBottom: 30,
+          justifyContent: "space-between",
+          // alignSelf: "center",
+          backgroundColor: defaultColors.primaryBlue,
+          height: "auto",
+          flexDirection: "row",
           paddingTop: 20,
           display: "flex",
-          justifyContent: "center",
-          alignContent: "center",
-          alignItems: "flex-end",
-          backgroundColor: defaultColors.primaryBlue,
+          // marginTop: 40,
         }}
-        onPress={() =>
-          // navigation.replace("ChooseAAccountScreen", {
-          //   isFromRegistration: false,
-          //   accountList: getTPConnectedAccountData
-          // })
-          navigation.navigate("OnBoardingTaxProfile", {
-            selectedScreen: 1,
-            selectedYear: "2022",
-          })
-        }
       >
         <CtText
           style={{
@@ -260,11 +253,53 @@ const SummaryScreen = ({ navigation }: any) => {
             fontFamily: "Figtree-SemiBold",
             fontWeight: "600",
             color: darkTheme ? defaultColors.white : defaultColors.white,
+            paddingLeft: 20,
           }}
         >
-          Edit info
+          {`Hi ${
+            savedUserData.TaxPayerName !== undefined
+              ? savedUserData.TaxPayerName
+              : ""
+          }`}
         </CtText>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            // flex: 0.25,
+            paddingRight: 20,
+            // marginLeft:67,
+            // marginBottom: 30,
+            // paddingTop: 20,
+            display: "flex",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "flex-end",
+            backgroundColor: defaultColors.primaryBlue,
+          }}
+          onPress={() =>
+            // navigation.replace("ChooseAAccountScreen", {
+            //   isFromRegistration: false,
+            //   accountList: getTPConnectedAccountData
+            // })
+            navigation.navigate("OnBoardingTaxProfile", {
+              selectedScreen: 1,
+              selectedYear: "2022",
+            })
+          }
+        >
+          <CtText
+            style={{
+              // textAlign: "left",
+              fontSize: 18,
+              fontFamily: "Figtree-SemiBold",
+              fontWeight: "600",
+              color: darkTheme ? defaultColors.white : defaultColors.white,
+            }}
+          >
+            Edit info
+          </CtText>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView showsVerticalScrollIndicator={false}>
         <CtView
           style={{
@@ -277,26 +312,6 @@ const SummaryScreen = ({ navigation }: any) => {
               backgroundColor: defaultColors.primaryBlue,
             }}
           >
-            <CtView
-              style={{
-                flex: 0.6,
-                justifyContent: "center",
-                alignSelf: "center",
-                backgroundColor: defaultColors.primaryBlue,
-                // marginTop: 40,
-              }}
-            ><CtText
-                style={{
-                  // textAlign: "left",
-                  fontSize: 18,
-                  fontFamily: "Figtree-SemiBold",
-                  fontWeight: "600",
-                  color: darkTheme ? defaultColors.white : defaultColors.white,
-                }}
-              >
-                {`Hi ${savedUserData.TaxPayerName}`}
-              </CtText>
-            </CtView>
             <CtView
               style={{
                 justifyContent: "center",
@@ -580,19 +595,21 @@ const SummaryScreen = ({ navigation }: any) => {
                   }}
                 />
               ) : (
-              <CtText
-                style={{
-                  // textAlign: "left",
-                  fontSize: 18,
-                  fontFamily: "Figtree-SemiBold",
-                  fontWeight: "600",
-                  color: darkTheme
-                    ? defaultColors.darkModeTextColor
-                    : defaultColors.secondaryTextColor,
-                }}
-              >
-                {incomevalue ? "Goto Dashboard" :  "No I will enter them manually"}
-              </CtText>
+                <CtText
+                  style={{
+                    // textAlign: "left",
+                    fontSize: 18,
+                    fontFamily: "Figtree-SemiBold",
+                    fontWeight: "600",
+                    color: darkTheme
+                      ? defaultColors.darkModeTextColor
+                      : defaultColors.secondaryTextColor,
+                  }}
+                >
+                  {incomevalue
+                    ? "Goto Dashboard"
+                    : "No I will enter them manually"}
+                </CtText>
               )}
             </TouchableOpacity>
           </CtView>
