@@ -4,11 +4,9 @@ import { NavigationContainer } from "@react-navigation/native";
 import { CtView } from "../components/UiComponents";
 import { useSelector, useDispatch } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { resetState } from "../store/authSlice";
 import { setTheme } from "../store/themeSlice";
 import AuthStack from "./AuthStack";
 import { RootState } from "../store"
-import jwt_decode from "jwt-decode";
 import { defaultColors } from '../utils/defaultColors';
 import { QueryClient, QueryClientProvider } from "react-query";
 

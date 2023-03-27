@@ -28,6 +28,7 @@ import {
 import { saveLoggedInSuccessUserData } from "../store/authSlice";
 import { CommonModal } from "../components";
 import { BottomButton } from "../components/BottomButton";
+import { firebase } from '@react-native-firebase/analytics';
 
 const CRAAutoFillScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -45,6 +46,14 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
   const { getSavedLoggedInData, savedUserData } = useSelector(
     (state: RootState) => state.authReducer
   );
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'car_auto_fill_screen',
+    });
+  }, []);
+
+
   useEffect(() => {
     try {
       const seperatedSinNumber =
@@ -218,6 +227,9 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
               navigation.navigate("WebViewScreen", {
                 url: resGetAfrUrl?.url,
               });
+              await firebase.analytics().logEvent("on_navigate_cra_web", {
+                TaxPayerID: savedUserData?.TaxPayerID,
+              });
             }
           } else {
             setisLoading(false);
@@ -229,6 +241,9 @@ const CRAAutoFillScreen = ({ navigation, route }: any) => {
           setisLoading(false);
           navigation.navigate("CRADetailsScreen", {
             data: GetSlipsfileRes,
+          });
+          await firebase.analytics().logEvent("on_navigate_cra_web", {
+            TaxPayerID: savedUserData?.TaxPayerID,
           });
         }
       } else {

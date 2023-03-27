@@ -27,6 +27,8 @@ import {
   GetUrlData,
 } from "../../api/auth";
 import Lottie from "lottie-react-native";
+import { firebase } from '@react-native-firebase/analytics';
+
 
 const SummaryScreen = ({ navigation }: any) => {
   const isFocused = useIsFocused();
@@ -41,9 +43,7 @@ const SummaryScreen = ({ navigation }: any) => {
   const dispatch = useDispatch();
   console.log("resGetSelectedData savedUserData", savedUserData);
   console.log("resGetSelectedData getSavedLoggedInData", getSavedLoggedInData);
-  const onPressCRAAutoFill = () => {
-    navigation.navigate("CRAAutoFillScreen");
-  };
+
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -55,6 +55,13 @@ const SummaryScreen = ({ navigation }: any) => {
   useEffect(() => {
     getTaxPriceInfo();
   }, [isFocused]);
+
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'summary_landing_screen',
+    });
+  }, []);
 
   const getTaxPriceInfo = async () => {
     setLoadingAvailable(true);
@@ -128,6 +135,11 @@ const SummaryScreen = ({ navigation }: any) => {
     console.log("onPressScanYourBill", savedUserData, resGetSelectedData);
 
     if (resGetSelectedData) {
+      await firebase.analytics().logEvent("onpressed_scan_urbill", {
+        TaxID: getSavedLoggedInData?.TaxID,
+        getSelectedData: resGetSelectedData,
+        TaxPayerID: savedUserData?.TaxPayerID,
+      });
       // setisLoading(false);
       if (resGetSelectedData.ErrCode == -1) {
         console.log("resGetSelectedData else");
@@ -178,7 +190,19 @@ const SummaryScreen = ({ navigation }: any) => {
     }
   };
 
+  const onPressCRAAutoFill = async () => {
+    navigation.navigate("CRAAutoFillScreen");
+    await firebase.analytics().logEvent("onprs_cra_autofill", {
+      TaxID: getSavedLoggedInData?.TaxID,
+      TaxPayerID: savedUserData?.TaxPayerID,
+    });
+  };
+
   const onPressEnterThemManually = async () => {
+    await firebase.analytics().logEvent("onprs_enter_them_manually", {
+      TaxID: getSavedLoggedInData?.TaxID,
+      TaxPayerID: savedUserData?.TaxPayerID,
+    });
     const getProUser = await GetProUserFlagInfo(
       {
         Year: 2022,
@@ -215,6 +239,10 @@ const SummaryScreen = ({ navigation }: any) => {
           }
         } else {
           navigation.navigate("UpgradeToPlusScreen", { isManualUpdate: true });
+          await firebase.analytics().logEvent("on_navigated_upgratescreen_from_sum", {
+            TaxID: getSavedLoggedInData?.TaxID,
+            TaxPayerID: savedUserData?.TaxPayerID,
+          });
         }
       }
     } else {

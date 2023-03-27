@@ -33,6 +33,7 @@ import { BottomButton } from "../../components/BottomButton";
 import { CustomButton } from "../../components/CustomButton";
 import { CustomInput } from "../../components/CustomInput";
 import { savePartnerDetails } from "../../store/authSlice";
+import { firebase } from '@react-native-firebase/analytics';
 
 interface Questions {
   questionId: Number;
@@ -118,6 +119,12 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
     "Divorced",
     "Seperated",
   ];
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'on_boarding_tax_profile',
+    });
+  }, []);
 
   useEffect(() => {
     // console.log("init route.params", route.params);
@@ -658,7 +665,7 @@ const OnBoardingTaxProfile = ({ navigation, route }: any) => {
       // setKeyToRerender(key + 1);
     }
   };
-  const onPressContinueButton = () => {
+  const onPressContinueButton = async () => {
     setShowModal(false);
 console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
     if(selectedProvince.ProvinceCode == 'NU' || selectedProvince.ProvinceCode == 'QC' ||selectedProvince.ProvinceCode == 'NT' || selectedProvince.ProvinceCode =='YT'){
@@ -747,6 +754,9 @@ console.log("selectedProvince.ProvinceCode", selectedProvince.ProvinceCode);
   
         dispatch(setOnBoardingData(paramsds));
         navigation.navigate("ProfileSummary", params);
+        await firebase.analytics().logEvent("profile_summary_data", {
+          params: params,
+        });
       }
     }
   };

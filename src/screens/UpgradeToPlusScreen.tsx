@@ -19,6 +19,7 @@ import { RootState } from "../store";
 import { CustomButton } from "../components/CustomButton";
 import { GetUrlData, upgradePlus } from "../api/auth";
 import * as IAP from "react-native-iap";
+import { firebase } from '@react-native-firebase/analytics';
 
 const UpgradeToPlusScreen = ({ navigation, route }: any) => {
   const dispatch = useDispatch();
@@ -72,6 +73,12 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
     );
     inAppPurchaseInit();
     return () => backHandler.remove();
+  }, []);
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'upgrade_to_plus_screen',
+    });
   }, []);
 
   useEffect(() => {
@@ -231,6 +238,10 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
         .then(async (res: any) => {
           console.log("requestSubscription: res", res);
           setisDataLoading(true);
+          await firebase.analytics().logEvent("on_subscribe_success", {
+            TaxID: getSavedLoggedInData?.TaxID,
+            TaxPayerID: savedUserData?.TaxPayerID,
+          });
           const getupgradePlus = await upgradePlus(
             {
               Year: 2022,
@@ -246,8 +257,16 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
             if (getupgradePlus.ErrCode == -1) {
               setisDataLoading(false);
               console.log("requestSubscription err:");
+              await firebase.analytics().logEvent("on_subscribe_update_failed_be", {
+                TaxID: getSavedLoggedInData?.TaxID,
+                TaxPayerID: savedUserData?.TaxPayerID,
+              });
             } else {
               onSuccessCall();
+              await firebase.analytics().logEvent("on_subscribe_update_be", {
+                TaxID: getSavedLoggedInData?.TaxID,
+                TaxPayerID: savedUserData?.TaxPayerID,
+              });
             }
           } else {
             setisDataLoading(false);
@@ -273,6 +292,10 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
   const onSuccessCall = async () => {
     if(fromAddNewaccount){
       navigation.navigate("UserNameScreen", { savedUser: savedUserData });
+      await firebase.analytics().logEvent("navigating_to_username", {
+        TaxID: getSavedLoggedInData?.TaxID,
+        TaxPayerID: savedUserData?.TaxPayerID,
+      });
     } else {
       let postData = {
         Year: 2022,
@@ -287,6 +310,10 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
           isFromEstimated: isFromManualUpdate ? false : true,
           isFromManualUpdate: isFromManualUpdate,
           isShowBackButton: false
+        });
+        await firebase.analytics().logEvent("navigating_towebview", {
+          TaxID: getSavedLoggedInData?.TaxID,
+          TaxPayerID: savedUserData?.TaxPayerID,
         });
       } else {
         Alert.alert("Something went wrong. Please try again...!");

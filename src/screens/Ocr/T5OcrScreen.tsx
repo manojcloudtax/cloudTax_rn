@@ -28,6 +28,7 @@ import {
 } from "../../api/auth";
 import { OCRDropdown } from "../../components/OCRDropdown";
 import { CheckBox } from "react-native-elements";
+import { firebase } from "@react-native-firebase/analytics";
 
 interface SlipData {
   id: Number;
@@ -167,6 +168,12 @@ const T5OcrScreen = ({ navigation, route }: any) => {
     } catch (error) {}
   }, []);
 
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 't5_ocr_screen',
+    });
+  }, []);
+  
   const setInitialDataToRender = (data: any) => {
     console.log("TsetInitialDataToRender", data);
     setScanNewLoading(false);
@@ -424,7 +431,10 @@ const T5OcrScreen = ({ navigation, route }: any) => {
       savedUserData?.token,
       "SaveT5SlipInfoList"
     );
-    if (SavedSlipInfoList) {
+    if (SavedSlipInfoList) { 
+      await firebase.analytics().logEvent("save_t5slipsuccess", {
+      TaxPayerID: savedUserData?.TaxPayerID,
+    });
       let setIncomeSlipForms = "";
 
       if (getFormsData !== undefined) {

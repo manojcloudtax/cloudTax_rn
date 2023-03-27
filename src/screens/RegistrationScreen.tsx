@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Avatar, Accessory } from "react-native-elements";
-import * as Progress from "react-native-progress";
 import { useDispatch, useSelector } from "react-redux";
 import ImagePicker from "react-native-image-crop-picker";
 
@@ -57,6 +56,7 @@ import { CustomButton } from "../components/CustomButton";
 import { CustomInput } from "../components/CustomInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Constants } from "../utils/Constants";
+import { firebase } from '@react-native-firebase/analytics';
 
 const RegisterScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -84,7 +84,11 @@ const RegisterScreen = ({ navigation, route }: any) => {
   const [isShowModal, setShowModal] = useState(false);
 
   const dispatch = useDispatch();
-
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'register_screen',
+    });
+  }, []);
   useEffect(() => {
     try {
       dispatch(setOnBoardingData({}));
@@ -253,6 +257,9 @@ const RegisterScreen = ({ navigation, route }: any) => {
             navigation.navigate("ChooseTaxYearScreen", {
               isFromRegistration: true,
             });
+            await firebase.analytics().logEvent('saved_userdataof_registred_user', {
+              savedUserData: savedUserData,
+            })
             await AsyncStorage.setItem(
               "isSetBioMetric", ""
             );

@@ -26,6 +26,7 @@ import {
   SaveShoeBoxForms,
   SaveSlipData,
 } from "../../api/auth";
+import { firebase } from "@react-native-firebase/analytics";
 
 interface SlipData {
   id: Number;
@@ -162,6 +163,12 @@ const T4EOcrScreen = ({ navigation, route }: any) => {
     } catch (error) {}
   }, []);
 
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 't4e_ocr_screen',
+    });
+  }, []);
   const setInitialDataToRender = (data: any, scanID: string) => {
     console.log("TsetInitialDataToRender", data);
     setScanNewLoading(false);
@@ -461,6 +468,9 @@ const T4EOcrScreen = ({ navigation, route }: any) => {
       "SaveT4ESlipInfoList"
     );
     if (PostT4SlipInfoList) {
+      await firebase.analytics().logEvent("save_t4e_sucss", {
+        TaxPayerID: savedUserData?.TaxPayerID,
+      });
       let setIncomeSlipForms = "";
 
       if (getFormsData !== undefined) {

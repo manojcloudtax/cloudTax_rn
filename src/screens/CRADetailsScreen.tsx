@@ -42,6 +42,7 @@ import CheckmarkIcon from "react-native-vector-icons/Octicons";
 import { CRADetailsPopUP } from "../components/CRADetailsPopUP";
 import _ from "lodash";
 import { CustomButton } from "../components/CustomButton";
+import { firebase } from '@react-native-firebase/analytics';
 
 interface Questions {
   key: Number;
@@ -73,6 +74,12 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
   const [downloadedParams, SetDownloadedParams] = useState([] as any);
   const [isDataLoading, setisDataLoading] = useState(false);
 
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'cra_details_screen',
+    });
+  }, []);
   useEffect(() => {
     setisLoading(false);
     try {
@@ -244,6 +251,10 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
           } else {
             navigation.navigate("EstimatedScreen", {
               data: GetGetT1TaxReturnInfo,
+            });
+
+            await firebase.analytics().logEvent("on_navigate_estimatescre", {
+              TaxPayerID: savedUserData?.TaxPayerID,
             });
           }
         } else {
@@ -460,6 +471,9 @@ const CRADetailsScreen = ({ navigation, route }: any) => {
       } else {
         navigation.navigate("WebViewScreen", {
           url: resGetAfrUrl?.url,
+        });
+        await firebase.analytics().logEvent("on_navigate_webv_from_cra", {
+          TaxPayerID: savedUserData?.TaxPayerID,
         });
       }
     } else {

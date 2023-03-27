@@ -30,6 +30,10 @@
       "package": "cloudtax.org.com.ctweb",
       "userInterfaceStyle": "automatic"
     },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics"
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }

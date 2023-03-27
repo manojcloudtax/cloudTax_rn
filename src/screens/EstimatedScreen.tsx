@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "../components/Header";
 import { BottomButton } from "../components/BottomButton";
 import { GetProUserFlagInfo, GetUrlData } from "../api/auth";
+import { firebase } from '@react-native-firebase/analytics';
 
 const EstimatedScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -18,6 +19,13 @@ const EstimatedScreen = ({ navigation, route }: any) => {
   const [DataToRender, setData] = useState([] as any);
   const [isDataLoading, setisDataLoading] = useState(false);
   const dispatch = useDispatch();
+
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'estimated_screen',
+    });
+  }, []);
 
   useEffect(() => {
     setisDataLoading(false);
@@ -78,6 +86,10 @@ const EstimatedScreen = ({ navigation, route }: any) => {
         }
      } else {
       navigation.navigate("UpgradeToPlusScreen");
+      await firebase.analytics().logEvent("into_upgrate_screen_fromestimated", {
+        TaxID: getSavedLoggedInData?.TaxID,
+        TaxPayerID: savedUserData?.TaxPayerID,
+      });
      }
     }
     } else {

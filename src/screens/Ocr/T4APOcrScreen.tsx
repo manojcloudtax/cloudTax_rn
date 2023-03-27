@@ -26,6 +26,7 @@ import {
   SaveSlipData,
 } from "../../api/auth";
 import { OCRDropdown } from "../../components/OCRDropdown";
+import { firebase } from "@react-native-firebase/analytics";
 
 interface SlipData {
   id: Number;
@@ -144,6 +145,12 @@ const T4APOcrScreen = ({ navigation, route }: any) => {
         console.log("T5007OcrScreen listedT4Items", listedT4Items);
       }
     } catch (error) {}
+  }, []);
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 't4ap_ocr_screen',
+    });
   }, []);
 
   const setInitialDataToRender = (data: any) => {
@@ -396,6 +403,9 @@ const T4APOcrScreen = ({ navigation, route }: any) => {
       "SaveT4APSlipInfoList"
     );
     if (SavedSlipInfoList) {
+      await firebase.analytics().logEvent("save_t4aps_slipsuccess", {
+        TaxPayerID: savedUserData?.TaxPayerID,
+      });
       let setIncomeSlipForms = "";
 
       if (getFormsData !== undefined) {

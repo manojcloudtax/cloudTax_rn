@@ -43,6 +43,7 @@ import {
   navigateToScreenFromScanning,
 } from "../../utils/OcrUtils/OcrUtils";
 import { useIsFocused } from "@react-navigation/native";
+import { firebase } from "@react-native-firebase/analytics";
 const MyTaxSlipsScreen = ({ navigation, route }: any) => {
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -72,7 +73,11 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
     (state: RootState) => state.authReducer
   );
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'mytaxlistsscreen',
+    });
+  }, []);
 
   useEffect(() => {
     try {
@@ -549,6 +554,10 @@ const MyTaxSlipsScreen = ({ navigation, route }: any) => {
                       ),
                     }
                   );
+                  await firebase.analytics().logEvent("nav_from_mytaxslip", {
+                    Type: getScannedSlipData.result.Type,
+                    TaxPayerID: savedUserData?.TaxPayerID,
+                  });
                 }
               } else {
                 Alert.alert(

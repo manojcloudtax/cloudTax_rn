@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import _ from "lodash";
 import { Header } from "../components/Header";
+import { firebase } from '@react-native-firebase/analytics';
 
 const WebViewScreen = ({ navigation, route }: any) => {
   const { getSavedLoggedInData } = useSelector(
@@ -21,7 +22,11 @@ const WebViewScreen = ({ navigation, route }: any) => {
       }
     } catch (error) {}
   }, []);
-
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'crawebviewscreen',
+    });
+  }, []);
   const onNavigationStateChange = async (webViewState: any) => {
     console.log("onNavigationStateChange webViewState", webViewState);
     //   var regex = /[?&]([^=#]+)=([^&#]*)/g,
@@ -66,6 +71,9 @@ const WebViewScreen = ({ navigation, route }: any) => {
       // var encoded = base64.decode(params);
       // console.log("params encoded", encoded);
       console.log("params encodednew", encodednew);
+      await firebase.analytics().logEvent("cra_token_sucs", {
+        TaxID: getSavedLoggedInData?.TaxID,
+      });
       navigation.navigate("CRADetailsScreen", {
         data : [],
         t: encodednew

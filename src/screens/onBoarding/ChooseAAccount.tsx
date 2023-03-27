@@ -7,20 +7,17 @@ import {
   SafeAreaView,
   FlatList,
   BackHandler,
-  Alert,
 } from "react-native";
-import { Button, CtText, CtView } from "../../components/UiComponents";
+import { CtText, CtView } from "../../components/UiComponents";
 import { defaultColors } from "../../utils/defaultColors";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { getAllProvince, GetProUserFlagInfo, SaveMultiTaxYearIndicatorInfo } from "../../api/auth";
+import { GetProUserFlagInfo } from "../../api/auth";
 import {
     saveRegisteredSuccessUserData,
-  setIsPriorYearModalSelected,
-  setProvinces,
 } from "../../store/authSlice";
-import { useQuery } from "react-query";
 import { BottomButton } from "../../components/BottomButton";
+import { firebase } from '@react-native-firebase/analytics';
 
 interface NameSelection {
     AcctID: Number;
@@ -50,6 +47,9 @@ const ChooseAAccount = ({ navigation, route }: any) => {
   const [isFromRegistrationValue, setisFromRegistrationValue] = useState(false);
 
   useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'choose_a_account_screen',
+    });
   }, []);
 
   useEffect(() => {
@@ -187,8 +187,15 @@ const ChooseAAccount = ({ navigation, route }: any) => {
         } else {
          if(getProUser.IsPro === 'Y'){
           navigation.navigate("UserNameScreen", { savedUser: savedUserData });
+          await firebase.analytics().logEvent("is_pro", {
+            isPro: getProUser.IsPro,
+            savedUserData: savedUserData,
+          });
          } else {
           navigation.navigate("UpgradeToPlusScreen", { isManualUpdate: false, isfromAddNewaccount: true });
+          await firebase.analytics().logEvent("into_upgrate_from_choosAcc", {
+            TaxPayerID: savedUserData?.TaxPayerID,
+          });
          }
         }
         }

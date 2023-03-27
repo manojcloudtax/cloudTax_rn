@@ -44,6 +44,7 @@ import { CustomButton } from "../components/CustomButton";
 import { CustomInput } from "../components/CustomInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Constants } from "../utils/Constants";
+import { firebase } from '@react-native-firebase/analytics';
 
 const UserNameScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -76,7 +77,11 @@ const UserNameScreen = ({ navigation, route }: any) => {
       }
     } catch (error) {}
   }, []);
-
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'user_name_screen',
+    });
+  }, []);
 
   const onPressLastStep = async () => {
     setisLoading(true);
@@ -171,6 +176,9 @@ const UserNameScreen = ({ navigation, route }: any) => {
             );
             navigation.navigate("ChooseTaxYearScreen", {
               isFromRegistration: true,
+            });
+            await firebase.analytics().logEvent("navigating_totaxyr", {
+              TaxPayerID: resSaveTaxpayer.TaxPayerID,
             });
           }
         } else {

@@ -39,6 +39,8 @@ import { useDispatch } from "react-redux";
 import { CommonModal } from "../../components";
 import { CustomButton } from "../../components/CustomButton";
 import { CustomInput } from "../../components/CustomInput";
+import { firebase } from '@react-native-firebase/analytics';
+
 
 const ProfileSummary = ({ navigation, route }: any) => {
   const { savedUserData,getSavedLoggedInData, getPartnerDetails, saveTPAccountData } = useSelector(
@@ -72,6 +74,13 @@ const ProfileSummary = ({ navigation, route }: any) => {
   const [loadingAvailable, setisLoading] = useState<boolean>(false);
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'profile_summary_screen',
+    });
+  }, []);
+
   useEffect(() => {
     setisLoading(false);
     try {
@@ -678,6 +687,9 @@ setShowModal(true);
             } 
             console.log("GetTaxPayerMyProfile success", GetTaxPayerMyProfile);
             navigation.navigate("DateOfBirthScreen");
+            await firebase.analytics().logEvent("on_navigate_to_dobview", {
+              TaxID: resSaveTaxpayer?.TaxID,
+            });
           }
         } else {
           console.log("GetTaxPayerMyProfile else");

@@ -10,6 +10,7 @@ import { WebView } from "react-native-webview";
 import { useSelector } from "react-redux";
 import { Header } from "../components/Header";
 import { RootState } from "../store";
+import { firebase } from '@react-native-firebase/analytics';
 
 const WebViewWithoutPopUp = ({ navigation, route }: any) => {
   const [url, setUrl] = useState("");
@@ -31,8 +32,15 @@ const WebViewWithoutPopUp = ({ navigation, route }: any) => {
       }
     } catch (error) {}
   }, []);
-
-  const onBackButtonPress = () => {
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'ctwebviewscreen',
+    });
+  }, []);
+  const onBackButtonPress = async () => {
+    await firebase.analytics().logEvent("webviewgoback", {
+      savedUserData: savedUserData,
+    });
     if (isFromEstimatedScreen) {
       navigation.navigate("EstimatedScreen");
     } else if (isManualUpdate) {

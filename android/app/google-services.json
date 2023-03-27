@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "476797902986",
+    "project_id": "dynamic-reef-275903",
+    "storage_bucket": "dynamic-reef-275903.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:476797902986:android:6fb18b9757a0b974f04d73",
+        "android_client_info": {
+          "package_name": "cloudtax.org.com.ctweb"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "476797902986-busod4go21qot1i1n4jir13oavvqo9ks.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cloudtax.org.com.ctweb",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "476797902986-18oks846ap7i93dgkt7dogo5kv6s5lbl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDZb4Lk7RQdOpqEvcBCsvoQX1kxY3XpwA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "476797902986-18oks846ap7i93dgkt7dogo5kv6s5lbl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,23 +1,3 @@
-// import React from 'react'
-// import { StyleSheet, Text, View,StatusBar,Image, ImageBackground } from 'react-native'
-// // import {Colors} from '../../src/constants'
-
-// import * as SplashScreen from 'expo-splash-screen';
-
-// const SplashScreenView = ({ navigation }: any) => {
-//   SplashScreen.hideAsync();
-//     setTimeout(()=>{
-//         navigation.replace('RegisterScreen')
-//     },1000)
-//     return (
-//         <ImageBackground source={require('../../assets/splash.png')} resizeMode={'contain'} style={{flex:1,backgroundColor:'white'}} />
-//     )
-// }
-
-// export default SplashScreenView
-
-// const styles = StyleSheet.create({})
-
 import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
@@ -46,9 +26,21 @@ import { defaultColors } from "../utils/defaultColors";
 import { CtText, CtView } from "../components/UiComponents";
 import { BottomButton } from "../components/BottomButton";
 import { Constants } from "../utils/Constants";
+// import firebaseApp from '@react-native-firebase/app';
+import { firebase } from "@react-native-firebase/analytics";
+import crashlytics from '@react-native-firebase/crashlytics';
 // import WelcomeComponent from './WelcomeComponent';
 SplashScreen.preventAutoHideAsync();
 const SplashScreenView = ({ navigation }: any) => {
+  useEffect(() => {
+    // firebaseApp.initializeApp();
+
+    firebase.analytics().logScreenView({
+      screen_name: "splash_screen",
+    });
+
+    crashlytics().setCrashlyticsCollectionEnabled(true);
+  }, []);
   //This state keeps track if the app has rendered
   const [ready, setReady] = useState();
   const dispatch = useDispatch();
@@ -58,25 +50,32 @@ const SplashScreenView = ({ navigation }: any) => {
   const readyApp = async () => {
     try {
       // Keep the splash screen visible while we fetch resources
-      console.log(
-        "Trigger the Splash Screen visible till this try block resolves the promise"
-      );
+      // console.log(
+      //   "Trigger the Splash Screen visible till this try block resolves the promise"
+      // );
+      try {
+        let postData = {
+          app: "ca",
+          version: Constants.AppVersion,
+          platform: "android",
+        };
 
-      let postData = {
-        app: "ca",
-        version: Constants.AppVersion,
-        platform: "android",
-      };
+        const GetStatus = await GetForceUpdateStatus(postData);
 
-      const GetStatus = await GetForceUpdateStatus(
-        postData
-      );
-
-      if (GetStatus.forceUpdate) {
-        console.log("GetForceUpdateStatus", GetStatus);
-        setShowModal(true);
-      } else {
-        console.log("GetForceUpdateStatus 2", GetStatus);
+        if (GetStatus.forceUpdate) {
+          console.log("GetForceUpdateStatus", GetStatus);
+          setShowModal(true);
+          await firebase.analytics().logEvent("force_update", {
+            forceUpdate: GetStatus.forceUpdate,
+            version: Constants.AppVersion,
+          });
+        } else {
+          console.log("GetForceUpdateStatus 2", GetStatus);
+          await SplashScreen.hideAsync();
+          navigation.navigate("LoginScreen");
+        }
+      } catch (error) {
+        console.log("postData error", error);
         await SplashScreen.hideAsync();
         navigation.navigate("LoginScreen");
       }
@@ -101,10 +100,9 @@ const SplashScreenView = ({ navigation }: any) => {
             getFormattedSavedUserData
           );
           dispatch(saveRegisteredSuccessUserData(getFormattedSavedUserData));
-
         } else {
-          await SplashScreen.hideAsync();
-          navigation.navigate("LoginScreen");
+          // await SplashScreen.hideAsync();
+          // navigation.navigate("LoginScreen");
         }
 
         // const getSavedUserData = await AsyncStorage.getItem(
@@ -147,9 +145,9 @@ const SplashScreenView = ({ navigation }: any) => {
         // }
       } catch (error) {
         // Error retrieving data
-        await SplashScreen.hideAsync();
-        console.log("getUrl error", error);
-        navigation.navigate("LoginScreen");
+        // await SplashScreen.hideAsync();
+        // console.log("getUrl error", error);
+        // navigation.navigate("LoginScreen");
       }
 
       //Explicit delay to mock some loading time
@@ -183,16 +181,19 @@ const SplashScreenView = ({ navigation }: any) => {
   const onPressOkay = async () => {
     setShowModal(false);
     await SplashScreen.hideAsync();
-    let url = "https://play.google.com/store/apps/details?id=cloudtax.org.com.ctweb&pli=1";
+    let url =
+      "https://play.google.com/store/apps/details?id=cloudtax.org.com.ctweb&pli=1";
     Linking.canOpenURL(url)
-    .then(supported => {
-      if (!supported) {
+      .then((supported) => {
+        if (!supported) {
+          return Linking.openURL(url);
+        } else {
+          return Linking.openURL(url);
+        }
+      })
+      .catch((err) => {
         return Linking.openURL(url);
-      } else {
-        return Linking.openURL(url);
-      }
-    })
-    .catch(err => {return Linking.openURL(url);});
+      });
   };
   const ErrorModal = () => {
     return (

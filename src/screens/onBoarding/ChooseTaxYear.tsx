@@ -33,6 +33,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getMaritalStatusValue, getRealYNValue, getTaxPayerPreviousMaritalStatusValue } from "../../utils/common";
 import { setOnBoardingData } from "../../store/onBoardingSlice";
 import { Header } from "../../components/Header";
+import { firebase } from '@react-native-firebase/analytics';
+
 const ChooseTaxYear = ({ navigation, route }: any) => {
   const dispatch = useDispatch();
   useEffect(() => {
@@ -56,6 +58,11 @@ const ChooseTaxYear = ({ navigation, route }: any) => {
     refetch();
   }, []);
 
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'choosetaxyearscreen',
+    });
+  }, []);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -382,12 +389,20 @@ If you intend to file more than one of these returns today or within the next tw
           if (GetTaxPayerPersonalResponse) {
             if (GetTaxPayerPersonalResponse?.TaxID !== null) {
                         navigation.replace("SummaryScreen");
+                        await firebase.analytics().logEvent("choosetaxyear_taxID", {
+                          TaxPayerID: savedUserData?.TaxPayerID,
+                        });
                       } else {
                         navigation.navigate("OnBoardingTaxProfile", {
                           selectedScreen: 1,
                           selectedYear: "2022",
                         })
-
+                        await firebase.analytics().logEvent("choose_taxyear_onboarding", {
+                          TaxPayerID: savedUserData?.TaxPayerID,
+                        });
+                        await firebase.analytics().logEvent("choose_tax_year", {
+                          TaxPayerID: savedUserData?.TaxPayerID,
+                        });
                       }
           } else {
             navigation.navigate("OnBoardingTaxProfile", {
@@ -421,7 +436,7 @@ If you intend to file more than one of these returns today or within the next tw
   return (
     <SafeAreaView style={styles(darkTheme).view}>
 
-<Header onPressbackButton={() => onBackdropPress()} />
+{/* <Header onPressbackButton={() => onBackdropPress()} /> */}
       <CommonModal
         isShowModal={isShowModal}
         ChildView={confirmationModal()}

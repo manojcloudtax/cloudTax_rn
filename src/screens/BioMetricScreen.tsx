@@ -22,6 +22,7 @@ import { decryptAccounts, encryptData } from "../utils/crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CustomButton } from "../components/CustomButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { firebase } from '@react-native-firebase/analytics';
 
 
 const BioMetricScreen = ({ navigation, route }: any) => {
@@ -40,7 +41,11 @@ const BioMetricScreen = ({ navigation, route }: any) => {
   const dispatch = useDispatch();
   const [accountListInfo, setAccountListInfo] = useState('');
 
-
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'biometricscreen',
+    });
+  }, []);
   useEffect(() => {
     DeviceCrypto.getBiometryType()
       .then((type) => {
@@ -86,6 +91,10 @@ const BioMetricScreen = ({ navigation, route }: any) => {
             await AsyncStorage.setItem(
               "isSetBioMetric", "true"
             );
+
+            await firebase.analytics().logEvent('is_biometric_set', {
+              isSetBioMetric: "true",
+            })
             // if(isTaxID !== null && isTaxID !== undefined){
             //   navigation.replace("SummaryScreen");
             // } else {

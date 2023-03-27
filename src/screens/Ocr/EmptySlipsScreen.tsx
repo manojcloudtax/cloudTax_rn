@@ -24,6 +24,7 @@ import { CustomButton } from "../../components/CustomButton";
 import { ImageUploadComponent } from "../../components/ImageUploadComponent";
 import { navigateToScreenFromScanning } from "../../utils/OcrUtils/OcrUtils";
 import { getScannedSlip, scanSlip } from "../../api/auth";
+import { firebase } from "@react-native-firebase/analytics";
 
 const EmptySlipsScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -35,7 +36,11 @@ const EmptySlipsScreen = ({ navigation, route }: any) => {
     (state: RootState) => state.authReducer
   );
   const dispatch = useDispatch();
-
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'emptyslipsscreen',
+    });
+  }, []);
   useEffect(() => {
     try {
       if (route.params !== undefined) {

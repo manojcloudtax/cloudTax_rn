@@ -25,6 +25,9 @@ import { saveLoggedInSuccessUserData } from "../store/authSlice";
 import { CustomButton } from "../components/CustomButton";
 import { Header } from "../components/Header";
 import { useIsFocused } from "@react-navigation/native";
+import { firebase } from '@react-native-firebase/analytics';
+
+
 const DateOfBirthScreen = ({ navigation, route }: any) => {
   const isFocused = useIsFocused();
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -44,6 +47,13 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [loadingAvailable, setisLoading] = useState<boolean>(false);
+
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'dob_screen',
+    });
+  }, []);
 
   useEffect(() => {
     setisLoading(false);
@@ -168,6 +178,9 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
                 resGetTaxPayerMyProfileInfo2
               );
               navigation.navigate("SummaryScreen");
+              await firebase.analytics().logEvent("navigatetosummary", {
+                TaxPayerID: savedUserData?.TaxPayerID,
+              });
             }
           } else {
             Alert.alert("Something went wrong, please try again.");

@@ -24,6 +24,7 @@ import {
   SaveShoeBoxForms,
   SaveSlipData,
 } from "../../api/auth";
+import { firebase } from "@react-native-firebase/analytics";
 
 interface SlipData {
   id: Number;
@@ -74,6 +75,12 @@ const T5007OcrScreen = ({ navigation, route }: any) => {
     // { id: 12, boxNo: 11,name: "Social assistance payment (Spouse)", box: "Box11_spouse_assist_payment", value: "0.00" },
   ];
 
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 't5007_ocr_screen',
+    });
+  }, []);
+  
   useEffect(() => {
     try {
       if (route.params !== undefined) {
@@ -310,7 +317,10 @@ const T5007OcrScreen = ({ navigation, route }: any) => {
       savedUserData?.token,
       'SaveT5007SlipInfoList'
     );
-    if (SavedSlipInfoList) {
+    if (SavedSlipInfoList) { 
+      await firebase.analytics().logEvent("save_t5007_success", {
+      TaxPayerID: savedUserData?.TaxPayerID,
+    });
       let setIncomeSlipForms = "";
 
       if (getFormsData !== undefined) {

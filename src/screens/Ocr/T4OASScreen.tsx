@@ -25,6 +25,7 @@ import {
   SaveShoeBoxForms,
   SaveSlipData,
 } from "../../api/auth";
+import { firebase } from "@react-native-firebase/analytics";
 
 interface SlipData {
   id: Number;
@@ -126,6 +127,13 @@ const T4OASScreen = ({ navigation, route }: any) => {
     } catch (error) {}
   }, []);
 
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 't4_oas_ocrscreen',
+    });
+  }, []);
+  
   const setInitialDataToRender = (data: any) => {
     console.log("TsetInitialDataToRender", data);
     setInitialDataFromOCR(data);
@@ -320,6 +328,9 @@ const T4OASScreen = ({ navigation, route }: any) => {
       "SaveT4AOASSlipInfo"
     );
     if (SavedSlipInfoList) {
+      await firebase.analytics().logEvent("save_t4oas_success", {
+        TaxPayerID: savedUserData?.TaxPayerID,
+      });
       let setIncomeSlipForms = "";
 
       if (getFormsData !== undefined) {

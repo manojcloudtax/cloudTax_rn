@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Alert,
@@ -18,6 +18,7 @@ import { RootState } from "../store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CustomInput } from "../components/CustomInput";
 import { CustomButton } from "../components/CustomButton";
+import { firebase } from '@react-native-firebase/analytics';
 
 const ForgotPasswordScreen = ({ navigation }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -25,7 +26,11 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const dispatch = useDispatch();
-
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'forgotpasswordscreen',
+    });
+  }, []);
   const { isLoading, refetch } = useQuery(
     "UserRegistration",
     () =>

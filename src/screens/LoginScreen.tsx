@@ -17,7 +17,6 @@ import {
   TextButton,
   Divider,
 } from "../components/UiComponents";
-import { Spinner, ErrorMessage } from "../components";
 import { useDispatch } from "react-redux";
 import {
   login,
@@ -33,15 +32,12 @@ import {
 } from "../store/authSlice";
 import { defaultColors } from "../utils/defaultColors";
 import {
-  GetTaxPayerMyProfileInfo,
   GetTaxPayerPersonalInfo,
   loginUser,
   GetTPAccountInfo,
   getAllProvince,
-  GetTaxPayerList,
   SaveAccountCarryForwardInfo,
 } from "../api/auth";
-import { useQuery } from "react-query";
 import { validateEmail } from "../utils/email";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
@@ -52,14 +48,10 @@ import {
   setOnBoardingData,
   resetOnBoardingData,
 } from "../store/onBoardingSlice";
-import {
-  getRealYNValue,
-  getMaritalStatusValue,
-  getTaxPayerPreviousMaritalStatusValue,
-} from "../utils/common";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CustomButton } from "../components/CustomButton";
 import { CustomInput } from "../components/CustomInput";
+import { firebase } from '@react-native-firebase/analytics';
 
 const LoginScreen = ({ navigation }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -77,6 +69,12 @@ const LoginScreen = ({ navigation }: any) => {
   const [accounts, setAccounts] = useState(new Set([]));
   const [alias, setAlias] = React.useState<string>("test");
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    firebase.analytics().logScreenView({
+      screen_name: 'login_screen',
+    });
+  }, []);
   // this will check the device security is enabled and the level if it has a biometrics
   useEffect(() => {
     dispatch(setOnBoardingData({}));
@@ -156,6 +154,11 @@ const LoginScreen = ({ navigation }: any) => {
         await AsyncStorage.setItem("password", pass);
 
         if (data.CarryFwdState == "Y") {
+          async () =>
+          await firebase.analytics().logEvent('carry_fwd_state_yes', {
+            AcctEmail: AcctEmail,
+            data: data,
+          })
           const resSaveAccountCarryForwardInfo =
             await SaveAccountCarryForwardInfo({
               AcctID: data?.AcctID,
@@ -174,6 +177,10 @@ const LoginScreen = ({ navigation }: any) => {
             onSuccessCallBack(data);
           }
         } else {
+          await firebase.analytics().logEvent('carry_fwd_state_no', {
+            AcctEmail: AcctEmail,
+            data: data,
+          })
           onSuccessCallBack(data);
         }
       }
