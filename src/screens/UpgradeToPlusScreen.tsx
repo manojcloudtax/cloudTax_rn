@@ -19,7 +19,7 @@ import { RootState } from "../store";
 import { CustomButton } from "../components/CustomButton";
 import { GetUrlData, upgradePlus } from "../api/auth";
 import * as IAP from "react-native-iap";
-import { firebase } from '@react-native-firebase/analytics';
+import { firebase } from "@react-native-firebase/analytics";
 
 const UpgradeToPlusScreen = ({ navigation, route }: any) => {
   const dispatch = useDispatch();
@@ -37,7 +37,8 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
   const [isDataLoading, setisDataLoading] = useState(false);
   const [isFromManualUpdate, SetisFromManualUpdate] = useState(false);
   const [fromAddNewaccount, SetisfromAddNewaccount] = useState(false);
-
+  let purchaseUpdateSubscription;
+  let purchaseErrorSubscription;
   const availableFeatures = [
     "Unlock 20 returns per account",
     "Unlimited Tax & technical support (live-chat & email)",
@@ -77,7 +78,7 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
 
   useEffect(() => {
     firebase.analytics().logScreenView({
-      screen_name: 'upgrade_to_plus_screen',
+      screen_name: "upgrade_to_plus_screen",
     });
   }, []);
 
@@ -124,6 +125,75 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
         setConnected(false);
       })
       .then(async () => {
+        console.log("initConnection");
+        await IAP.flushFailedPurchasesCachedAsPendingAndroid().catch(() => {
+          // exception can happen here if:
+          // - there are pending purchases that are still pending (we can't consume a pending purchase)
+          // in any case, you might not want to do anything special with the error
+        })
+        .then(() => {
+
+        purchaseUpdateSubscription = IAP.purchaseUpdatedListener(
+          (purchase: InAppPurchase | SubscriptionPurchase) => {
+            console.log("purchaseUpdatedListener:", purchase);
+            const receipt = purchase.purchaseToken;
+            // Platform.OS === 'ios' ? purchase.transactionReceipt : purchase.purchaseToken;
+            if (receipt) {
+              console.log("purchaseUpdatedListener: receipt", receipt);
+              IAP.finishTransaction({ purchase, isConsumable: false })
+                .then(async () => {
+                  console.log("finishTransaction");
+                  const getupgradePlus = await upgradePlus(
+                    {
+                      Year: 2022,
+                      TaxPayerID: savedUserData?.TaxPayerID,
+                      AcctID: savedUserData?.AcctID,
+                      TaxID: getSavedLoggedInData?.TaxID,
+                      token: savedUserData?.token,
+                    },
+                    savedUserData?.token
+                  );
+                  console.log("getupgradePlus getupgradePlus:", getupgradePlus);
+                  if (getupgradePlus) {
+                    if (getupgradePlus.ErrCode == -1) {
+                      setisDataLoading(false);
+                      console.log("requestSubscription err:");
+                      await firebase
+                        .analytics()
+                        .logEvent("on_subscribe_update_failed_be", {
+                          TaxID: getSavedLoggedInData?.TaxID,
+                          TaxPayerID: savedUserData?.TaxPayerID,
+                        });
+                    } else {
+                      onSuccessCall();
+                      await firebase
+                        .analytics()
+                        .logEvent("on_subscribe_update_be", {
+                          TaxID: getSavedLoggedInData?.TaxID,
+                          TaxPayerID: savedUserData?.TaxPayerID,
+                        });
+                    }
+                  } else {
+                    setisDataLoading(false);
+                  }
+                })
+                .catch((err) => {
+                  console.log("finishTransaction", err);
+                });
+            }
+          }
+        );
+
+        purchaseErrorSubscription = IAP.purchaseErrorListener(
+          (error: PurchaseError) => {
+            // console.debug("purchaseErrorListener");
+            // console.error(error);
+            if (error.code !== "E_USER_CANCELLED") {
+              // Alert.alert('purchase is failed');
+            }
+          }
+        )});
+
         const x = await IAP.getSubscriptions({
           skus: subscription_ids as string[],
         }).catch((error) => {
@@ -140,7 +210,6 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
         console.log("SUBSCRIPTION RESULT(s):", res);
         setSubscriptionResluts(res);
       });
-
     IAP.getPurchaseHistory()
       .catch((error) => {
         console.log("error fetching purchase history", error);
@@ -236,41 +305,41 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
         ],
       })
         .then(async (res: any) => {
-          console.log("requestSubscription: res", res);
+          // console.log("requestSubscription: res", res);
           setisDataLoading(true);
           await firebase.analytics().logEvent("on_subscribe_success", {
             TaxID: getSavedLoggedInData?.TaxID,
             TaxPayerID: savedUserData?.TaxPayerID,
           });
-          const getupgradePlus = await upgradePlus(
-            {
-              Year: 2022,
-              TaxPayerID: savedUserData?.TaxPayerID,
-              AcctID: savedUserData?.AcctID,
-              TaxID: getSavedLoggedInData?.TaxID,
-              token: savedUserData?.token,
-            },
-            savedUserData?.token
-          );
-          console.log("getupgradePlus getupgradePlus:", getupgradePlus);
-          if (getupgradePlus) {
-            if (getupgradePlus.ErrCode == -1) {
-              setisDataLoading(false);
-              console.log("requestSubscription err:");
-              await firebase.analytics().logEvent("on_subscribe_update_failed_be", {
-                TaxID: getSavedLoggedInData?.TaxID,
-                TaxPayerID: savedUserData?.TaxPayerID,
-              });
-            } else {
-              onSuccessCall();
-              await firebase.analytics().logEvent("on_subscribe_update_be", {
-                TaxID: getSavedLoggedInData?.TaxID,
-                TaxPayerID: savedUserData?.TaxPayerID,
-              });
-            }
-          } else {
-            setisDataLoading(false);
-          }
+          // const getupgradePlus = await upgradePlus(
+          //   {
+          //     Year: 2022,
+          //     TaxPayerID: savedUserData?.TaxPayerID,
+          //     AcctID: savedUserData?.AcctID,
+          //     TaxID: getSavedLoggedInData?.TaxID,
+          //     token: savedUserData?.token,
+          //   },
+          //   savedUserData?.token
+          // );
+          // console.log("getupgradePlus getupgradePlus:", getupgradePlus);
+          // if (getupgradePlus) {
+          //   if (getupgradePlus.ErrCode == -1) {
+          //     setisDataLoading(false);
+          //     console.log("requestSubscription err:");
+          //     await firebase.analytics().logEvent("on_subscribe_update_failed_be", {
+          //       TaxID: getSavedLoggedInData?.TaxID,
+          //       TaxPayerID: savedUserData?.TaxPayerID,
+          //     });
+          //   } else {
+          //     onSuccessCall();
+          //     await firebase.analytics().logEvent("on_subscribe_update_be", {
+          //       TaxID: getSavedLoggedInData?.TaxID,
+          //       TaxPayerID: savedUserData?.TaxPayerID,
+          //     });
+          //   }
+          // } else {
+          //   setisDataLoading(false);
+          // }
         })
         .catch((err: any) => {
           console.log("requestSubscription err:", err);
@@ -282,15 +351,15 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
   };
 
   const onPressClose = () => {
-    if(fromAddNewaccount){
-   navigation.goBack()
-    }else{
+    if (fromAddNewaccount) {
+      navigation.goBack();
+    } else {
       onSuccessCall();
     }
   };
 
   const onSuccessCall = async () => {
-    if(fromAddNewaccount){
+    if (fromAddNewaccount) {
       navigation.navigate("UserNameScreen", { savedUser: savedUserData });
       await firebase.analytics().logEvent("navigating_to_username", {
         TaxID: getSavedLoggedInData?.TaxID,
@@ -309,7 +378,7 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
           url: getUrl.url,
           isFromEstimated: isFromManualUpdate ? false : true,
           isFromManualUpdate: isFromManualUpdate,
-          isShowBackButton: false
+          isShowBackButton: false,
         });
         await firebase.analytics().logEvent("navigating_towebview", {
           TaxID: getSavedLoggedInData?.TaxID,
@@ -319,7 +388,6 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
         Alert.alert("Something went wrong. Please try again...!");
       }
     }
-
   };
 
   return (

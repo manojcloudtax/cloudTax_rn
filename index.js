@@ -1,3 +1,9 @@
+if(!__DEV__) {
+    console.log = () => {}
+    console.error = () => {}
+    console.debug = () => {}
+}
+
 import { registerRootComponent } from 'expo';
 
 import App from './App';
