@@ -35,6 +35,7 @@ import {
   SaveTaxpayerProfileInfo,
   GetTaxPayerMyProfileInfo,
   GetTaxPayerPersonalInfo,
+  SendGirdContactUpdate,
 } from "../api/auth";
 import {
   imageUpload,
@@ -44,7 +45,7 @@ import {
   saveLoggedInSuccessUserData,
   resetAllStateData,
   savePartnerDetails,
-  saveGetTPAccountData
+  saveGetTPAccountData,
 } from "../store/authSlice";
 import { RootState } from "../store";
 import axios from "axios";
@@ -56,7 +57,8 @@ import { CustomButton } from "../components/CustomButton";
 import { CustomInput } from "../components/CustomInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Constants } from "../utils/Constants";
-import { firebase } from '@react-native-firebase/analytics';
+import { firebase } from "@react-native-firebase/analytics";
+import moment from "moment";
 
 const RegisterScreen = ({ navigation, route }: any) => {
   const { darkTheme } = useSelector((state: RootState) => state.themeReducer);
@@ -86,7 +88,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
   const dispatch = useDispatch();
   useEffect(() => {
     firebase.analytics().logScreenView({
-      screen_name: 'register_screen',
+      screen_name: "register_screen",
     });
   }, []);
   useEffect(() => {
@@ -124,6 +126,19 @@ const RegisterScreen = ({ navigation, route }: any) => {
             Alert.alert("Something went wrong, please try again.");
           }
         } else {
+          const formattedDate = moment().format("MM/DD/YYYY");
+          let postData = {
+            TaxPayerID: data?.TaxPayerID,
+            AcctID: data?.AcctID,
+            Year: 2022,
+            data: { AccountCreated: formattedDate },
+          }
+          const resSendGirdContactUpdate = await SendGirdContactUpdate(
+            postData,
+            data?.token
+          );
+         
+          console.log("resSendGirdContactUpdate", resSendGirdContactUpdate);
           const GetTaxPayerPersonalResponse = await GetTaxPayerPersonalInfo({
             AcctID: data?.AcctID,
             TaxPayerID: data?.TaxPayerID,
@@ -148,9 +163,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
                 JSON.stringify(GetTaxPayerPersonalResponse)
               );
               await AsyncStorage.setItem("setOnBoardingData", "");
-              await AsyncStorage.setItem(
-                "isSetBioMetric", ""
-              );
+              await AsyncStorage.setItem("isSetBioMetric", "");
               dispatch(setOnBoardingData({}));
               dispatch(saveGetTPAccountData([]));
             }
@@ -211,11 +224,7 @@ const RegisterScreen = ({ navigation, route }: any) => {
             },
           };
           axios
-            .post(
-              Constants.baseURL+"/user/profile-img",
-              formData,
-              config
-            )
+            .post(Constants.baseURL + "/user/profile-img", formData, config)
             .then((res) => {
               setisLoading(false);
               console.log(res + "this is data after image upload");
@@ -257,12 +266,12 @@ const RegisterScreen = ({ navigation, route }: any) => {
             navigation.navigate("ChooseTaxYearScreen", {
               isFromRegistration: true,
             });
-            await firebase.analytics().logEvent('saved_userdataof_registred_user', {
-              savedUserData: savedUserData,
-            })
-            await AsyncStorage.setItem(
-              "isSetBioMetric", ""
-            );
+            await firebase
+              .analytics()
+              .logEvent("saved_userdataof_registred_user", {
+                savedUserData: savedUserData,
+              });
+            await AsyncStorage.setItem("isSetBioMetric", "");
           }
         } else {
           setisLoading(false);
@@ -631,9 +640,11 @@ const RegisterScreen = ({ navigation, route }: any) => {
   }, [password, setPassword, passwordError]);
 
   const onPressText = (url: String) => {
-    navigation.navigate("WebViewWithoutPopUp", { url: url,
+    navigation.navigate("WebViewWithoutPopUp", {
+      url: url,
       isFromEstimated: false,
-      isShowBackButton: true });
+      isShowBackButton: true,
+    });
   };
 
   const onBackdropPress = () => {

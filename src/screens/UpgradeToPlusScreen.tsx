@@ -17,7 +17,7 @@ import { defaultColors } from "../utils/defaultColors";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { CustomButton } from "../components/CustomButton";
-import { GetUrlData, upgradePlus } from "../api/auth";
+import { GetUrlData, SendGirdContactUpdate, upgradePlus } from "../api/auth";
 import * as IAP from "react-native-iap";
 import { firebase } from "@react-native-firebase/analytics";
 
@@ -165,6 +165,17 @@ const UpgradeToPlusScreen = ({ navigation, route }: any) => {
                           TaxPayerID: savedUserData?.TaxPayerID,
                         });
                     } else {
+                      let postData = {
+                        TaxPayerID: savedUserData?.TaxPayerID,
+                        AcctID: savedUserData?.AcctID,
+                        Year: 2022,
+                      }
+                      const resSendGirdContactUpdate = await SendGirdContactUpdate(
+                        postData,
+                        savedUserData?.token
+                      );
+                     
+                      console.log("resSendGirdContactUpdate", resSendGirdContactUpdate);
                       onSuccessCall();
                       await firebase
                         .analytics()

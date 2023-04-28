@@ -20,6 +20,7 @@ import {
   GetSlips,
   GetTaxPayerPersonalInfo,
   SaveTaxPayerPersonalInfo,
+  SendGirdContactUpdate,
 } from "../api/auth";
 import { saveLoggedInSuccessUserData } from "../store/authSlice";
 import { CustomButton } from "../components/CustomButton";
@@ -177,6 +178,18 @@ const DateOfBirthScreen = ({ navigation, route }: any) => {
                 "resGetAfrUrl resGetTaxPayerMyProfileInfo2",
                 resGetTaxPayerMyProfileInfo2
               );
+              let postData = {
+                TaxPayerID: savedUserData?.TaxPayerID,
+                AcctID: savedUserData?.AcctID,
+                Year: 2022,
+              }
+              const resSendGirdContactUpdate = await SendGirdContactUpdate(
+                postData,
+                savedUserData?.token
+              );
+             
+              console.log("resSendGirdContactUpdate", resSendGirdContactUpdate);
+              
               navigation.navigate("SummaryScreen");
               await firebase.analytics().logEvent("navigatetosummary", {
                 TaxPayerID: savedUserData?.TaxPayerID,

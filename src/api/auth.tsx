@@ -1019,4 +1019,22 @@ export const SaveAccountCarryForwardInfo = (postData: {
       return null;
     });
 
+export const SendGirdContactUpdate = (postData: any, userToken: string) =>
+  shoebox
+    .post("/sendgrid/contact/update", postData, {
+      headers: { Authorization: `Bearer ${userToken}` },
+    })
+    .then((res) => {
+      console.log("SendGirdContactUpdate", res);
+      console.log(
+        "SendGirdContactUpdate SaveAccountCarryForwardInfo",
+        postData
+      );
+      return res.data;
+    })
+    .catch((res) => {
+      console.log("SendGirdContactUpdate catch", res);
+      return null;
+    });
+
 export default auth;
