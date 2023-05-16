@@ -149,8 +149,8 @@ packagingOptions {
         applicationId 'cloudtax.org.com.ctweb'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1700000100
-        versionName "4.7.0"
+        versionCode 1700000000
+        versionName "4.6.0"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
         missingDimensionStrategy "store", "play"
 
